@@ -20,18 +20,18 @@
     var CONFIG = {"hostname":"zoiltin.github.io","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="前言题目很有趣，遇到了很多新题型。很多时间都花在了ppc题上，不过最后也没做出来。 web就只做了两个最简单的web题。 chatgpt题目部署了waf。 12345func sqlSafe(s string) string &amp;#123;	s &#x3D; strings.ReplaceAll(s, &quot;&amp;#x27;&quot;, &quot;&amp;#x27;&amp;#x27;&quot;)	s &#x3D; stri">
+  <meta name="description" content="前言题目很有趣，遇到了很多新题型。很多时间都花在了ppc题上，不过最后也没做出来。 web就只做出来了了两个最简单的web题。 chatgpt题目部署了waf。 12345func sqlSafe(s string) string &amp;#123;	s &#x3D; strings.ReplaceAll(s, &quot;&amp;#x27;&quot;, &quot;&amp;#x27;&amp;#x27;&quot;)	s &#x3D; s">
 <meta property="og:type" content="article">
-<meta property="og:title" content="BRICS+_CTF总结">
+<meta property="og:title" content="BRICS+ CTF Quals 2023总结">
 <meta property="og:url" content="https://zoiltin.github.io/2023/09/25/BRICS+-CTF%E6%80%BB%E7%BB%93/index.html">
 <meta property="og:site_name" content="Zoiltin&#39;s Blog">
-<meta property="og:description" content="前言题目很有趣，遇到了很多新题型。很多时间都花在了ppc题上，不过最后也没做出来。 web就只做了两个最简单的web题。 chatgpt题目部署了waf。 12345func sqlSafe(s string) string &amp;#123;	s &#x3D; strings.ReplaceAll(s, &quot;&amp;#x27;&quot;, &quot;&amp;#x27;&amp;#x27;&quot;)	s &#x3D; stri">
+<meta property="og:description" content="前言题目很有趣，遇到了很多新题型。很多时间都花在了ppc题上，不过最后也没做出来。 web就只做出来了了两个最简单的web题。 chatgpt题目部署了waf。 12345func sqlSafe(s string) string &amp;#123;	s &#x3D; strings.ReplaceAll(s, &quot;&amp;#x27;&quot;, &quot;&amp;#x27;&amp;#x27;&quot;)	s &#x3D; s">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2023-09-25T14:57:20.000Z">
-<meta property="article:modified_time" content="2023-09-25T15:06:44.013Z">
+<meta property="article:modified_time" content="2023-09-26T01:44:58.902Z">
 <meta property="article:author" content="Zoiltin">
-<meta property="article:tag" content="BRICS+ CTF 2023">
 <meta property="article:tag" content="write up">
+<meta property="article:tag" content="BRICS+ CTF Quals 2023">
 <meta name="twitter:card" content="summary">
 
 <link rel="canonical" href="https://zoiltin.github.io/2023/09/25/BRICS+-CTF%E6%80%BB%E7%BB%93/">
@@ -47,7 +47,7 @@
   };
 </script>
 
-  <title>BRICS+_CTF总结 | Zoiltin's Blog</title>
+  <title>BRICS+ CTF Quals 2023总结 | Zoiltin's Blog</title>
   
 
 
@@ -165,7 +165,7 @@
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          BRICS+_CTF总结
+          BRICS+ CTF Quals 2023总结
         </h1>
 
         <div class="post-meta">
@@ -174,10 +174,16 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2023-09-25 22:57:20 / 修改时间：23:06:44" itemprop="dateCreated datePublished" datetime="2023-09-25T22:57:20+08:00">2023-09-25</time>
+              <time title="创建时间：2023-09-25 22:57:20" itemprop="dateCreated datePublished" datetime="2023-09-25T22:57:20+08:00">2023-09-25</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-09-26 09:44:58" itemprop="dateModified" datetime="2023-09-26T09:44:58+08:00">2023-09-26</time>
+              </span>
 
           
 
@@ -191,7 +197,7 @@
 
       
         <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>题目很有趣，遇到了很多新题型。<br>很多时间都花在了ppc题上，不过最后也没做出来。</p>
-<h1 id="web"><a href="#web" class="headerlink" title="web"></a>web</h1><p>就只做了两个最简单的web题。</p>
+<h1 id="web"><a href="#web" class="headerlink" title="web"></a>web</h1><p>就只做出来了了两个最简单的web题。</p>
 <h3 id="chatgpt"><a href="#chatgpt" class="headerlink" title="chatgpt"></a>chatgpt</h3><p>题目部署了waf。</p>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">sqlSafe</span><span class="params">(s <span class="type">string</span>)</span></span> <span class="type">string</span> &#123;</span><br><span class="line">	s = strings.ReplaceAll(s, <span class="string">&quot;&#x27;&quot;</span>, <span class="string">&quot;&#x27;&#x27;&quot;</span>)</span><br><span class="line">	s = strings.ReplaceAll(s, <span class="string">&quot;\&quot;&quot;</span>, <span class="string">&quot;\&quot;\&quot;&quot;</span>)</span><br><span class="line">	<span class="keyword">return</span> s</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>在后端代码中有一个SQL注入点：</p>
@@ -204,12 +210,12 @@
 <figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span><span class="attr">&quot;q&quot;</span><span class="punctuation">:</span><span class="string">&quot;234&#x27; UNION SELECT flag FROM flags LIMIT 1;-- &quot;</span><span class="punctuation">,</span><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
 <p>这个逗号就体现了解析器的不同。</p>
 <h1 id="ppc"><a href="#ppc" class="headerlink" title="ppc"></a>ppc</h1><p>整场比赛大部分时间都花在这了。这种题有点像web，但与web不同的是，它更注重对源码的理解和编写，花了很多时间去查资料和写exp，最后也没做出来，不过题目还是很有意思的。</p>
-<h3 id="gif0day"><a href="#gif0day" class="headerlink" title="gif0day"></a>gif0day</h3><p>题目描述说gif被裁剪了，要我们恢复，想起了之前windows的一个漏洞，裁剪的图片中被裁剪的部分没有删除只是不显示了而已，经过处理可以恢复。通过题目提供的源码里面的脚本裁剪一张图片证明：裁剪前的数据仍然保存在图片中。<br>题目使用pil将flag的每一个字符画成一张图片再组合成一张GIF。<br>与服务器交互的方式是使用python的grpclib库进行grpc stream通信，源码太多了就不放了。<br>做这道题是就是一直在写grpc的客户端，花时间最多的就是这道题，到最后也没写出来，记录一下，等官方wp。</p>
+<h3 id="gif0day"><a href="#gif0day" class="headerlink" title="gif0day"></a>gif0day</h3><p>题目描述说gif被裁剪了，要我们恢复，想起了之前windows的一个漏洞，裁剪的图片中被裁剪的部分没有删除只是不显示了而已，经过处理可以恢复。通过题目提供的源码里面的脚本裁剪一张图片证明：裁剪前的数据仍然保存在图片中。<br>题目使用pil将一串长度为8的随机字符串的每一个字符画成一张图片再组合成一张GIF，通过grpc通信，客户端回复随机字符串的值。当正确回答100次后，服务器将flag写入GIF发送。<br>与服务器交互的方式是使用python的grpclib库进行grpc stream通信，源码太多了就不放了。<br>做这道题是就是一直在写grpc的客户端，花时间最多的就是这道题，到最后也没写出来，记录一下，等一手官方wp。</p>
 <h3 id="dictionary"><a href="#dictionary" class="headerlink" title="dictionary"></a>dictionary</h3><p>通过读源码分析得出：用flag生成了一个字典，字典中单词的数量为len(flag)，每个单词长度在32-40之间，满足第n个单词最后一个字符为flag的第n个字符。<br>服务器使用genji数据库存储字典。后端服务器存在一个sql注入：</p>
 <figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">query := fmt.Sprintf(<span class="string">`select word from dictionary where word = &#x27;%s&#x27;`</span>, word)</span><br></pre></td></tr></table></figure>
 <p>没有waf，但也不好做，因为这个数据库太小众，查资料都不好查。我的想法是用union select进行模糊查询爆破每个单词最后一个字母进行拼接即可。查资料的时候发现，网上相关的资料只有github的源码和官方文档，重点是官方文档很简洁，有些关键内容只有配图没有文字和具体代码，总之就是很迷，最后编出来了这么个payload：</p>
 <figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">asdfsadf<span class="string">&#x27; union select word from flag where id=&#123;id&#125; and word like &quot;%&#123;char&#125;&quot; --+-</span></span><br></pre></td></tr></table></figure>
-<p>最后发现跑不出来，结束之后发现%需要url编码，emm。不过就算注入出来了也不对，因为like不区分大小写，这也算是一条死路。<br>目前还在等官方wp。</p>
+<p>最后发现跑不出来，结束之后发现%需要url编码，emm。不过就算注入出来了也不对，因为like不区分大小写，这也算是一条死路。<br>正确的做法是用&lt;进行ascii值的比较。<br><code>&#39;dfg&#39; &gt; &#39;cde&#39;</code>,先判断第一个字符即<code>&#39;d&#39; &gt; &#39;c&#39;</code>,如果成立就判断下一个字符，flag由字母数字-_{}组成，这样可以爆破flag。</p>
 <hr>
 <p>整场比赛的题目还是很有意思的（虽然都不会），感觉比较贴合实际环境。</p>
 
@@ -221,8 +227,8 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/BRICS-CTF-2023/" rel="tag"># BRICS+ CTF 2023</a>
               <a href="/tags/write-up/" rel="tag"># write up</a>
+              <a href="/tags/BRICS-CTF-Quals-2023/" rel="tag"># BRICS+ CTF Quals 2023</a>
           </div>
 
         
