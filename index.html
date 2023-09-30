@@ -113,11 +113,6 @@
     <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
 
   </li>
-        <li class="menu-item menu-item-categories">
-
-    <a href="/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类</a>
-
-  </li>
         <li class="menu-item menu-item-archives">
 
     <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
@@ -186,7 +181,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2023-09-27 09:14:12" itemprop="dateModified" datetime="2023-09-27T09:14:12+08:00">2023-09-27</time>
+                <time title="修改时间：2023-09-30 09:20:44" itemprop="dateModified" datetime="2023-09-30T09:20:44+08:00">2023-09-30</time>
               </span>
 
           
@@ -200,29 +195,15 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>题目很有趣，遇到了很多新题型。<br>很多时间都花在了ppc题上，不过最后也没做出来。</p>
-<h1 id="web"><a href="#web" class="headerlink" title="web"></a>web</h1><p>就只做出来了了两个最简单的web题。</p>
-<h3 id="chatgpt"><a href="#chatgpt" class="headerlink" title="chatgpt"></a>chatgpt</h3><p>题目部署了waf。</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">sqlSafe</span><span class="params">(s <span class="type">string</span>)</span></span> <span class="type">string</span> &#123;</span><br><span class="line">	s = strings.ReplaceAll(s, <span class="string">&quot;&#x27;&quot;</span>, <span class="string">&quot;&#x27;&#x27;&quot;</span>)</span><br><span class="line">	s = strings.ReplaceAll(s, <span class="string">&quot;\&quot;&quot;</span>, <span class="string">&quot;\&quot;\&quot;&quot;</span>)</span><br><span class="line">	<span class="keyword">return</span> s</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>在后端代码中有一个SQL注入点：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rows, err := db.QueryContext(ctx, <span class="string">`SELECT reply FROM replies WHERE LOWER(prompt) LIKE &#x27;%`</span>+strings.ToLower(q.Q)+<span class="string">`%&#x27; LIMIT 1`</span>)</span><br></pre></td></tr></table></figure>
-<p>使用payload：<code>asdasd\&#39; union select flag from flags#</code>便可绕过。</p>
-<h3 id="gigachatgpt"><a href="#gigachatgpt" class="headerlink" title="gigachatgpt"></a>gigachatgpt</h3><p>这提是把chatgpt题的waf改了，其他的代码没变。waf代码改动如下：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">isStringSafe</span><span class="params">(s <span class="type">string</span>)</span></span> <span class="type">bool</span> &#123;</span><br><span class="line">	alpha := <span class="string">&quot;abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 \t\n\r&quot;</span></span><br><span class="line">	<span class="keyword">for</span> _, c := <span class="keyword">range</span> s &#123;</span><br><span class="line">		<span class="keyword">if</span> !strings.ContainsRune(alpha, c) &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">false</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="literal">true</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>要求我们输入的只能是数字和字母以及\t\n\r。<br>我的做法是用00截断。burpsuite抓包后修改hex数据在<code>asdasd</code>和<code>&#39; union select flag from flags#</code>之间加上<code>\x00</code>,waf只会检测asdasd，而数据库会接受整个payload从而造成注入。   </p>
-<p>官方提供的另一种解法是利用两种json解析器的语法不同来绕过waf。app使用gojay库解析json，waf使用标准库解析json。而且当waf无法解析JSON对象是便不会检测其中是否包含特殊字符，直接传入后端。所以我们的payload只要能被gojay解析同时不能被标准库解析就可以绕过waf。payload：</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span><span class="attr">&quot;q&quot;</span><span class="punctuation">:</span><span class="string">&quot;234&#x27; UNION SELECT flag FROM flags LIMIT 1;-- &quot;</span><span class="punctuation">,</span><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-<p>这个逗号就体现了解析器的不同。</p>
-<h1 id="ppc"><a href="#ppc" class="headerlink" title="ppc"></a>ppc</h1><p>整场比赛大部分时间都花在这了。这种题有点像web，但与web不同的是，它更注重对源码的理解和编写，花了很多时间去查资料和写exp，最后也没做出来，不过题目还是很有意思的。</p>
-<h3 id="gif0day"><a href="#gif0day" class="headerlink" title="gif0day"></a>gif0day</h3><p>题目描述说gif被裁剪了，要我们恢复，想起了之前windows的一个漏洞，裁剪的图片中被裁剪的部分没有删除只是不显示了而已，经过处理可以恢复。通过题目提供的源码里面的脚本裁剪一张图片证明：裁剪前的数据仍然保存在图片中。<br>题目使用pil将一串长度为8的随机字符串的每一个字符画成一张图片再组合成一张GIF，通过grpc通信，客户端回复随机字符串的值。当正确回答100次后，服务器将flag写入GIF发送。<br>与服务器交互的方式是使用python的grpclib库进行grpc stream通信，源码太多了就不放了。<br>做这道题是就是一直在写grpc的客户端，花时间最多的就是这道题，到最后也没写出来，记录一下。<br>看了看官方的wp，这grpc客户端写的真复杂，也算是题目一大难点。<br><a target="_blank" rel="noopener" href="https://github.com/heriet/acropalypse-gif">gif裁剪漏洞的POC</a><br>直接套用就可以恢复gif了。</p>
-<h3 id="dictionary"><a href="#dictionary" class="headerlink" title="dictionary"></a>dictionary</h3><p>通过读源码分析得出：用flag生成了一个字典，字典中单词的数量为len(flag)，每个单词长度在32-40之间，满足第n个单词最后一个字符为flag的第n个字符。<br>服务器使用genji数据库存储字典。后端服务器存在一个sql注入：</p>
-<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">query := fmt.Sprintf(<span class="string">`select word from dictionary where word = &#x27;%s&#x27;`</span>, word)</span><br></pre></td></tr></table></figure>
-<p>没有waf，但也不好做，因为这个数据库太小众，查资料都不好查。我的想法是用union select进行模糊查询爆破每个单词最后一个字母进行拼接即可。查资料的时候发现，网上相关的资料只有github的源码和官方文档，重点是官方文档很简洁，有些关键内容只有配图没有文字和具体代码，总之就是很迷，最后编出来了这么个payload：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">asdfsadf<span class="string">&#x27; union select word from flag where id=&#123;id&#125; and word like &quot;%&#123;char&#125;&quot; --+-</span></span><br></pre></td></tr></table></figure>
-<p>最后发现跑不出来，结束之后发现%需要url编码，emm。不过就算注入出来了也不对，因为like不区分大小写，这也算是一条死路。<br>正确的做法是用&lt;进行ascii值的比较。<br><code>&#39;dfg&#39; &gt; &#39;cde&#39;</code>,先判断第一个字符即<code>&#39;d&#39; &gt; &#39;c&#39;</code>,如果成立就判断下一个字符，flag由字母数字-_{}组成，这样可以爆破每一个单词，但是这种方法非常慢，每个单词长度在32-40之间，只有最后一个字符对我们有用，genji没有类似substr的函数，所以只能这么做。</p>
-<hr>
-<p>整场比赛的题目还是很有意思的（虽然都不会），感觉比较贴合实际环境。</p>
-
+          <p>BRICS+ CTF Quals 2023的部分题解以及思路，遇到了很多没见过的题型。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2023/09/25/BRICS+-CTF%E6%80%BB%E7%BB%93/">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -272,17 +253,8 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2023-09-24 11:03:56" itemprop="dateModified" datetime="2023-09-24T11:03:56+08:00">2023-09-24</time>
+                <time title="修改时间：2023-09-30 09:20:45" itemprop="dateModified" datetime="2023-09-30T09:20:45+08:00">2023-09-30</time>
               </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/ctf/" itemprop="url" rel="index"><span itemprop="name">ctf</span></a>
-                </span>
-            </span>
 
           
 
@@ -295,23 +267,15 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h4 id="ASIS-CTF-Quals-2023-hello"><a href="#ASIS-CTF-Quals-2023-hello" class="headerlink" title="ASIS CTF Quals 2023 hello"></a>ASIS CTF Quals 2023 hello</h4><p>首页源码如下：</p>
-<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">Read /next.txt</span></span><br><span class="line"><span class="comment">Hint for beginners: read curl&#x27;s manpage.</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="title function_ invoke__">highlight_file</span>(<span class="keyword">__FILE__</span>);</span><br><span class="line"><span class="variable">$url</span> = <span class="string">&#x27;file:///hi.txt&#x27;</span>;</span><br><span class="line"><span class="keyword">if</span>(</span><br><span class="line">    <span class="title function_ invoke__">array_key_exists</span>(<span class="string">&#x27;x&#x27;</span>, <span class="variable">$_GET</span>) &amp;&amp;</span><br><span class="line">    !<span class="title function_ invoke__">str_contains</span>(<span class="title function_ invoke__">strtolower</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;x&#x27;</span>]),<span class="string">&#x27;file&#x27;</span>) &amp;&amp; </span><br><span class="line">    !<span class="title function_ invoke__">str_contains</span>(<span class="title function_ invoke__">strtolower</span>(<span class="variable">$_GET</span>[<span class="string">&#x27;x&#x27;</span>]),<span class="string">&#x27;next&#x27;</span>)</span><br><span class="line">)&#123;</span><br><span class="line">    <span class="variable">$url</span> = <span class="variable">$_GET</span>[<span class="string">&#x27;x&#x27;</span>];</span><br><span class="line">&#125;</span><br><span class="line"><span class="title function_ invoke__">system</span>(<span class="string">&#x27;curl &#x27;</span>.<span class="title function_ invoke__">escapeshellarg</span>(<span class="variable">$url</span>));</span><br><span class="line"></span><br><span class="line">hiii o/</span><br></pre></td></tr></table></figure>
-<p>提示说看curl的命令手册，做这题的时候一开始方向偏了，看到escapeshellarg函数以为要参数注入。</p>
-<p>在curl manpage里有这样一段话：</p>
-<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">you can get sequences of alphanumeric series by using [] as in:</span><br><span class="line">&quot;ftp://ftp.example.com/file[1-100].txt&quot;</span><br><span class="line">&quot;ftp://ftp.example.com/file[001-100].txt&quot;    (with leading zeros)</span><br><span class="line">&quot;ftp://ftp.example.com/file[a-z].txt&quot;</span><br></pre></td></tr></table></figure>
-<p>所以我们可以用fil[e-e]:&#x2F;&#x2F;&#x2F;nex[t-t].txt来表示file:&#x2F;&#x2F;&#x2F;next.txt</p>
-<p>下一步题目提示：did you know i can read files?? amazing right,,, maybe try &#x2F;39c8e9953fe8ea40ff1c59876e0e2f28&#x2F;read&#x2F;?file&#x3D;&#x2F;proc&#x2F;self&#x2F;cmdline</p>
-<p>&#x2F;proc&#x2F;self&#x2F;cmdline文件内容解码为&#x2F;bin&#x2F;bun-1.0.2和&#x2F;app&#x2F;index.js<br>接着读取&#x2F;app&#x2F;index.js:</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> fs = <span class="built_in">require</span>(<span class="string">&#x27;node:fs&#x27;</span>);</span><br><span class="line"><span class="keyword">const</span> path = <span class="built_in">require</span>(<span class="string">&#x27;path&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment">/*</span></span><br><span class="line"><span class="comment">I wonder what is inside /next.txt  </span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">const</span> secret = <span class="string">&#x27;39c8e9953fe8ea40ff1c59876e0e2f28&#x27;</span></span><br><span class="line"><span class="keyword">const</span> server = <span class="title class_">Bun</span>.<span class="title function_">serve</span>(&#123;</span><br><span class="line">  <span class="attr">port</span>: <span class="number">8000</span>,</span><br><span class="line">  <span class="title function_">fetch</span>(<span class="params">req</span>) &#123;</span><br><span class="line">  	<span class="keyword">let</span> url = <span class="keyword">new</span> <span class="title function_">URL</span>(req.<span class="property">url</span>);</span><br><span class="line">  	<span class="keyword">let</span> pname = url.<span class="property">pathname</span>;</span><br><span class="line">  	<span class="keyword">if</span>(pname.<span class="title function_">startsWith</span>(<span class="string">`/<span class="subst">$&#123;secret&#125;</span>`</span>))&#123;</span><br><span class="line">      <span class="keyword">if</span>(pname.<span class="title function_">startsWith</span>(<span class="string">`/<span class="subst">$&#123;secret&#125;</span>/read`</span>))&#123;</span><br><span class="line">        <span class="keyword">try</span>&#123;</span><br><span class="line">          <span class="keyword">let</span> fpath = url.<span class="property">searchParams</span>.<span class="title function_">get</span>(<span class="string">&#x27;file&#x27;</span>);</span><br><span class="line">          <span class="keyword">if</span>(path.<span class="title function_">basename</span>(fpath).<span class="title function_">indexOf</span>(<span class="string">&#x27;next&#x27;</span>) == -<span class="number">1</span>)&#123; </span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Response</span>(fs.<span class="title function_">readFileSync</span>(fpath).<span class="title function_">toString</span>(<span class="string">&#x27;base64&#x27;</span>));</span><br><span class="line">          &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Response</span>(<span class="string">&#x27;no way&#x27;</span>);</span><br><span class="line">          &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span>(e)&#123; &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Response</span>(<span class="string">&quot;Couldn&#x27;t read your file :(&quot;</span>);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">Response</span>(<span class="string">`did you know i can read files?? amazing right,,, maybe try /<span class="subst">$&#123;secret&#125;</span>/read/?file=/proc/self/cmdline`</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> </span><br><span class="line">  &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
-<p>依然是要读取next.txt，要求路径的末尾不能有next，使用00截断绕过。&#x2F;next%00&#x2F;asdasd<br>这样的话path.basename(fpath) &#x3D; ‘asdasd’。读取文件时到%00截断，读取&#x2F;next.txt。<br>访问后解码就得到了flag<br>最近在学C语言成语设计，了解到C语言在存储字符串时末尾都会加一个\0表示ascii码为0的字符，%00在url解码后就是这个字符。（个人猜测这可能就是00截断的原理）</p>
-<h4 id="SECCON-CTF-2023-Bad-JWT"><a href="#SECCON-CTF-2023-Bad-JWT" class="headerlink" title="SECCON CTF 2023 Bad JWT"></a>SECCON CTF 2023 Bad JWT</h4><p>一个nodejs开发的jwt鉴权系统。要求isAdmin字段为true。<br>secret为随机生成，不能爆破。只能使用hs256和hs512算法，算法不能为空。长沟漏洞是没有了。</p>
-<p>代码中createSignature函数的作用是根据jwt中的前两部分，利用secret和jwt.header中提供的算法类型生成一段签名，与用户提供的签名对比，相同则证明jwt有效，再去检查isAdmin字段是否为true。<br>如下：</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="title function_">createSignature</span> = (<span class="params">header, payload, secret</span>) =&gt; &#123;</span><br><span class="line">	<span class="keyword">const</span> data = <span class="string">`<span class="subst">$&#123;stringifyPart(header)&#125;</span>.<span class="subst">$&#123;stringifyPart(payload)&#125;</span>`</span>;</span><br><span class="line">	<span class="keyword">const</span> signature = algorithms[header.<span class="property">alg</span>.<span class="title function_">toLowerCase</span>()](data, secret);</span><br><span class="line">	<span class="keyword">return</span> signature;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>其中，<br>const signature &#x3D; algorithms[header.alg.toLowerCase()](data, secret);吸引了我的注意，可控键值让我想起了原型链污染，不过这次不是。原型链污染是通过array[‘<strong>proto</strong>‘]进行攻击。但是数组中特殊的键值不止__proto__。<br><img src="/../images/asdf3432s4d2fa32s4d2f2sv.png" alt="sa54f54asd3f.png"><br>这里我们可以使用constructor<br>header:{“typ”:”JWT”,”alg”:”constructor”},<br>payload:{“isAdmin”:true}<br>constructor(data,secret)返回的是data的值。则signature&#x3D;data;<br>而data就是header和payload的base64编码，可控，可以绕过签名检测。<br>最后将伪造的jwt放在Cookie的session中，得到flag。</p>
-<hr>
-<p>还是太菜了，只能复现warmup题水水文章。</p>
-
+          <p>最近复现了两场不错的比赛的部分题目，asisctf2023、SECCONctf2023</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2023/09/23/%E8%BF%91%E6%9C%9Fctf%E6%91%B8%E9%B1%BC/">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -353,10 +317,16 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2023-09-22 18:16:48 / 修改时间：18:51:34" itemprop="dateCreated datePublished" datetime="2023-09-22T18:16:48+08:00">2023-09-22</time>
+              <time title="创建时间：2023-09-22 18:16:48" itemprop="dateCreated datePublished" datetime="2023-09-22T18:16:48+08:00">2023-09-22</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2023-09-30 09:20:37" itemprop="dateModified" datetime="2023-09-30T09:20:37+08:00">2023-09-30</time>
+              </span>
 
           
 
@@ -369,10 +339,15 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>#Hello World</p>
-<p>开始写点东西，就这样。</p>
-<hr>
-
+          <p>Hello World!!!</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2023/09/22/hello-world/">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -456,10 +431,6 @@
           <span class="site-state-item-count">3</span>
           <span class="site-state-item-name">日志</span>
         </a>
-      </div>
-      <div class="site-state-item site-state-categories">
-        <span class="site-state-item-count">1</span>
-        <span class="site-state-item-name">分类</span>
       </div>
       <div class="site-state-item site-state-tags">
         <span class="site-state-item-count">6</span>
