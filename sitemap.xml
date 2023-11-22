@@ -74,27 +74,6 @@
 
   
   <url>
-    <loc>https://zoiltin.github.io/tags/start/</loc>
-    <lastmod>2023-11-22</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://zoiltin.github.io/tags/blind-xxe/</loc>
-    <lastmod>2023-11-22</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://zoiltin.github.io/tags/fake-ftp-server/</loc>
-    <lastmod>2023-11-22</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://zoiltin.github.io/tags/0xGAME-2023/</loc>
     <lastmod>2023-11-22</lastmod>
     <changefreq>weekly</changefreq>
@@ -117,6 +96,27 @@
   
   <url>
     <loc>https://zoiltin.github.io/tags/SECCONctf2023/</loc>
+    <lastmod>2023-11-22</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://zoiltin.github.io/tags/blind-xxe/</loc>
+    <lastmod>2023-11-22</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://zoiltin.github.io/tags/fake-ftp-server/</loc>
+    <lastmod>2023-11-22</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://zoiltin.github.io/tags/start/</loc>
     <lastmod>2023-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
