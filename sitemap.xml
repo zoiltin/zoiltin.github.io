@@ -65,27 +65,6 @@
 
   
   <url>
-    <loc>https://zoiltin.github.io/tags/start/</loc>
-    <lastmod>2023-11-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://zoiltin.github.io/tags/blind-xxe/</loc>
-    <lastmod>2023-11-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
-    <loc>https://zoiltin.github.io/tags/fake-ftp-server/</loc>
-    <lastmod>2023-11-24</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.2</priority>
-  </url>
-  
-  <url>
     <loc>https://zoiltin.github.io/tags/BRICS-CTF-Quals-2023/</loc>
     <lastmod>2023-11-24</lastmod>
     <changefreq>weekly</changefreq>
@@ -94,6 +73,13 @@
   
   <url>
     <loc>https://zoiltin.github.io/tags/write-up/</loc>
+    <lastmod>2023-11-24</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://zoiltin.github.io/tags/start/</loc>
     <lastmod>2023-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
@@ -115,6 +101,20 @@
   
   <url>
     <loc>https://zoiltin.github.io/tags/writeup/</loc>
+    <lastmod>2023-11-24</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://zoiltin.github.io/tags/blind-xxe/</loc>
+    <lastmod>2023-11-24</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://zoiltin.github.io/tags/fake-ftp-server/</loc>
     <lastmod>2023-11-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
