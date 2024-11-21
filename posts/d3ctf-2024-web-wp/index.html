@@ -169,6 +169,11 @@
                 </a>
             </li>
             <li>
+                <a href="https://zoiltin.github.io/search" title="Search (Alt &#43; /)" accesskey=/>
+                    <span>Search</span>
+                </a>
+            </li>
+            <li>
                 <a href="https://zoiltin.github.io/posts" title="Posts">
                     <span>Posts</span>
                 </a>
@@ -192,10 +197,43 @@
     <div class="post-description">
       d^3ctf 2024 web方向wp
     </div>
-    <div class="post-meta"><span title='2024-04-28 20:35:50 +0000 UTC'>April 28, 2024</span>
+    <div class="post-meta"><span title='2024-04-28 20:35:50 +0000 UTC'>April 28, 2024</span>&nbsp;·&nbsp;6 min
 
 </div>
-  </header> 
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#d3pythonhttp" aria-label="d3pythonhttp">d3pythonhttp</a><ul>
+                        
+                <li>
+                    <a href="#jwt%e7%bb%95%e8%bf%87" aria-label="jwt绕过">jwt绕过</a></li>
+                <li>
+                    <a href="#%e8%a7%a3%e6%9e%90%e5%b7%ae%e5%bc%82" aria-label="解析差异">解析差异</a></li>
+                <li>
+                    <a href="#%e7%aa%81%e7%a0%b4%e5%86%85%e7%bd%91" aria-label="突破内网">突破内网</a></li></ul>
+                </li>
+                <li>
+                    <a href="#stack_overflow" aria-label="stack_overflow">stack_overflow</a></li>
+                <li>
+                    <a href="#moonbox" aria-label="moonbox">moonbox</a></li>
+                <li>
+                    <a href="#doctor" aria-label="Doctor">Doctor</a><ul>
+                        
+                <li>
+                    <a href="#%e8%b5%9b%e5%90%8e%e5%a4%8d%e7%8e%b0" aria-label="赛后复现">赛后复现</a>
+                </li>
+            </ul>
+            </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
   <div class="post-content"><h1 id="d3pythonhttp">d3pythonhttp<a hidden class="anchor" aria-hidden="true" href="#d3pythonhttp">#</a></h1>
 <blockquote>
 <p>解决，一血</p>
@@ -764,6 +802,53 @@ cfg.FormatDSN()：</p>
         }
     })
 
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
 </script>
 </body>
 
