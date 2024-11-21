@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en" dir="auto">
 
-<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<head><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="robots" content="noindex, nofollow">
+<meta name="robots" content="index, follow">
 <title>Ciscn 2024 final Fobee wp | zoiltin&#39;s Blog</title>
 <meta name="keywords" content="">
 <meta name="description" content="ciscn 2024 final Fobee wp">
 <meta name="author" content="">
-<link rel="canonical" href="http://localhost:1313/posts/ciscn2024-final-fobee-wp/">
+<link rel="canonical" href="https://zoiltin.github.io/posts/ciscn2024-final-fobee-wp/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.d72444526d7ecbdb0015438a7fa89054a658bf759d0542e2e5df81ce94b493ee.css" integrity="sha256-1yREUm1&#43;y9sAFUOKf6iQVKZYv3WdBULi5d&#43;BzpS0k&#43;4=" rel="preload stylesheet" as="style">
-<link rel="icon" href="http://localhost:1313/favicon.ico">
-<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
-<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
-<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<link rel="icon" href="https://zoiltin.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://zoiltin.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://zoiltin.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://zoiltin.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://zoiltin.github.io/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="en" href="http://localhost:1313/posts/ciscn2024-final-fobee-wp/">
+<link rel="alternate" hreflang="en" href="https://zoiltin.github.io/posts/ciscn2024-final-fobee-wp/">
 <noscript>
     <style>
         #theme-toggle,
@@ -56,6 +56,71 @@
 
     </style>
 </noscript>
+  
+
+<meta property="og:url" content="https://zoiltin.github.io/posts/ciscn2024-final-fobee-wp/">
+  <meta property="og:site_name" content="zoiltin&#39;s Blog">
+  <meta property="og:title" content="Ciscn 2024 final Fobee wp">
+  <meta property="og:description" content="ciscn 2024 final Fobee wp">
+  <meta property="og:locale" content="zh-CN">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2024-07-27T18:21:03+08:00">
+    <meta property="article:modified_time" content="2024-07-27T18:21:03+08:00">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Ciscn 2024 final Fobee wp">
+<meta name="twitter:description" content="ciscn 2024 final Fobee wp">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://zoiltin.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Ciscn 2024 final Fobee wp",
+      "item": "https://zoiltin.github.io/posts/ciscn2024-final-fobee-wp/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Ciscn 2024 final Fobee wp",
+  "name": "Ciscn 2024 final Fobee wp",
+  "description": "ciscn 2024 final Fobee wp",
+  "keywords": [
+    
+  ],
+  "articleBody": "本篇文章仅用于技术交流学习和研究的目的，严禁使用文章中的技术用于非法目的和破坏。\n前言 拿到了前段时间ciscn 2024 final的web题附件，来复现一下Fobee这道题，顺便学习一下beetl的模板注入。\n3.15.x及以前的版本 过滤的很少，随便绕过。贴几个公开的poc： https://gitee.com/xiandafu/beetl/issues/I6RUIP https://gitee.com/xiandafu/beetl/issues/I914H3\n3.16.0 3.16.0是题目使用的版本也是本文使用的版本。\n测试环境为java8u65， beetl 3.16.0， solon 2.8.5\n入口 @Mapping(\"/render\") public ModelAndView render(String pass, String tp) throws Exception { ModelAndView model = new ModelAndView(\"render.htm\"); if (pass != null \u0026\u0026 pass.equals(password)) { byte[] decode = Base64.getDecoder().decode(tp); String result = BeetlKit.render(new String(decode), new HashMap()); System.out.println(result); model.put(\"msg\", getMD5Hash(result)); } else { model.put(\"msg\", \"Render Page\"); } return model; } 渲染过程 由renderTo进入execute函数。然后遍历所有要执行的语句然后依次执行。 每条语句的具体执行代码在org.beetl.core.statement.NativeCallExpression#evaluate函数。\npublic Object evaluate(Context ctx) { Class targetCls = null; Object targetObj = null; NativeNode lastNode = null; if (insNode != null) { targetObj = insNode.ref.evaluate(ctx); if (targetObj != null) { targetCls = targetObj.getClass(); } lastNode = insNode; } else { targetCls = ctx.gt.loadClassBySimpleName(this.clsNode.clazz); if (targetCls == null) { throw new BeetlException(BeetlException.NATIVE_CALL_EXCEPTION, \"该类不存在\") .pushToken(GrammarToken.createToken(clsNode.clazz, token.line)); } lastNode = clsNode; } for (NativeNode node : chain) { ... ... } else if (node instanceof NativeMethodNode) { NativeMethodNode methodNode = (NativeMethodNode) node; String method = methodNode.method; Expression[] expList = methodNode.params; this.checkPermit(ctx, targetCls, targetObj, method); Object[] args = expList.length == 0 ? ObjectUtil.EMPTY_OBJECT_ARRAY : new Object[expList.length]; Class[] parameterType = new Class[args.length]; for (int i = 0; i \u003c expList.length; i++) { args[i] = expList[i].evaluate(ctx); parameterType[i] = args[i] == null ? null : args[i].getClass(); } this.checkNull(targetCls, lastNode); ObjectMethodMatchConf mf = ObjectUtil.findMethod(targetCls, method, parameterType); if (mf == null) { throw new BeetlException(BeetlParserException.NATIVE_CALL_INVALID, \"根据参数未找到匹配的方法\" + method + BeetlUtil.getParameterDescription(parameterType)) .pushToken(GrammarToken.createToken(token.text, token.line)); } if (targetObj == null \u0026\u0026 !Modifier.isStatic(mf.method.getModifiers())) { throw new BeetlException(BeetlException.NULL) .pushToken(GrammarToken.createToken(token.text, token.line)); } try { if(mf.contextRequired){ ArrayList tempList = new ArrayList(Arrays.asList(args)); tempList.add(ctx); args = tempList.toArray(); } targetObj = ObjectUtil.invoke(targetObj, mf, args); targetCls = targetObj == null ? null : targetObj.getClass(); ... ... } lastNode = node; } return targetObj; } 黑名单主要针对方法调用，其他代码省略。\nbeetl将每条语句拆分为targetCls，targetObj，method和args。在org.beetl.core.DefaultNativeSecurityManager#permit函数中对targetCls进行检查：\npublic boolean permit(Object resourceId, Class c, Object target, String method) { if (c.isArray()) { // 允许调用，但实际上会在在其后调用中报错。不归此处管理 return true; } String name = c.getName(); String className = null; String pkgName = null; int i = name.lastIndexOf('.'); if (i != -1) { pkgName = name.substring(0, i); className = name.substring(i + 1); } else { // 无包名，允许调用 return true; } if (pkgName.startsWith(\"java.lang.reflect\")) { //反射类，不允许调用 https://gitee.com/xiandafu/beetl/issues/I8RU01 return false; } if (pkgName.startsWith(\"java.lang\")) { return !className.equals(\"Runtime\") \u0026\u0026 !className.equals(\"Process\") \u0026\u0026 !className.equals(\"ProcessBuilder\") \u0026\u0026 !className.equals(\"Thread\") // https://gitee.com/xiandafu/beetl/issues/I6RUIP \u0026\u0026 !className.equals(\"Class\") //https://gitee.com/xiandafu/beetl/issues/I6RUIP#note_17223442 \u0026\u0026 !className.equals(\"System\") ; } if(pkgName.startsWith(\"java.beans\")){ //https://gitee.com/xiandafu/beetl/issues/I914H3#note_24939039 return false; } if(pkgName.startsWith(\"org.beetl\")){ //https://gitee.com/xiandafu/beetl/issues/I6RUIP return false; } if(pkgName.startsWith(\"javax.\")){ return false; } if(pkgName.startsWith(\"sun.\")){ return false; } return true; } 在此处执行getRuntime时targetCls为java.lang.Runtime，pkgName位java.lang，被限制了，check不通过。 如果check通过，会解析参数并invoke对应函数：\ntargetObj = ObjectUtil.invoke(targetObj, mf, args); 出网利用 没办法直接利用，尝试从solon和beetl代码中找找可利用的类。\norg.noear.solon.Utils类中有两个静态方法与反射有关：\npublic static Class\u003c?\u003e loadClass(String className) { return ClassUtil.loadClass(className); } public static \u003cT\u003e T newInstance(String className) { return ClassUtil.tryInstance(className); } 通过这两个方法可以实例化任意类。\nJdbcRowSetImpl没被过滤，可以尝试jndi注入。\n不出网利用 newInstance部分绕过了，还差invoke部分。\norg.noear.solon.core.wrap.MethodWrap类中实现了invoke功能：\npublic Object invoke(Object obj, Object[] args) throws Throwable { try { return method.invoke(obj, args); } catch (InvocationTargetException e) { Throwable e2 = e.getTargetException(); throw Utils.throwableUnwrap(e2); } } org.noear.solon.core.AppContext#methodGet会对method进行包装：\npublic MethodWrap methodGet(Method method) { MethodWrap mw = methodCached.get(method); if (mw == null) { SYNC_LOCK.lock(); try { mw = methodCached.get(method); if (mw == null) { mw = new MethodWrap(this, method); methodCached.put(method, mw); } } finally { SYNC_LOCK.unlock(); } } return mw; } @org.noear.solon.Solon.app().context()可以获取上下文，也就是Appcontext对象。\n要包装函数需要先获得Method对象。 org.noear.solon.core.util.ReflectUtil#getDeclaredMethods可以获得所有声明方法。\npublic static Method[] getDeclaredMethods(Class\u003c?\u003e clazz) { return global.getDeclaredMethods(clazz); } 这样就可以调用任意类的任意public函数了。\n回显 org.noear.solon.core.handle.ContextUtil#current可获取当前线程的上下文，这里的context和appcontext不一样，此处的context只包含本次请求的请求包和返回包等内容。\npublic static Context current(){ Context tmp = threadLocal.get(); if (tmp == null \u0026\u0026 Solon.cfg().testing()) { tmp = new ContextEmpty(); threadLocal.set(tmp); } return tmp; } solon使用的是smarthttp。smhttpctx对象有一个output函数用来向返回包写数据。 org.noear.solon.boot.smarthttp.http.SmHttpContext#output\npublic void output(byte[] bytes) { try { OutputStream out = this.outputStream(); if (this._allows_write) { out.write(bytes); } } catch (Throwable var3) { throw new RuntimeException(var3); } } 将数据写入byte[]中再代用output就可以回显了。 getInputStream()获得执行结果的inputstream对象，byte[]对象通过反射Array获得。\n结尾 目前beetl的3.17.0版本已经默认使用白名单模式 链接\n",
+  "wordCount" : "554",
+  "inLanguage": "en",
+  "datePublished": "2024-07-27T18:21:03+08:00",
+  "dateModified": "2024-07-27T18:21:03+08:00",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://zoiltin.github.io/posts/ciscn2024-final-fobee-wp/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "zoiltin's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://zoiltin.github.io/favicon.ico"
+    }
+  }
+}
+</script>
 </head>
 
 <body class="" id="top">
@@ -73,7 +138,7 @@
 <header class="header">
     <nav class="nav">
         <div class="logo">
-            <a href="http://localhost:1313/" accesskey="h" title="zoiltin&#39;s Blog (Alt + H)">zoiltin&#39;s Blog</a>
+            <a href="https://zoiltin.github.io/" accesskey="h" title="zoiltin&#39;s Blog (Alt + H)">zoiltin&#39;s Blog</a>
             <div class="logo-switches">
                 <button id="theme-toggle" accesskey="t" title="(Alt + T)">
                     <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
@@ -99,17 +164,17 @@
         </div>
         <ul id="menu">
             <li>
-                <a href="http://localhost:1313/" title="Home">
+                <a href="https://zoiltin.github.io/" title="Home">
                     <span>Home</span>
                 </a>
             </li>
             <li>
-                <a href="http://localhost:1313/posts" title="Posts">
+                <a href="https://zoiltin.github.io/posts" title="Posts">
                     <span>Posts</span>
                 </a>
             </li>
             <li>
-                <a href="http://localhost:1313/about" title="About">
+                <a href="https://zoiltin.github.io/about" title="About">
                     <span>About</span>
                 </a>
             </li>
@@ -371,7 +436,7 @@ getInputStream()获得执行结果的inputstream对象，byte[]对象通过反�
     </main>
     
 <footer class="footer">
-        <span>&copy; 2024 <a href="http://localhost:1313/">zoiltin&#39;s Blog</a></span> · 
+        <span>&copy; 2024 <a href="https://zoiltin.github.io/">zoiltin&#39;s Blog</a></span> · 
 
     <span>
         Powered by

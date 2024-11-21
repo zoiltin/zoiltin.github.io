@@ -2,52 +2,52 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
   <channel>
     <title>Posts on zoiltin&#39;s Blog</title>
-    <link>http://localhost:1313/posts/</link>
+    <link>https://zoiltin.github.io/posts/</link>
     <description>Recent content in Posts on zoiltin&#39;s Blog</description>
     <generator>Hugo -- 0.128.2</generator>
     <language>zh-CN</language>
     <lastBuildDate>Wed, 20 Nov 2024 19:12:11 +0000</lastBuildDate>
-    <atom:link href="http://localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://zoiltin.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Jumpserver随机数预测漏洞(CVE-2023-42820)复现</title>
-      <link>http://localhost:1313/posts/jumpserver%E9%9A%8F%E6%9C%BA%E6%95%B0%E9%A2%84%E6%B5%8B%E6%BC%8F%E6%B4%9Ecve-2023-42820%E5%A4%8D%E7%8E%B0/</link>
+      <link>https://zoiltin.github.io/posts/jumpserver%E9%9A%8F%E6%9C%BA%E6%95%B0%E9%A2%84%E6%B5%8B%E6%BC%8F%E6%B4%9Ecve-2023-42820%E5%A4%8D%E7%8E%B0/</link>
       <pubDate>Wed, 20 Nov 2024 19:12:11 +0000</pubDate>
-      <guid>http://localhost:1313/posts/jumpserver%E9%9A%8F%E6%9C%BA%E6%95%B0%E9%A2%84%E6%B5%8B%E6%BC%8F%E6%B4%9Ecve-2023-42820%E5%A4%8D%E7%8E%B0/</guid>
+      <guid>https://zoiltin.github.io/posts/jumpserver%E9%9A%8F%E6%9C%BA%E6%95%B0%E9%A2%84%E6%B5%8B%E6%BC%8F%E6%B4%9Ecve-2023-42820%E5%A4%8D%E7%8E%B0/</guid>
       <description>一年之后才提上日程的CVE-2023-42820复现</description>
     </item>
     <item>
       <title>Ciscn 2024 final Fobee wp</title>
-      <link>http://localhost:1313/posts/ciscn2024-final-fobee-wp/</link>
+      <link>https://zoiltin.github.io/posts/ciscn2024-final-fobee-wp/</link>
       <pubDate>Sat, 27 Jul 2024 18:21:03 +0800</pubDate>
-      <guid>http://localhost:1313/posts/ciscn2024-final-fobee-wp/</guid>
+      <guid>https://zoiltin.github.io/posts/ciscn2024-final-fobee-wp/</guid>
       <description>ciscn 2024 final Fobee wp</description>
     </item>
     <item>
       <title>d3ctf-2024-web-wp</title>
-      <link>http://localhost:1313/posts/d3ctf-2024-web-wp/</link>
+      <link>https://zoiltin.github.io/posts/d3ctf-2024-web-wp/</link>
       <pubDate>Sun, 28 Apr 2024 20:35:50 +0000</pubDate>
-      <guid>http://localhost:1313/posts/d3ctf-2024-web-wp/</guid>
+      <guid>https://zoiltin.github.io/posts/d3ctf-2024-web-wp/</guid>
       <description>d^3ctf 2024 web方向wp</description>
     </item>
     <item>
       <title>bi0s CTF 2024 wp</title>
-      <link>http://localhost:1313/posts/bi0s-ctf-2024-wp/</link>
+      <link>https://zoiltin.github.io/posts/bi0s-ctf-2024-wp/</link>
       <pubDate>Tue, 27 Feb 2024 15:33:01 +0000</pubDate>
-      <guid>http://localhost:1313/posts/bi0s-ctf-2024-wp/</guid>
+      <guid>https://zoiltin.github.io/posts/bi0s-ctf-2024-wp/</guid>
       <description>bi0s CTF 2024 wp</description>
     </item>
     <item>
       <title>movectf_2024_wp</title>
-      <link>http://localhost:1313/posts/movectf-2024-wp/</link>
+      <link>https://zoiltin.github.io/posts/movectf-2024-wp/</link>
       <pubDate>Sat, 13 Jan 2024 08:48:17 +0000</pubDate>
-      <guid>http://localhost:1313/posts/movectf-2024-wp/</guid>
+      <guid>https://zoiltin.github.io/posts/movectf-2024-wp/</guid>
       <description>movectf 2024的部分题目wp</description>
     </item>
     <item>
       <title>盲XXE中FTP协议的利用</title>
-      <link>http://localhost:1313/posts/%E7%9B%B2xxe%E4%B8%ADftp%E5%8D%8F%E8%AE%AE%E7%9A%84%E5%88%A9%E7%94%A8/</link>
+      <link>https://zoiltin.github.io/posts/%E7%9B%B2xxe%E4%B8%ADftp%E5%8D%8F%E8%AE%AE%E7%9A%84%E5%88%A9%E7%94%A8/</link>
       <pubDate>Wed, 22 Nov 2023 15:16:46 +0000</pubDate>
-      <guid>http://localhost:1313/posts/%E7%9B%B2xxe%E4%B8%ADftp%E5%8D%8F%E8%AE%AE%E7%9A%84%E5%88%A9%E7%94%A8/</guid>
+      <guid>https://zoiltin.github.io/posts/%E7%9B%B2xxe%E4%B8%ADftp%E5%8D%8F%E8%AE%AE%E7%9A%84%E5%88%A9%E7%94%A8/</guid>
       <description>最近遇到了java环境中的盲XXE，所以研究了一下怎么利用ftp://读文件。</description>
     </item>
   </channel>
