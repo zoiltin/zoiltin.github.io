@@ -6,8 +6,15 @@
     <description>Recent content in Ctf on zoiltin&#39;s Blog</description>
     <generator>Hugo -- 0.128.2</generator>
     <language>zh-CN</language>
-    <lastBuildDate>Sat, 27 Jul 2024 18:21:03 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 25 Nov 2024 20:10:50 +0000</lastBuildDate>
     <atom:link href="https://zoiltin.github.io/categories/ctf/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>CTF记录-SECCON_CTF_13th_Quals, AlpacaHack_Round_7</title>
+      <link>https://zoiltin.github.io/posts/ctf%E8%AE%B0%E5%BD%95-seccon_ctf_13th_quals-alpacahack_round_7/</link>
+      <pubDate>Mon, 25 Nov 2024 20:10:50 +0000</pubDate>
+      <guid>https://zoiltin.github.io/posts/ctf%E8%AE%B0%E5%BD%95-seccon_ctf_13th_quals-alpacahack_round_7/</guid>
+      <description>SECCON CTF 13th Quals和AlpacaHack Round 7 web方向writeup</description>
+    </item>
     <item>
       <title>Ciscn 2024 final Fobee wp</title>
       <link>https://zoiltin.github.io/posts/ciscn2024-final-fobee-wp/</link>

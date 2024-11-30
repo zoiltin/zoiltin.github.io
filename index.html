@@ -165,6 +165,19 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">CTF记录-SECCON_CTF_13th_Quals, AlpacaHack_Round_7
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>SECCON CTF 13th Quals Trillion_Bank 题目代码：
+import fastify from &#34;fastify&#34;; import crypto from &#34;node:crypto&#34;; import fs from &#34;node:fs/promises&#34;; import db from &#34;./db.js&#34;; const FLAG = process.env.FLAG ?? console.log(&#34;No flag&#34;) ?? process.exit(1); const TRILLION = 1_000_000_000_000; const app = fastify(); app.register(await import(&#34;@fastify/jwt&#34;), { secret: crypto.randomBytes(32), cookie: { cookieName: &#34;session&#34; }, }); app.register(await import(&#34;@fastify/cookie&#34;)); const names = new Set(); const auth = async (req, res) =&gt; { try { await req.jwtVerify(); } catch { return res....</p>
+  </div>
+  <footer class="entry-footer"><span title='2024-11-25 20:10:50 +0000 UTC'>November 25, 2024</span>&nbsp;·&nbsp;11 min</footer>
+  <a class="entry-link" aria-label="post link to CTF记录-SECCON_CTF_13th_Quals, AlpacaHack_Round_7" href="https://zoiltin.github.io/posts/ctf%E8%AE%B0%E5%BD%95-seccon_ctf_13th_quals-alpacahack_round_7/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">Jumpserver随机数预测漏洞(CVE-2023-42820)复现
     </h2>
   </header>

@@ -6,8 +6,15 @@
     <description>Recent content in Posts on zoiltin&#39;s Blog</description>
     <generator>Hugo -- 0.128.2</generator>
     <language>zh-CN</language>
-    <lastBuildDate>Wed, 20 Nov 2024 19:12:11 +0000</lastBuildDate>
+    <lastBuildDate>Mon, 25 Nov 2024 20:10:50 +0000</lastBuildDate>
     <atom:link href="https://zoiltin.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>CTF记录-SECCON_CTF_13th_Quals, AlpacaHack_Round_7</title>
+      <link>https://zoiltin.github.io/posts/ctf%E8%AE%B0%E5%BD%95-seccon_ctf_13th_quals-alpacahack_round_7/</link>
+      <pubDate>Mon, 25 Nov 2024 20:10:50 +0000</pubDate>
+      <guid>https://zoiltin.github.io/posts/ctf%E8%AE%B0%E5%BD%95-seccon_ctf_13th_quals-alpacahack_round_7/</guid>
+      <description>SECCON CTF 13th Quals和AlpacaHack Round 7 web方向writeup</description>
+    </item>
     <item>
       <title>Jumpserver随机数预测漏洞(CVE-2023-42820)复现</title>
       <link>https://zoiltin.github.io/posts/jumpserver%E9%9A%8F%E6%9C%BA%E6%95%B0%E9%A2%84%E6%B5%8B%E6%BC%8F%E6%B4%9Ecve-2023-42820%E5%A4%8D%E7%8E%B0/</link>
