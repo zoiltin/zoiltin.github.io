@@ -6,8 +6,15 @@
     <description>Recent content in Posts on zoiltin&#39;s Blog</description>
     <generator>Hugo -- 0.128.2</generator>
     <language>zh-CN</language>
-    <lastBuildDate>Mon, 25 Nov 2024 20:10:50 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 06 Dec 2024 18:31:11 +0000</lastBuildDate>
     <atom:link href="https://zoiltin.github.io/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>python中关于__new__的一个trick</title>
+      <link>https://zoiltin.github.io/posts/python%E4%B8%AD%E5%85%B3%E4%BA%8E__new__%E7%9A%84%E4%B8%80%E4%B8%AAtrick/</link>
+      <pubDate>Fri, 06 Dec 2024 18:31:11 +0000</pubDate>
+      <guid>https://zoiltin.github.io/posts/python%E4%B8%AD%E5%85%B3%E4%BA%8E__new__%E7%9A%84%E4%B8%80%E4%B8%AAtrick/</guid>
+      <description>最近在学习python沙箱逃逸，学习了python也能像js那样使用构造方法创建函数。本文用于记录一下学到的python中关于__new__有趣的玩法。</description>
+    </item>
     <item>
       <title>CTF记录-SECCON_CTF_13th_Quals, AlpacaHack_Round_7</title>
       <link>https://zoiltin.github.io/posts/ctf%E8%AE%B0%E5%BD%95-seccon_ctf_13th_quals-alpacahack_round_7/</link>

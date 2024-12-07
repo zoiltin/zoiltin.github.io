@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>python中关于__new__的一个trick | zoiltin&#39;s Blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="最近在学习python沙箱逃逸，学习了python也能像js那样使用构造方法创建函数。本文用于记录一下学到的python中关于__new__有趣的玩法。">
+<meta name="author" content="">
+<link rel="canonical" href="https://zoiltin.github.io/posts/python%E4%B8%AD%E5%85%B3%E4%BA%8E__new__%E7%9A%84%E4%B8%80%E4%B8%AAtrick/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.d72444526d7ecbdb0015438a7fa89054a658bf759d0542e2e5df81ce94b493ee.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://zoiltin.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://zoiltin.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://zoiltin.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://zoiltin.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://zoiltin.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://zoiltin.github.io/posts/python%E4%B8%AD%E5%85%B3%E4%BA%8E__new__%E7%9A%84%E4%B8%80%E4%B8%AAtrick/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+  
+
+<meta property="og:url" content="https://zoiltin.github.io/posts/python%E4%B8%AD%E5%85%B3%E4%BA%8E__new__%E7%9A%84%E4%B8%80%E4%B8%AAtrick/">
+  <meta property="og:site_name" content="zoiltin&#39;s Blog">
+  <meta property="og:title" content="python中关于__new__的一个trick">
+  <meta property="og:description" content="最近在学习python沙箱逃逸，学习了python也能像js那样使用构造方法创建函数。本文用于记录一下学到的python中关于__new__有趣的玩法。">
+  <meta property="og:locale" content="zh-CN">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2024-12-06T18:31:11+00:00">
+    <meta property="article:modified_time" content="2024-12-06T18:31:11+00:00">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="python中关于__new__的一个trick">
+<meta name="twitter:description" content="最近在学习python沙箱逃逸，学习了python也能像js那样使用构造方法创建函数。本文用于记录一下学到的python中关于__new__有趣的玩法。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://zoiltin.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "python中关于__new__的一个trick",
+      "item": "https://zoiltin.github.io/posts/python%E4%B8%AD%E5%85%B3%E4%BA%8E__new__%E7%9A%84%E4%B8%80%E4%B8%AAtrick/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "python中关于__new__的一个trick",
+  "name": "python中关于__new__的一个trick",
+  "description": "最近在学习python沙箱逃逸，学习了python也能像js那样使用构造方法创建函数。本文用于记录一下学到的python中关于__new__有趣的玩法。",
+  "keywords": [
+    
+  ],
+  "articleBody": "本篇文章仅用于技术交流学习和研究的目的，严禁使用文章中的技术用于非法目的和破坏。\n前言 javascript可以通过Function的构造方法从字符串创建函数。在eval被过滤的情况下可以通过字符串创建函数来绕过：\natob.constructor('console.log(1);')(); 最近在学习python沙箱逃逸，学习了python也能像js那样使用构造方法创建函数。本文用于记录一下学到的python中关于__new__有趣的玩法。才疏学浅，如有错误还请师傅们指正。\npython object 以下分析中python版本为3.12.6，不同版本略有差异\n下载源码：https://github.com/python/cpython/\n首先梳理一下python的对象。\npython中所有的对象都是由PyObject结构体扩展而来。type感觉类似于java里的Class，负责定义对象的一些基本信息。参考：https://flaggo.github.io/python3-source-code-analysis/objects/object/\ntype(obj)可以返回对象的type，type中的__new__方法用于创建对象。详细可参考MetaClass：https://liaoxuefeng.com/books/python/oop-adv/meta-class/\n__new__最终会调用到PyXXXObject_New api，创建一个对象\nPyFunctionObject PyFunctionObject的__new__定义在：cpython/Objects/funcobject.c，有如下注释：\n/*[clinic input]\r@classmethod\rfunction.__new__ as func_new\rcode: object(type=\"PyCodeObject *\", subclass_of=\"\u0026PyCode_Type\")\ra code object\rglobals: object(subclass_of=\"\u0026PyDict_Type\")\rthe globals dictionary\rname: object = None\ra string that overrides the name from the code object\rargdefs as defaults: object = None\ra tuple that specifies the default argument values\rclosure: object = None\ra tuple that supplies the bindings for free variables\rCreate a function object.\r[clinic start generated code]*/ 由此可见PyFunctionObject接受PyCodeObject来存放可执行的python代码。\nPyFunctionObject对象的__code__属性存储PyCodeObject：\nstatic PyGetSetDef func_getsetlist[] = { {\"__code__\", (getter)func_get_code, (setter)func_set_code}, {\"__defaults__\", (getter)func_get_defaults, (setter)func_set_defaults}, {\"__kwdefaults__\", (getter)func_get_kwdefaults, (setter)func_set_kwdefaults}, {\"__annotations__\", (getter)func_get_annotations, (setter)func_set_annotations}, {\"__dict__\", PyObject_GenericGetDict, PyObject_GenericSetDict}, {\"__name__\", (getter)func_get_name, (setter)func_set_name}, {\"__qualname__\", (getter)func_get_qualname, (setter)func_set_qualname}, {\"__type_params__\", (getter)func_get_type_params, (setter)func_set_type_params}, {NULL} /* Sentinel */ }; getter方法func_get_code返回一个PyCodeObject\nPyCodeObject 不同版本python字节码语法和__new__的参数不同，不要混用，这里就不列出所有版本的写法了。\nversion \u003e= 3.11 接受参数的文档在cpython/Objects/codeobject.c，__new__的注释如下：\n/*[clinic input]\r@classmethod\rcode.__new__ as code_new\rargcount: int\rposonlyargcount: int\rkwonlyargcount: int\rnlocals: int\rstacksize: int\rflags: int\rcodestring as code: object(subclass_of=\"\u0026PyBytes_Type\")\rconstants as consts: object(subclass_of=\"\u0026PyTuple_Type\")\rnames: object(subclass_of=\"\u0026PyTuple_Type\")\rvarnames: object(subclass_of=\"\u0026PyTuple_Type\")\rfilename: unicode\rname: unicode\rqualname: unicode\rfirstlineno: int\rlinetable: object(subclass_of=\"\u0026PyBytes_Type\")\rexceptiontable: object(subclass_of=\"\u0026PyBytes_Type\")\rfreevars: object(subclass_of=\"\u0026PyTuple_Type\", c_default=\"NULL\") = ()\rcellvars: object(subclass_of=\"\u0026PyTuple_Type\", c_default=\"NULL\") = ()\r/\rCreate a code object. Not for the faint of heart.\r[clinic start generated code]*/ 其中python代码用PyBytes_Type类型传递，函数名，变量名等均可控。自由度很高。\nversion \u003c= 3.9 接受参数的文档在doc中。\nPyDoc_STRVAR(code_doc, \"code(argcount, posonlyargcount, kwonlyargcount, nlocals, stacksize,\\n\\ flags, codestring, constants, names, varnames, filename, name,\\n\\ firstlineno, lnotab[, freevars[, cellvars]])\\n\\ \\n\\ Create a code object. Not for the faint of heart.\"); 参数类型：\n/* Check argument types */ if (argcount \u003c posonlyargcount || posonlyargcount \u003c 0 || kwonlyargcount \u003c 0 || nlocals \u003c 0 || stacksize \u003c 0 || flags \u003c 0 || code == NULL || !PyBytes_Check(code) || consts == NULL || !PyTuple_Check(consts) || names == NULL || !PyTuple_Check(names) || varnames == NULL || !PyTuple_Check(varnames) || freevars == NULL || !PyTuple_Check(freevars) || cellvars == NULL || !PyTuple_Check(cellvars) || name == NULL || !PyUnicode_Check(name) || filename == NULL || !PyUnicode_Check(filename) || lnotab == NULL || !PyBytes_Check(lnotab)) { PyErr_BadInternalCall(); return NULL; } 值得注意的是 \u003c= 3.9 用到的globals names需要手动传递__globals__ dict，而在\u003e= 3.10中似乎会自动将当前上下文中的内容传递进去。(下文会解释)\n构造函数 以下代码中的字节码为python 3.12.6生成的。\ndebug查看__code__相关属性的值。\ndef test_func(): print('1') __code__中的大部分属性都不需要改。\nfrom types import CodeType, FunctionType argcount = 0 posonlyargcount = 0 kwonlyargcount = 0 nlocals = 0 stacksize = 5 flags = 3 code = b'\\x97\\x00t\\x01\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00d\\x01\\xab\\x01\\x00\\x00\\x00\\x00\\x00\\x00\\x01\\x00y\\x00' consts = (None, 1) names = ('print', ) varnames = () filename = '' name = '' qualname = '' firstlineno = 1 linetable = b'' exceptiontable = b'' f = FunctionType(CodeType( argcount, posonlyargcount, kwonlyargcount, nlocals, stacksize, flags, code, consts, names, varnames, filename, name, qualname, firstlineno, linetable, exceptiontable ), {}) f() # print(1) FunctionType构造函数的大括号{}为函数运行时的__globals__ dict，在 \u003e= 3.10版本似乎会自动将当前上下文中的内容传递进去，而在 \u003c= 3.9版本，需要手动传例如 {\"print\":print}\n简化一下：\nfrom types import CodeType, FunctionType code = b'\\x97\\x00t\\x01\\x00\\x00\\x00\\x00\\x00\\x00\\x00\\x00d\\x01\\xab\\x01\\x00\\x00\\x00\\x00\\x00\\x00\\x01\\x00y\\x00' f = FunctionType(CodeType(0, 0, 0, 0, 5, 3, code, (None, 1), ('print', ), (), '', '', '', 1, b'', b''), {}) f() # print(1) python字节码用bytes表示，相关变量名等(如print)也用字符串表示，这样就可以很容易通过编码绕过各种检测了，类似于eval的效果。\n不使用import获得相关type CodeType和FunctionType不属于关键字，也不在__builtins__里。除了通过从types模块import获取，还能通过type()获取，type()是__builtins__里的内建方法。\nFunctionType可以从任意函数获取：\nfunc_type = type(lambda: None) CodeType要麻烦些。查找源码中所有引用了PyCodeObject的地方： 找到以下可利用的方式：\nPyFrameObject.f_code // cpython/Objects/frameobject.c#L869 static PyGetSetDef frame_getsetlist[] = { {\"f_back\", (getter)frame_getback, NULL, NULL}, {\"f_locals\", (getter)frame_getlocals, NULL, NULL}, {\"f_lineno\", (getter)frame_getlineno, (setter)frame_setlineno, NULL}, {\"f_trace\", (getter)frame_gettrace, (setter)frame_settrace, NULL}, {\"f_lasti\", (getter)frame_getlasti, NULL, NULL}, {\"f_globals\", (getter)frame_getglobals, NULL, NULL}, {\"f_builtins\", (getter)frame_getbuiltins, NULL, NULL}, {\"f_code\", (getter)frame_getcode, NULL, NULL}, {\"f_trace_opcodes\", (getter)frame_gettrace_opcodes, (setter)frame_settrace_opcodes, NULL}, {0} }; // cpython/Objects/frameobject.c#L1479 PyCodeObject * PyFrame_GetCode(PyFrameObject *frame) { assert(frame != NULL); assert(!_PyFrame_IsIncomplete(frame-\u003ef_frame)); PyCodeObject *code = frame-\u003ef_frame-\u003ef_code; assert(code != NULL); return (PyCodeObject*)Py_NewRef(code); } 栈帧对象的f_code属性的getter方法可以读取一个PyCodeObject\n用法：\ndef gen(): yield 0 g = gen() print(type(g.gi_frame.f_code)) # ",
+  "wordCount" : "977",
+  "inLanguage": "en",
+  "datePublished": "2024-12-06T18:31:11Z",
+  "dateModified": "2024-12-06T18:31:11Z",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://zoiltin.github.io/posts/python%E4%B8%AD%E5%85%B3%E4%BA%8E__new__%E7%9A%84%E4%B8%80%E4%B8%AAtrick/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "zoiltin's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://zoiltin.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://zoiltin.github.io/" accesskey="h" title="zoiltin&#39;s Blog (Alt + H)">zoiltin&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://zoiltin.github.io/" title="Home">
+                    <span>Home</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/search" title="Search (Alt &#43; /)" accesskey=/>
+                    <span>Search</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/posts" title="Posts">
+                    <span>Posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/about" title="About">
+                    <span>About</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      python中关于__new__的一个trick
+    </h1>
+    <div class="post-description">
+      最近在学习python沙箱逃逸，学习了python也能像js那样使用构造方法创建函数。本文用于记录一下学到的python中关于__new__有趣的玩法。
+    </div>
+    <div class="post-meta"><span title='2024-12-06 18:31:11 +0000 UTC'>December 6, 2024</span>&nbsp;·&nbsp;5 min
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#%e5%89%8d%e8%a8%80" aria-label="前言">前言</a></li>
+                <li>
+                    <a href="#python-object" aria-label="python object">python object</a><ul>
+                        
+                <li>
+                    <a href="#pyfunctionobject" aria-label="PyFunctionObject">PyFunctionObject</a></li>
+                <li>
+                    <a href="#pycodeobject" aria-label="PyCodeObject">PyCodeObject</a><ul>
+                        
+                <li>
+                    <a href="#version--311" aria-label="version &gt;= 3.11">version &gt;= 3.11</a></li>
+                <li>
+                    <a href="#version--39" aria-label="version &lt;= 3.9">version &lt;= 3.9</a></li></ul>
+                </li></ul>
+                </li>
+                <li>
+                    <a href="#%e6%9e%84%e9%80%a0%e5%87%bd%e6%95%b0" aria-label="构造函数">构造函数</a><ul>
+                        
+                <li>
+                    <a href="#%e4%b8%8d%e4%bd%bf%e7%94%a8import%e8%8e%b7%e5%be%97%e7%9b%b8%e5%85%b3type" aria-label="不使用import获得相关type">不使用import获得相关type</a><ul>
+                        
+                <li>
+                    <a href="#pyframeobjectf_code" aria-label="PyFrameObject.f_code">PyFrameObject.f_code</a></li>
+                <li>
+                    <a href="#pyfunctionobject__code__" aria-label="PyFunctionObject.__code__">PyFunctionObject.__code__</a></li>
+                <li>
+                    <a href="#pygenobjectgi_code" aria-label="PyGenObject.gi_code">PyGenObject.gi_code</a></li>
+                <li>
+                    <a href="#pycoroobjectcr_code" aria-label="PyCoroObject.cr_code">PyCoroObject.cr_code</a></li>
+                <li>
+                    <a href="#pyasyncgenobjectag_code" aria-label="PyAsyncGenObject.ag_code">PyAsyncGenObject.ag_code</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e5%85%b3%e4%ba%8e%e5%ad%97%e8%8a%82%e7%a0%81" aria-label="关于字节码">关于字节码</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e6%95%88%e6%9e%9c" aria-label="效果">效果</a></li>
+                <li>
+                    <a href="#%e5%8f%82%e8%80%83" aria-label="参考">参考</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><p><strong>本篇文章仅用于技术交流学习和研究的目的，严禁使用文章中的技术用于非法目的和破坏。</strong></p>
+<h1 id="前言">前言<a hidden class="anchor" aria-hidden="true" href="#前言">#</a></h1>
+<p>javascript可以通过Function的构造方法从字符串创建函数。在eval被过滤的情况下可以通过字符串创建函数来绕过：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-js" data-lang="js"><span style="display:flex;"><span><span style="color:#a6e22e">atob</span>.<span style="color:#a6e22e">constructor</span>(<span style="color:#e6db74">&#39;console.log(1);&#39;</span>)();
+</span></span></code></pre></div><p>最近在学习python沙箱逃逸，学习了python也能像js那样使用构造方法创建函数。本文用于记录一下学到的python中关于<code>__new__</code>有趣的玩法。才疏学浅，如有错误还请师傅们指正。</p>
+<h1 id="python-object">python object<a hidden class="anchor" aria-hidden="true" href="#python-object">#</a></h1>
+<blockquote>
+<p>以下分析中python版本为3.12.6，不同版本略有差异</p>
+</blockquote>
+<p>下载源码：https://github.com/python/cpython/</p>
+<p>首先梳理一下python的对象。</p>
+<p>python中所有的对象都是由PyObject结构体扩展而来。<code>type</code>感觉类似于java里的<code>Class</code>，负责定义对象的一些基本信息。参考：https://flaggo.github.io/python3-source-code-analysis/objects/object/</p>
+<p><code>type(obj)</code>可以返回对象的<code>type</code>，<code>type</code>中的<code>__new__</code>方法用于创建对象。详细可参考<code>MetaClass</code>：https://liaoxuefeng.com/books/python/oop-adv/meta-class/</p>
+<p><code>__new__</code>最终会调用到<code>PyXXXObject_New</code> api，创建一个对象</p>
+<h2 id="pyfunctionobject">PyFunctionObject<a hidden class="anchor" aria-hidden="true" href="#pyfunctionobject">#</a></h2>
+<p><code>PyFunctionObject</code>的<code>__new__</code>定义在：<code>cpython/Objects/funcobject.c</code>，有如下注释：</p>
+<pre tabindex="0"><code>/*[clinic input]
+@classmethod
+function.__new__ as func_new
+    code: object(type=&#34;PyCodeObject *&#34;, subclass_of=&#34;&amp;PyCode_Type&#34;)
+        a code object
+    globals: object(subclass_of=&#34;&amp;PyDict_Type&#34;)
+        the globals dictionary
+    name: object = None
+        a string that overrides the name from the code object
+    argdefs as defaults: object = None
+        a tuple that specifies the default argument values
+    closure: object = None
+        a tuple that supplies the bindings for free variables
+
+Create a function object.
+[clinic start generated code]*/
+</code></pre><p>由此可见<code>PyFunctionObject</code>接受<code>PyCodeObject</code>来存放可执行的python代码。</p>
+<p><code>PyFunctionObject</code>对象的<code>__code__</code>属性存储<code>PyCodeObject</code>：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> PyGetSetDef func_getsetlist[] <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;__code__&#34;</span>, (getter)func_get_code, (setter)func_set_code},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;__defaults__&#34;</span>, (getter)func_get_defaults,
+</span></span><span style="display:flex;"><span>     (setter)func_set_defaults},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;__kwdefaults__&#34;</span>, (getter)func_get_kwdefaults,
+</span></span><span style="display:flex;"><span>     (setter)func_set_kwdefaults},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;__annotations__&#34;</span>, (getter)func_get_annotations,
+</span></span><span style="display:flex;"><span>     (setter)func_set_annotations},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;__dict__&#34;</span>, PyObject_GenericGetDict, PyObject_GenericSetDict},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;__name__&#34;</span>, (getter)func_get_name, (setter)func_set_name},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;__qualname__&#34;</span>, (getter)func_get_qualname, (setter)func_set_qualname},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;__type_params__&#34;</span>, (getter)func_get_type_params,
+</span></span><span style="display:flex;"><span>     (setter)func_set_type_params},
+</span></span><span style="display:flex;"><span>    {NULL} <span style="color:#75715e">/* Sentinel */</span>
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><p>getter方法<code>func_get_code</code>返回一个<code>PyCodeObject</code></p>
+<h2 id="pycodeobject">PyCodeObject<a hidden class="anchor" aria-hidden="true" href="#pycodeobject">#</a></h2>
+<p>不同版本python字节码语法和<code>__new__</code>的参数不同，不要混用，这里就不列出所有版本的写法了。</p>
+<h3 id="version--311">version &gt;= 3.11<a hidden class="anchor" aria-hidden="true" href="#version--311">#</a></h3>
+<p>接受参数的文档在<code>cpython/Objects/codeobject.c</code>，<code>__new__</code>的注释如下：</p>
+<pre tabindex="0"><code>/*[clinic input]
+@classmethod
+code.__new__ as code_new
+
+    argcount: int
+    posonlyargcount: int
+    kwonlyargcount: int
+    nlocals: int
+    stacksize: int
+    flags: int
+    codestring as code: object(subclass_of=&#34;&amp;PyBytes_Type&#34;)
+    constants as consts: object(subclass_of=&#34;&amp;PyTuple_Type&#34;)
+    names: object(subclass_of=&#34;&amp;PyTuple_Type&#34;)
+    varnames: object(subclass_of=&#34;&amp;PyTuple_Type&#34;)
+    filename: unicode
+    name: unicode
+    qualname: unicode
+    firstlineno: int
+    linetable: object(subclass_of=&#34;&amp;PyBytes_Type&#34;)
+    exceptiontable: object(subclass_of=&#34;&amp;PyBytes_Type&#34;)
+    freevars: object(subclass_of=&#34;&amp;PyTuple_Type&#34;, c_default=&#34;NULL&#34;) = ()
+    cellvars: object(subclass_of=&#34;&amp;PyTuple_Type&#34;, c_default=&#34;NULL&#34;) = ()
+    /
+
+Create a code object.  Not for the faint of heart.
+[clinic start generated code]*/
+</code></pre><p>其中python代码用<code>PyBytes_Type</code>类型传递，函数名，变量名等均可控。自由度很高。</p>
+<h3 id="version--39">version &lt;= 3.9<a hidden class="anchor" aria-hidden="true" href="#version--39">#</a></h3>
+<p>接受参数的文档在doc中。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">PyDoc_STRVAR</span>(code_doc,
+</span></span><span style="display:flex;"><span><span style="color:#e6db74">&#34;code(argcount, posonlyargcount, kwonlyargcount, nlocals, stacksize,</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">\
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      flags, codestring, constants, names, varnames, filename, name,</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">\
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      firstlineno, lnotab[, freevars[, cellvars]])</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">\
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"></span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">\
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">Create a code object.  Not for the faint of heart.&#34;</span>);
+</span></span></code></pre></div><p>参数类型：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">/* Check argument types */</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (argcount <span style="color:#f92672">&lt;</span> posonlyargcount <span style="color:#f92672">||</span> posonlyargcount <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">||</span>
+</span></span><span style="display:flex;"><span>    kwonlyargcount <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">||</span> nlocals <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">||</span>
+</span></span><span style="display:flex;"><span>    stacksize <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">||</span> flags <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">||</span>
+</span></span><span style="display:flex;"><span>    code <span style="color:#f92672">==</span> NULL <span style="color:#f92672">||</span> <span style="color:#f92672">!</span><span style="color:#a6e22e">PyBytes_Check</span>(code) <span style="color:#f92672">||</span>
+</span></span><span style="display:flex;"><span>    consts <span style="color:#f92672">==</span> NULL <span style="color:#f92672">||</span> <span style="color:#f92672">!</span><span style="color:#a6e22e">PyTuple_Check</span>(consts) <span style="color:#f92672">||</span>
+</span></span><span style="display:flex;"><span>    names <span style="color:#f92672">==</span> NULL <span style="color:#f92672">||</span> <span style="color:#f92672">!</span><span style="color:#a6e22e">PyTuple_Check</span>(names) <span style="color:#f92672">||</span>
+</span></span><span style="display:flex;"><span>    varnames <span style="color:#f92672">==</span> NULL <span style="color:#f92672">||</span> <span style="color:#f92672">!</span><span style="color:#a6e22e">PyTuple_Check</span>(varnames) <span style="color:#f92672">||</span>
+</span></span><span style="display:flex;"><span>    freevars <span style="color:#f92672">==</span> NULL <span style="color:#f92672">||</span> <span style="color:#f92672">!</span><span style="color:#a6e22e">PyTuple_Check</span>(freevars) <span style="color:#f92672">||</span>
+</span></span><span style="display:flex;"><span>    cellvars <span style="color:#f92672">==</span> NULL <span style="color:#f92672">||</span> <span style="color:#f92672">!</span><span style="color:#a6e22e">PyTuple_Check</span>(cellvars) <span style="color:#f92672">||</span>
+</span></span><span style="display:flex;"><span>    name <span style="color:#f92672">==</span> NULL <span style="color:#f92672">||</span> <span style="color:#f92672">!</span><span style="color:#a6e22e">PyUnicode_Check</span>(name) <span style="color:#f92672">||</span>
+</span></span><span style="display:flex;"><span>    filename <span style="color:#f92672">==</span> NULL <span style="color:#f92672">||</span> <span style="color:#f92672">!</span><span style="color:#a6e22e">PyUnicode_Check</span>(filename) <span style="color:#f92672">||</span>
+</span></span><span style="display:flex;"><span>    lnotab <span style="color:#f92672">==</span> NULL <span style="color:#f92672">||</span> <span style="color:#f92672">!</span><span style="color:#a6e22e">PyBytes_Check</span>(lnotab)) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">PyErr_BadInternalCall</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> NULL;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>值得注意的是 <code>&lt;= 3.9</code> 用到的globals names需要手动传递<code>__globals__</code> dict，而在<code>&gt;= 3.10</code>中似乎会自动将当前上下文中的内容传递进去。(下文会解释)</p>
+<h1 id="构造函数">构造函数<a hidden class="anchor" aria-hidden="true" href="#构造函数">#</a></h1>
+<blockquote>
+<p>以下代码中的字节码为python 3.12.6生成的。</p>
+</blockquote>
+<p>debug查看<code>__code__</code>相关属性的值。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">test_func</span>():
+</span></span><span style="display:flex;"><span>    print(<span style="color:#e6db74">&#39;1&#39;</span>)
+</span></span></code></pre></div><p><img alt="1" loading="lazy" src="/posts/python%E4%B8%AD%E5%85%B3%E4%BA%8E__new__%E7%9A%84%E4%B8%80%E4%B8%AAtrick/images/1.png">
+<code>__code__</code>中的大部分属性都不需要改。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">from</span> types <span style="color:#f92672">import</span> CodeType, FunctionType
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>argcount <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>posonlyargcount <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>kwonlyargcount <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>nlocals <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>stacksize <span style="color:#f92672">=</span> <span style="color:#ae81ff">5</span>
+</span></span><span style="display:flex;"><span>flags <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>
+</span></span><span style="display:flex;"><span>code <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\x97\x00</span><span style="color:#e6db74">t</span><span style="color:#ae81ff">\x01\x00\x00\x00\x00\x00\x00\x00\x00</span><span style="color:#e6db74">d</span><span style="color:#ae81ff">\x01\xab\x01\x00\x00\x00\x00\x00\x00\x01\x00</span><span style="color:#e6db74">y</span><span style="color:#ae81ff">\x00</span><span style="color:#e6db74">&#39;</span>
+</span></span><span style="display:flex;"><span>consts <span style="color:#f92672">=</span> (<span style="color:#66d9ef">None</span>, <span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>names <span style="color:#f92672">=</span> (<span style="color:#e6db74">&#39;print&#39;</span>, )
+</span></span><span style="display:flex;"><span>varnames <span style="color:#f92672">=</span> ()
+</span></span><span style="display:flex;"><span>filename <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>qualname <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>firstlineno <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>linetable <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>exceptiontable <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>f <span style="color:#f92672">=</span> FunctionType(CodeType(
+</span></span><span style="display:flex;"><span>    argcount,
+</span></span><span style="display:flex;"><span>    posonlyargcount,
+</span></span><span style="display:flex;"><span>    kwonlyargcount,
+</span></span><span style="display:flex;"><span>    nlocals,
+</span></span><span style="display:flex;"><span>    stacksize,
+</span></span><span style="display:flex;"><span>    flags,
+</span></span><span style="display:flex;"><span>    code,
+</span></span><span style="display:flex;"><span>    consts,
+</span></span><span style="display:flex;"><span>    names,
+</span></span><span style="display:flex;"><span>    varnames,
+</span></span><span style="display:flex;"><span>    filename,
+</span></span><span style="display:flex;"><span>    name,
+</span></span><span style="display:flex;"><span>    qualname,
+</span></span><span style="display:flex;"><span>    firstlineno,
+</span></span><span style="display:flex;"><span>    linetable,
+</span></span><span style="display:flex;"><span>    exceptiontable
+</span></span><span style="display:flex;"><span>), {})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>f()
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># print(1)</span>
+</span></span></code></pre></div><p><code>FunctionType</code>构造函数的大括号<code>{}</code>为函数运行时的__globals__ dict，在 &gt;= 3.10版本似乎会自动将当前上下文中的内容传递进去，而在 &lt;= 3.9版本，需要手动传例如 <code>{&quot;print&quot;:print}</code></p>
+<p>简化一下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">from</span> types <span style="color:#f92672">import</span> CodeType, FunctionType
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>code <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\x97\x00</span><span style="color:#e6db74">t</span><span style="color:#ae81ff">\x01\x00\x00\x00\x00\x00\x00\x00\x00</span><span style="color:#e6db74">d</span><span style="color:#ae81ff">\x01\xab\x01\x00\x00\x00\x00\x00\x00\x01\x00</span><span style="color:#e6db74">y</span><span style="color:#ae81ff">\x00</span><span style="color:#e6db74">&#39;</span>
+</span></span><span style="display:flex;"><span>f <span style="color:#f92672">=</span> FunctionType(CodeType(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">5</span>, <span style="color:#ae81ff">3</span>, code, (<span style="color:#66d9ef">None</span>, <span style="color:#ae81ff">1</span>), (<span style="color:#e6db74">&#39;print&#39;</span>, ), (), <span style="color:#e6db74">&#39;&#39;</span>, <span style="color:#e6db74">&#39;&#39;</span>, <span style="color:#e6db74">&#39;&#39;</span>, <span style="color:#ae81ff">1</span>, <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;&#39;</span>, <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;&#39;</span>), {})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>f()
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># print(1)</span>
+</span></span></code></pre></div><p>python字节码用bytes表示，相关变量名等(如print)也用字符串表示，这样就可以很容易通过编码绕过各种检测了，类似于eval的效果。</p>
+<h2 id="不使用import获得相关type">不使用import获得相关type<a hidden class="anchor" aria-hidden="true" href="#不使用import获得相关type">#</a></h2>
+<p><code>CodeType</code>和<code>FunctionType</code>不属于关键字，也不在<code>__builtins__</code>里。除了通过从<code>types</code>模块<code>import</code>获取，还能通过<code>type()</code>获取，<code>type()</code>是<code>__builtins__</code>里的内建方法。</p>
+<p>FunctionType可以从任意函数获取：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>func_type <span style="color:#f92672">=</span> type(<span style="color:#66d9ef">lambda</span>: <span style="color:#66d9ef">None</span>)
+</span></span></code></pre></div><p>CodeType要麻烦些。查找源码中所有引用了PyCodeObject的地方：
+<img alt="2" loading="lazy" src="/posts/python%E4%B8%AD%E5%85%B3%E4%BA%8E__new__%E7%9A%84%E4%B8%80%E4%B8%AAtrick/images/2.png">               <br>
+找到以下可利用的方式：</p>
+<h3 id="pyframeobjectf_code">PyFrameObject.f_code<a hidden class="anchor" aria-hidden="true" href="#pyframeobjectf_code">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// cpython/Objects/frameobject.c#L869
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> PyGetSetDef frame_getsetlist[] <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;f_back&#34;</span>,          (getter)frame_getback, NULL, NULL},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;f_locals&#34;</span>,        (getter)frame_getlocals, NULL, NULL},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;f_lineno&#34;</span>,        (getter)frame_getlineno,
+</span></span><span style="display:flex;"><span>                    (setter)frame_setlineno, NULL},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;f_trace&#34;</span>,         (getter)frame_gettrace, (setter)frame_settrace, NULL},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;f_lasti&#34;</span>,         (getter)frame_getlasti, NULL, NULL},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;f_globals&#34;</span>,       (getter)frame_getglobals, NULL, NULL},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;f_builtins&#34;</span>,      (getter)frame_getbuiltins, NULL, NULL},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;f_code&#34;</span>,          (getter)frame_getcode, NULL, NULL},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;f_trace_opcodes&#34;</span>, (getter)frame_gettrace_opcodes, (setter)frame_settrace_opcodes, NULL},
+</span></span><span style="display:flex;"><span>    {<span style="color:#ae81ff">0</span>}
+</span></span><span style="display:flex;"><span>};
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// cpython/Objects/frameobject.c#L1479
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>PyCodeObject <span style="color:#f92672">*</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">PyFrame_GetCode</span>(PyFrameObject <span style="color:#f92672">*</span>frame)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">assert</span>(frame <span style="color:#f92672">!=</span> NULL);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">assert</span>(<span style="color:#f92672">!</span><span style="color:#a6e22e">_PyFrame_IsIncomplete</span>(frame<span style="color:#f92672">-&gt;</span>f_frame));
+</span></span><span style="display:flex;"><span>    PyCodeObject <span style="color:#f92672">*</span>code <span style="color:#f92672">=</span> frame<span style="color:#f92672">-&gt;</span>f_frame<span style="color:#f92672">-&gt;</span>f_code;
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">assert</span>(code <span style="color:#f92672">!=</span> NULL);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> (PyCodeObject<span style="color:#f92672">*</span>)<span style="color:#a6e22e">Py_NewRef</span>(code);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>栈帧对象的f_code属性的getter方法可以读取一个PyCodeObject</p>
+<p>用法：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">gen</span>():
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">yield</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>g <span style="color:#f92672">=</span> gen()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>print(type(g<span style="color:#f92672">.</span>gi_frame<span style="color:#f92672">.</span>f_code))
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># &lt;class &#39;code&#39;&gt;</span>
+</span></span></code></pre></div><h3 id="pyfunctionobject__code__">PyFunctionObject.__code__<a hidden class="anchor" aria-hidden="true" href="#pyfunctionobject__code__">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// cpython/Objects/funcobject.c#L695
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> PyGetSetDef func_getsetlist[] <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;__code__&#34;</span>, (getter)func_get_code, (setter)func_set_code},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;__defaults__&#34;</span>, (getter)func_get_defaults,
+</span></span><span style="display:flex;"><span>     (setter)func_set_defaults},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;__kwdefaults__&#34;</span>, (getter)func_get_kwdefaults,
+</span></span><span style="display:flex;"><span>     (setter)func_set_kwdefaults},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;__annotations__&#34;</span>, (getter)func_get_annotations,
+</span></span><span style="display:flex;"><span>     (setter)func_set_annotations},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;__dict__&#34;</span>, PyObject_GenericGetDict, PyObject_GenericSetDict},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;__name__&#34;</span>, (getter)func_get_name, (setter)func_set_name},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;__qualname__&#34;</span>, (getter)func_get_qualname, (setter)func_set_qualname},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;__type_params__&#34;</span>, (getter)func_get_type_params,
+</span></span><span style="display:flex;"><span>     (setter)func_set_type_params},
+</span></span><span style="display:flex;"><span>    {NULL} <span style="color:#75715e">/* Sentinel */</span>
+</span></span><span style="display:flex;"><span>};
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// cpython/Objects/funcobject.c#L462
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> PyObject <span style="color:#f92672">*</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">func_get_code</span>(PyFunctionObject <span style="color:#f92672">*</span>op, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Py_UNUSED</span>(ignored))
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">PySys_Audit</span>(<span style="color:#e6db74">&#34;object.__getattr__&#34;</span>, <span style="color:#e6db74">&#34;Os&#34;</span>, op, <span style="color:#e6db74">&#34;__code__&#34;</span>) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> NULL;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">Py_NewRef</span>(op<span style="color:#f92672">-&gt;</span>func_code);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>function对象的__code__属性的getter方法return一个PyCodeObject</p>
+<p>用法：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">test</span>():
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">pass</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>print(type(test<span style="color:#f92672">.</span>__code__))
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># &lt;class &#39;code&#39;&gt;</span>
+</span></span></code></pre></div><h3 id="pygenobjectgi_code">PyGenObject.gi_code<a hidden class="anchor" aria-hidden="true" href="#pygenobjectgi_code">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// cpython/Objects/genobject.c#L774
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> PyObject <span style="color:#f92672">*</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">gen_getcode</span>(PyGenObject <span style="color:#f92672">*</span>gen, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Py_UNUSED</span>(ignored))
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">_gen_getcode</span>(gen, <span style="color:#e6db74">&#34;gi_code&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> PyGetSetDef gen_getsetlist[] <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;__name__&#34;</span>, (getter)gen_get_name, (setter)gen_set_name,
+</span></span><span style="display:flex;"><span>     <span style="color:#a6e22e">PyDoc_STR</span>(<span style="color:#e6db74">&#34;name of the generator&#34;</span>)},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;__qualname__&#34;</span>, (getter)gen_get_qualname, (setter)gen_set_qualname,
+</span></span><span style="display:flex;"><span>     <span style="color:#a6e22e">PyDoc_STR</span>(<span style="color:#e6db74">&#34;qualified name of the generator&#34;</span>)},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;gi_yieldfrom&#34;</span>, (getter)gen_getyieldfrom, NULL,
+</span></span><span style="display:flex;"><span>     <span style="color:#a6e22e">PyDoc_STR</span>(<span style="color:#e6db74">&#34;object being iterated by yield from, or None&#34;</span>)},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;gi_running&#34;</span>, (getter)gen_getrunning, NULL, NULL},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;gi_frame&#34;</span>, (getter)gen_getframe,  NULL, NULL},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;gi_suspended&#34;</span>, (getter)gen_getsuspended,  NULL, NULL},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;gi_code&#34;</span>, (getter)gen_getcode,  NULL, NULL},
+</span></span><span style="display:flex;"><span>    {NULL} <span style="color:#75715e">/* Sentinel */</span>
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><p>生成器的gi_code属性获取code对象。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">gen</span>():
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">yield</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>g <span style="color:#f92672">=</span> gen()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>print(type(g<span style="color:#f92672">.</span>gi_code))
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># &lt;class &#39;code&#39;&gt;</span>
+</span></span></code></pre></div><h3 id="pycoroobjectcr_code">PyCoroObject.cr_code<a hidden class="anchor" aria-hidden="true" href="#pycoroobjectcr_code">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// cpython/Objects/genobject.c#L1120
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> PyObject <span style="color:#f92672">*</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">cr_getcode</span>(PyCoroObject <span style="color:#f92672">*</span>coro, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Py_UNUSED</span>(ignored))
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">_gen_getcode</span>((PyGenObject <span style="color:#f92672">*</span>)coro, <span style="color:#e6db74">&#34;cr_code&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> PyGetSetDef coro_getsetlist[] <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;__name__&#34;</span>, (getter)gen_get_name, (setter)gen_set_name,
+</span></span><span style="display:flex;"><span>     <span style="color:#a6e22e">PyDoc_STR</span>(<span style="color:#e6db74">&#34;name of the coroutine&#34;</span>)},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;__qualname__&#34;</span>, (getter)gen_get_qualname, (setter)gen_set_qualname,
+</span></span><span style="display:flex;"><span>     <span style="color:#a6e22e">PyDoc_STR</span>(<span style="color:#e6db74">&#34;qualified name of the coroutine&#34;</span>)},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;cr_await&#34;</span>, (getter)coro_get_cr_await, NULL,
+</span></span><span style="display:flex;"><span>     <span style="color:#a6e22e">PyDoc_STR</span>(<span style="color:#e6db74">&#34;object being awaited on, or None&#34;</span>)},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;cr_running&#34;</span>, (getter)cr_getrunning, NULL, NULL},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;cr_frame&#34;</span>, (getter)cr_getframe, NULL, NULL},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;cr_code&#34;</span>, (getter)cr_getcode, NULL, NULL},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;cr_suspended&#34;</span>, (getter)cr_getsuspended, NULL, NULL},
+</span></span><span style="display:flex;"><span>    {NULL} <span style="color:#75715e">/* Sentinel */</span>
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><p>协程的cr_code属性</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">async</span> <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">asy</span>():
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">pass</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>a <span style="color:#f92672">=</span> asy()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>print(type(a<span style="color:#f92672">.</span>cr_code))
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># &lt;class &#39;code&#39;&gt;</span>
+</span></span></code></pre></div><h3 id="pyasyncgenobjectag_code">PyAsyncGenObject.ag_code<a hidden class="anchor" aria-hidden="true" href="#pyasyncgenobjectag_code">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// cpython/Objects/genobject.c#L1527
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> PyObject <span style="color:#f92672">*</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">ag_getcode</span>(PyGenObject <span style="color:#f92672">*</span>gen, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Py_UNUSED</span>(ignored))
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">_gen_getcode</span>(gen, <span style="color:#e6db74">&#34;ag_code&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> PyGetSetDef async_gen_getsetlist[] <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;__name__&#34;</span>, (getter)gen_get_name, (setter)gen_set_name,
+</span></span><span style="display:flex;"><span>     <span style="color:#a6e22e">PyDoc_STR</span>(<span style="color:#e6db74">&#34;name of the async generator&#34;</span>)},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;__qualname__&#34;</span>, (getter)gen_get_qualname, (setter)gen_set_qualname,
+</span></span><span style="display:flex;"><span>     <span style="color:#a6e22e">PyDoc_STR</span>(<span style="color:#e6db74">&#34;qualified name of the async generator&#34;</span>)},
+</span></span><span style="display:flex;"><span>    {<span style="color:#e6db74">&#34;ag_await&#34;</span>, (getter)coro_get_cr_await, NULL,
+</span></span><span style="display:flex;"><span>     <span style="color:#a6e22e">PyDoc_STR</span>(<span style="color:#e6db74">&#34;object being awaited on, or None&#34;</span>)},
+</span></span><span style="display:flex;"><span>     {<span style="color:#e6db74">&#34;ag_frame&#34;</span>,  (getter)ag_getframe, NULL, NULL},
+</span></span><span style="display:flex;"><span>     {<span style="color:#e6db74">&#34;ag_code&#34;</span>,  (getter)ag_getcode, NULL, NULL},
+</span></span><span style="display:flex;"><span>     {<span style="color:#e6db74">&#34;ag_suspended&#34;</span>,  (getter)ag_getsuspended, NULL, NULL},
+</span></span><span style="display:flex;"><span>    {NULL} <span style="color:#75715e">/* Sentinel */</span>
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><p>异步生成器的ag_code属性</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">async</span> <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">asy_gen</span>():
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">yield</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>ag <span style="color:#f92672">=</span> asy_gen()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>print(type(ag<span style="color:#f92672">.</span>ag_code))
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># &lt;class &#39;code&#39;&gt;</span>
+</span></span></code></pre></div><p>上面几种方法只是查找了类型为PyCodeObject的属性，如果算上mapping对象的dict以及其他module的话可能还有更多。不过单纯地静态分析代码应该不容易找到别的利用方式了(至少我找不到了)，可以试试动调看看，不过这就到了我的知识盲区了。</p>
+<p>这几种方法都会用到下划线，感觉容易被ban，不过我没有找到一条不包含下划线的调用链。</p>
+<h2 id="关于字节码">关于字节码<a hidden class="anchor" aria-hidden="true" href="#关于字节码">#</a></h2>
+<p>前面的代码中出现的字节码中并不存在特定的变量名或关键字，python字节码一般只包含对堆栈的操作，所有的变量、常量都保存在<code>names</code>和<code>consts</code>中。</p>
+<p>以下面的代码为例：</p>
+<blockquote>
+<p>以下字节码由python 3.12.6生成</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">test</span>():
+</span></span><span style="display:flex;"><span>    print(<span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>bytecode <span style="color:#f92672">=</span> test<span style="color:#f92672">.</span>__code__<span style="color:#f92672">.</span>co_code
+</span></span><span style="display:flex;"><span>print(bytecode)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># b&#39;\x97\x00t\x01\x00\x00\x00\x00\x00\x00\x00\x00d\x01\xab\x01\x00\x00\x00\x00\x00\x00\x01\x00y\x00&#39;</span>
+</span></span></code></pre></div><p>用dis解析字节码如下：</p>
+<pre tabindex="0"><code>0 RESUME                    0
+2 LOAD_GLOBAL               1
+12 LOAD_CONST               1
+14 CALL                     1
+22 POP_TOP
+24 RETURN_CONST             0
+</code></pre><p>流程：</p>
+<ol>
+<li><code>LOAD_GLOBAL 1</code>，全局变量表中第一个元素的名字是<code>print</code>，然后根据<code>'print'</code>从函数上下文<code>__globals__</code>中找到<code>&lt;built-in function print&gt;</code>并入栈。(这里就对上了前面说的3.9和3.10的差异了)</li>
+<li><code>LOAD_CONST 1</code>，将常量表中第一个元素入栈(<code>push 1</code>)。</li>
+<li><code>CALL 1</code>，从栈中调用函数并接受一个参数(<code>print(1)</code>)</li>
+</ol>
+<p>所以说同样的字节码修改变量/常量表就可以影响执行结果：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">test</span>():
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> func1(<span style="color:#ae81ff">0</span>)<span style="color:#f92672">.</span>func2(<span style="color:#ae81ff">1</span>)<span style="color:#f92672">.</span>func3()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>code <span style="color:#f92672">=</span> test<span style="color:#f92672">.</span>__code__<span style="color:#f92672">.</span>co_code
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>func_type <span style="color:#f92672">=</span> type(<span style="color:#66d9ef">lambda</span>: <span style="color:#66d9ef">None</span>)
+</span></span><span style="display:flex;"><span>code_type <span style="color:#f92672">=</span> type((<span style="color:#66d9ef">lambda</span>: <span style="color:#66d9ef">None</span>)<span style="color:#f92672">.</span>__code__)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>f <span style="color:#f92672">=</span> func_type(code_type(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">5</span>, <span style="color:#ae81ff">3</span>, code, (<span style="color:#66d9ef">None</span>, <span style="color:#e6db74">&#39;os&#39;</span>, <span style="color:#e6db74">&#39;whoami&#39;</span>), (<span style="color:#e6db74">&#39;__import__&#39;</span>, <span style="color:#e6db74">&#39;popen&#39;</span>, <span style="color:#e6db74">&#39;read&#39;</span>), (), <span style="color:#e6db74">&#39;&#39;</span>, <span style="color:#e6db74">&#39;&#39;</span>, <span style="color:#e6db74">&#39;&#39;</span>, <span style="color:#ae81ff">1</span>, <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;&#39;</span>, <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;&#39;</span>), {})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>print(f())
+</span></span></code></pre></div><p>python的动态特性导致在创建函数时并不会严格检查代码内容，test函数调用<code>func1(0).func2(2).func3()</code>，修改consts和names后实际执行的是<code>__import__('os').popen('whoami').read()</code>。</p>
+<h1 id="效果">效果<a hidden class="anchor" aria-hidden="true" href="#效果">#</a></h1>
+<blockquote>
+<p>以下代码运行在 python 3.12.6</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">async</span> <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">test</span>():
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">pass</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>functype <span style="color:#f92672">=</span> type(test)
+</span></span><span style="display:flex;"><span>codetype <span style="color:#f92672">=</span> type(test()<span style="color:#f92672">.</span>cr_code)
+</span></span><span style="display:flex;"><span>code <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\x97\x00</span><span style="color:#e6db74">t</span><span style="color:#ae81ff">\x01\x00\x00\x00\x00\x00\x00\x00\x00</span><span style="color:#e6db74">d</span><span style="color:#ae81ff">\x01\xab\x01\x00\x00\x00\x00\x00\x00\x01\x00</span><span style="color:#e6db74">y</span><span style="color:#ae81ff">\x00</span><span style="color:#e6db74">&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>f <span style="color:#f92672">=</span> functype(codetype(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">5</span>, <span style="color:#ae81ff">3</span>, code, (<span style="color:#66d9ef">None</span>, <span style="color:#ae81ff">5</span>), (<span style="color:#e6db74">&#39;p&#39;&#39;r&#39;&#39;i&#39;&#39;n&#39;&#39;t&#39;</span>, ), (), <span style="color:#e6db74">&#39;&#39;</span>, <span style="color:#e6db74">&#39;&#39;</span>, <span style="color:#e6db74">&#39;&#39;</span>, <span style="color:#ae81ff">1</span>, <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;&#39;</span>, <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;&#39;</span>), {})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>f()
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># print(5)</span>
+</span></span></code></pre></div><p>可以用来绕waf之类的。</p>
+<p>除此之外，能够直接编写并执行字节码意味着能调用偏底层的api，还可以直接触发内存错误结束进程。
+<img alt="3" loading="lazy" src="/posts/python%E4%B8%AD%E5%85%B3%E4%BA%8E__new__%E7%9A%84%E4%B8%80%E4%B8%AAtrick/images/3.png"></p>
+<p>不过呢，沙箱环境一般不会给予<code>type()</code>，<code>_</code>也很有可能被过滤，audit的<code>code.__new__</code>也可以hook code类型的创建。似乎比较鸡肋的样子😅，但感觉应该还有更多有意思的玩法，奈何代码基本功比较差就到此为止了。</p>
+<h1 id="参考">参考<a hidden class="anchor" aria-hidden="true" href="#参考">#</a></h1>
+<p><a href="https://flaggo.github.io/python3-source-code-analysis/objects/object/">https://flaggo.github.io/python3-source-code-analysis/objects/object/</a></p>
+<p><a href="https://jbnrz.com.cn/index.php/2024/08/15/pyjail/">https://jbnrz.com.cn/index.php/2024/08/15/pyjail/</a></p>
+<p><a href="https://book.hacktricks.xyz/generic-methodologies-and-resources/python/bypass-python-sandboxes#creating-the-code-object">https://book.hacktricks.xyz/generic-methodologies-and-resources/python/bypass-python-sandboxes#creating-the-code-object</a></p>
+<p><a href="https://liaoxuefeng.com/books/python/oop-adv/meta-class/">https://liaoxuefeng.com/books/python/oop-adv/meta-class/</a></p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2024 <a href="https://zoiltin.github.io/">zoiltin&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

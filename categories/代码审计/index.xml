@@ -6,8 +6,15 @@
     <description>Recent content in 代码审计 on zoiltin&#39;s Blog</description>
     <generator>Hugo -- 0.128.2</generator>
     <language>zh-CN</language>
-    <lastBuildDate>Wed, 20 Nov 2024 19:12:11 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 06 Dec 2024 18:31:11 +0000</lastBuildDate>
     <atom:link href="https://zoiltin.github.io/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>python中关于__new__的一个trick</title>
+      <link>https://zoiltin.github.io/posts/python%E4%B8%AD%E5%85%B3%E4%BA%8E__new__%E7%9A%84%E4%B8%80%E4%B8%AAtrick/</link>
+      <pubDate>Fri, 06 Dec 2024 18:31:11 +0000</pubDate>
+      <guid>https://zoiltin.github.io/posts/python%E4%B8%AD%E5%85%B3%E4%BA%8E__new__%E7%9A%84%E4%B8%80%E4%B8%AAtrick/</guid>
+      <description>最近在学习python沙箱逃逸，学习了python也能像js那样使用构造方法创建函数。本文用于记录一下学到的python中关于__new__有趣的玩法。</description>
+    </item>
     <item>
       <title>Jumpserver随机数预测漏洞(CVE-2023-42820)复现</title>
       <link>https://zoiltin.github.io/posts/jumpserver%E9%9A%8F%E6%9C%BA%E6%95%B0%E9%A2%84%E6%B5%8B%E6%BC%8F%E6%B4%9Ecve-2023-42820%E5%A4%8D%E7%8E%B0/</link>
