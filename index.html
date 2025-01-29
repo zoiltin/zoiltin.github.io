@@ -165,6 +165,20 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">JNDI注入HessianProxyFactory的一点思考
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>HessianProxy 浅蓝师傅在 探索高版本 JDK 下 JNDI 漏洞的利用方法 中提到过HessianProxyFactory这个工厂类。可以触发Hessian反序列化。
+getObjectInstance代码如下：
+public Object getObjectInstance(Object obj, Name name, Context nameCtx, Hashtable&lt;?,?&gt; environment) throws Exception { Reference ref = (Reference) obj; String api = null; String url = null; for (int i = 0; i &lt; ref.size(); i&#43;&#43;) { RefAddr addr = ref.get(i); String type = addr.getType(); String value = (String) addr.getContent(); if (type.equals(&#34;type&#34;)) api = value; else if (type.equals(&#34;url&#34;)) url = value; ......... } ....</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-01-29 12:20:00 +0000 UTC'>January 29, 2025</span>&nbsp;·&nbsp;3 min</footer>
+  <a class="entry-link" aria-label="post link to JNDI注入HessianProxyFactory的一点思考" href="https://zoiltin.github.io/posts/jndi%E6%B3%A8%E5%85%A5hessianproxyfactory%E7%9A%84%E4%B8%80%E7%82%B9%E6%80%9D%E8%80%83/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">python中关于__new__的一个trick
     </h2>
   </header>
