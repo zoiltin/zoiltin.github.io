@@ -2,19 +2,19 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://zoiltin.github.io/categories/</loc>
-    <lastmod>2024-12-06T18:31:11+00:00</lastmod>
-  </url><url>
     <loc>https://zoiltin.github.io/posts/</loc>
+    <lastmod>2025-01-29T22:20:00+00:00</lastmod>
+  </url><url>
+    <loc>https://zoiltin.github.io/</loc>
+    <lastmod>2025-01-29T22:20:00+00:00</lastmod>
+  </url><url>
+    <loc>https://zoiltin.github.io/categories/</loc>
     <lastmod>2024-12-06T18:31:11+00:00</lastmod>
   </url><url>
     <loc>https://zoiltin.github.io/posts/python%E4%B8%AD%E5%85%B3%E4%BA%8E__new__%E7%9A%84%E4%B8%80%E4%B8%AAtrick/</loc>
     <lastmod>2024-12-06T18:31:11+00:00</lastmod>
   </url><url>
     <loc>https://zoiltin.github.io/categories/web/</loc>
-    <lastmod>2024-12-06T18:31:11+00:00</lastmod>
-  </url><url>
-    <loc>https://zoiltin.github.io/</loc>
     <lastmod>2024-12-06T18:31:11+00:00</lastmod>
   </url><url>
     <loc>https://zoiltin.github.io/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/</loc>
@@ -49,8 +49,6 @@
   </url><url>
     <loc>https://zoiltin.github.io/posts/%E7%9B%B2xxe%E4%B8%ADftp%E5%8D%8F%E8%AE%AE%E7%9A%84%E5%88%A9%E7%94%A8/</loc>
     <lastmod>2023-11-22T15:16:46+00:00</lastmod>
-  </url><url>
-    <loc>https://zoiltin.github.io/posts/jndi%E6%B3%A8%E5%85%A5hessianproxyfactory%E7%9A%84%E4%B8%80%E7%82%B9%E6%80%9D%E8%80%83/</loc>
   </url><url>
     <loc>https://zoiltin.github.io/search/</loc>
   </url><url>
