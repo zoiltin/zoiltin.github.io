@@ -181,10 +181,24 @@ def captcha_refresh(request): &#34;&#34;&#34;Return json with new captcha for aj
   <footer class="entry-footer"><span title='2024-11-20 19:12:11 +0000 UTC'>November 20, 2024</span>&nbsp;·&nbsp;8 min</footer>
   <a class="entry-link" aria-label="post link to Jumpserver随机数预测漏洞(CVE-2023-42820)复现" href="https://zoiltin.github.io/posts/jumpserver%E9%9A%8F%E6%9C%BA%E6%95%B0%E9%A2%84%E6%B5%8B%E6%BC%8F%E6%B4%9Ecve-2023-42820%E5%A4%8D%E7%8E%B0/"></a>
 </article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
+    <h2 class="entry-hint-parent">JNDI注入HessianProxyFactory的一点思考
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>HessianProxy 浅蓝师傅在 探索高版本 JDK 下 JNDI 漏洞的利用方法 中提到过HessianProxyFactory这个工厂类。可以触发Hessian反序列化。
+getObjectInstance代码如下：
+public Object getObjectInstance(Object obj, Name name, Context nameCtx, Hashtable&lt;?,?&gt; environment) throws Exception { Reference ref = (Reference) obj; String api = null; String url = null; for (int i = 0; i &lt; ref.size(); i&#43;&#43;) { RefAddr addr = ref.get(i); String type = addr.getType(); String value = (String) addr.getContent(); if (type.equals(&#34;type&#34;)) api = value; else if (type.equals(&#34;url&#34;)) url = value; ......... } ....</p>
+  </div>
+  <footer class="entry-footer">3 min</footer>
+  <a class="entry-link" aria-label="post link to JNDI注入HessianProxyFactory的一点思考" href="https://zoiltin.github.io/posts/jndi%E6%B3%A8%E5%85%A5hessianproxyfactory%E7%9A%84%E4%B8%80%E7%82%B9%E6%80%9D%E8%80%83/"></a>
+</article>
     </main>
     
 <footer class="footer">
-        <span>&copy; 2024 <a href="https://zoiltin.github.io/">zoiltin&#39;s Blog</a></span> · 
+        <span>&copy; 2025 <a href="https://zoiltin.github.io/">zoiltin&#39;s Blog</a></span> · 
 
     <span>
         Powered by

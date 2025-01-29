@@ -72,5 +72,12 @@ email: em9pbHRpbjB4QGdtYWlsLmNvbQ==</description>
       <guid>https://zoiltin.github.io/posts/%E7%9B%B2xxe%E4%B8%ADftp%E5%8D%8F%E8%AE%AE%E7%9A%84%E5%88%A9%E7%94%A8/</guid>
       <description>最近遇到了java环境中的盲XXE，所以研究了一下怎么利用ftp://读文件。</description>
     </item>
+    <item>
+      <title>JNDI注入HessianProxyFactory的一点思考</title>
+      <link>https://zoiltin.github.io/posts/jndi%E6%B3%A8%E5%85%A5hessianproxyfactory%E7%9A%84%E4%B8%80%E7%82%B9%E6%80%9D%E8%80%83/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://zoiltin.github.io/posts/jndi%E6%B3%A8%E5%85%A5hessianproxyfactory%E7%9A%84%E4%B8%80%E7%82%B9%E6%80%9D%E8%80%83/</guid>
+      <description>学习JNDI注入时发现HessianProxyFactory工厂类在反序列化时的一些有趣的点</description>
+    </item>
   </channel>
 </rss>

@@ -22,5 +22,12 @@
       <guid>https://zoiltin.github.io/posts/jumpserver%E9%9A%8F%E6%9C%BA%E6%95%B0%E9%A2%84%E6%B5%8B%E6%BC%8F%E6%B4%9Ecve-2023-42820%E5%A4%8D%E7%8E%B0/</guid>
       <description>一年之后才提上日程的CVE-2023-42820复现</description>
     </item>
+    <item>
+      <title>JNDI注入HessianProxyFactory的一点思考</title>
+      <link>https://zoiltin.github.io/posts/jndi%E6%B3%A8%E5%85%A5hessianproxyfactory%E7%9A%84%E4%B8%80%E7%82%B9%E6%80%9D%E8%80%83/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://zoiltin.github.io/posts/jndi%E6%B3%A8%E5%85%A5hessianproxyfactory%E7%9A%84%E4%B8%80%E7%82%B9%E6%80%9D%E8%80%83/</guid>
+      <description>学习JNDI注入时发现HessianProxyFactory工厂类在反序列化时的一些有趣的点</description>
+    </item>
   </channel>
 </rss>
