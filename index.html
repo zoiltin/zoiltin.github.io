@@ -165,6 +165,27 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">CodeQL查找AliyunCTF JTools中hutool的二次反序列化链
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>数据库构建 feilong
+readme中关于安装的命令：
+git clone https://github.com/ifeilong/feilong.git --depth 1 mvn install 根据这个写出数据库构建语句，并加上一些跳过选项：
+codeql database create feilong-database --language=&#34;java&#34; --command=&#34;mvn clean -DskipTests -Drat.skip=true package&#34; hutool
+hutool安装要通过install.sh链接，内容如下：
+#!/bin/bash exec mvn -T 1C clean source:jar javadoc:javadoc install -Dmaven.test.skip=false -Dmaven.javadoc.skip=false 根据这个脚本内容写，把里面的Test和Doc都改成True，跳过Test和文档生成，节省时间。
+codeql database create hutool-database --language=&#34;java&#34; --command=&#34;mvn -T 1C clean source:jar javadoc:javadoc package -DskipTests -Drat.skip=true -Dmaven.javadoc.skip&#34; feilong数据库大概5分钟就建好了，hutool可能需要十几分钟。
+codeql不同版本可能有细微差异，要参照文档写：https://codeql.github.com/codeql-standard-libraries/java/
+Getter java.beans包下有一些操作bean的类，其中java.beans.PropertyDescriptor#getReadMethod和java.beans.PropertyDescriptor#getWriteMethod用于获取相应Getter/Setter的Method对象。根据这个写出Sink点，查找能够调用Getter的gadget：
+predicate callGetterSinks(Method method) {exists(MethodAccess call |(call.getCallee().getQualifiedName().matches(&#34;%getReadMethod%&#34;)) and call.getCaller() = method)} 对于反序列化来说还需要限制方法所在类实现了序列化接口或者是静态方法：...</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-02-26 08:19:11 +0000 UTC'>February 26, 2025</span>&nbsp;·&nbsp;5 min</footer>
+  <a class="entry-link" aria-label="post link to CodeQL查找AliyunCTF JTools中hutool的二次反序列化链" href="https://zoiltin.github.io/posts/codeql%E6%9F%A5%E6%89%BEaliyunctf-jtools%E4%B8%ADhutool%E7%9A%84%E4%BA%8C%E6%AC%A1%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E9%93%BE/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">Weblogic Server系列漏洞复现
     </h2>
   </header>
@@ -321,22 +342,6 @@ app.post(&#39;/customise&#39;,(req, res) =&gt; { try { const { data } = req.body
   </div>
   <footer class="entry-footer"><span title='2024-02-27 15:33:01 +0000 UTC'>February 27, 2024</span>&nbsp;·&nbsp;3 min</footer>
   <a class="entry-link" aria-label="post link to bi0s CTF 2024 wp" href="https://zoiltin.github.io/posts/bi0s-ctf-2024-wp/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">movectf_2024_wp
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>Checkin sorce:100
-题目源码:
-module movectf::checkin { use sui::event; use sui::tx_context::{Self, TxContext}; const ESTRING:u64 = 0; struct Flag has copy, drop { sender: address, flag: bool, } public entry fun get_flag(string: vector&lt;u8&gt;, ctx: &amp;mut TxContext) { assert!(string == b&#34;MoveBitCTF&#34;,ESTRING); event::emit(Flag { sender: tx_context::sender(ctx), flag: true, }); } } 带着MoveBitCTF字符串作为参数调用get_flag函数。传参要用字节。
-# 转换为十六进制 print(&#34;0x&#34;) for i in &#34;MoveBitCTF&#34;: print(hex(ord(i)).replace(&#34;0x&#34;,&#34;&#34;),end=&#34;&#34;) 调用即可：
-sui client call --package package_id --module module_name --function get_flag --args 0x4d6f7665426974435446 --gas-budget 10000000 DynamicMatrixTraversal sorce: 200...</p>
-  </div>
-  <footer class="entry-footer"><span title='2024-01-13 08:48:17 +0000 UTC'>January 13, 2024</span>&nbsp;·&nbsp;10 min</footer>
-  <a class="entry-link" aria-label="post link to movectf_2024_wp" href="https://zoiltin.github.io/posts/movectf-2024-wp/"></a>
 </article>
 <footer class="page-footer">
   <nav class="pagination">

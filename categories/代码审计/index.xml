@@ -6,8 +6,15 @@
     <description>Recent content in 代码审计 on zoiltin&#39;s Blog</description>
     <generator>Hugo -- 0.128.2</generator>
     <language>zh-CN</language>
-    <lastBuildDate>Sun, 23 Feb 2025 13:51:20 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 26 Feb 2025 08:19:11 +0000</lastBuildDate>
     <atom:link href="https://zoiltin.github.io/categories/%E4%BB%A3%E7%A0%81%E5%AE%A1%E8%AE%A1/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>CodeQL查找AliyunCTF JTools中hutool的二次反序列化链</title>
+      <link>https://zoiltin.github.io/posts/codeql%E6%9F%A5%E6%89%BEaliyunctf-jtools%E4%B8%ADhutool%E7%9A%84%E4%BA%8C%E6%AC%A1%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E9%93%BE/</link>
+      <pubDate>Wed, 26 Feb 2025 08:19:11 +0000</pubDate>
+      <guid>https://zoiltin.github.io/posts/codeql%E6%9F%A5%E6%89%BEaliyunctf-jtools%E4%B8%ADhutool%E7%9A%84%E4%BA%8C%E6%AC%A1%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E9%93%BE/</guid>
+      <description>CodeQL查找AliyunCTF JTools中hutool的二次反序列化链</description>
+    </item>
     <item>
       <title>Weblogic Server系列漏洞复现</title>
       <link>https://zoiltin.github.io/posts/weblogic-server%E7%B3%BB%E5%88%97%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/</link>

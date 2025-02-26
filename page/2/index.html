@@ -152,6 +152,22 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">movectf_2024_wp
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>Checkin sorce:100
+题目源码:
+module movectf::checkin { use sui::event; use sui::tx_context::{Self, TxContext}; const ESTRING:u64 = 0; struct Flag has copy, drop { sender: address, flag: bool, } public entry fun get_flag(string: vector&lt;u8&gt;, ctx: &amp;mut TxContext) { assert!(string == b&#34;MoveBitCTF&#34;,ESTRING); event::emit(Flag { sender: tx_context::sender(ctx), flag: true, }); } } 带着MoveBitCTF字符串作为参数调用get_flag函数。传参要用字节。
+# 转换为十六进制 print(&#34;0x&#34;) for i in &#34;MoveBitCTF&#34;: print(hex(ord(i)).replace(&#34;0x&#34;,&#34;&#34;),end=&#34;&#34;) 调用即可：
+sui client call --package package_id --module module_name --function get_flag --args 0x4d6f7665426974435446 --gas-budget 10000000 DynamicMatrixTraversal sorce: 200...</p>
+  </div>
+  <footer class="entry-footer"><span title='2024-01-13 08:48:17 +0000 UTC'>January 13, 2024</span>&nbsp;·&nbsp;10 min</footer>
+  <a class="entry-link" aria-label="post link to movectf_2024_wp" href="https://zoiltin.github.io/posts/movectf-2024-wp/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">盲XXE中FTP协议的利用
     </h2>
   </header>
