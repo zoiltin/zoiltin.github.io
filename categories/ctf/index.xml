@@ -6,8 +6,15 @@
     <description>Recent content in Ctf on zoiltin&#39;s Blog</description>
     <generator>Hugo -- 0.128.2</generator>
     <language>zh-CN</language>
-    <lastBuildDate>Sun, 09 Feb 2025 15:21:50 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 23 Mar 2025 17:02:50 +0000</lastBuildDate>
     <atom:link href="https://zoiltin.github.io/categories/ctf/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>CTF记录-NCTF_2024, 红明谷CTF_2025</title>
+      <link>https://zoiltin.github.io/posts/ctf%E8%AE%B0%E5%BD%95-nctf_2024-%E7%BA%A2%E6%98%8E%E8%B0%B7ctf_2025/</link>
+      <pubDate>Sun, 23 Mar 2025 17:02:50 +0000</pubDate>
+      <guid>https://zoiltin.github.io/posts/ctf%E8%AE%B0%E5%BD%95-nctf_2024-%E7%BA%A2%E6%98%8E%E8%B0%B7ctf_2025/</guid>
+      <description>NCTF 2024 和 红明谷CTF 2025 web方向writeup</description>
+    </item>
     <item>
       <title>CTF记录-VNCTF_2025, AliyunCTF 2025</title>
       <link>https://zoiltin.github.io/posts/ctf%E8%AE%B0%E5%BD%95-vnctf_2025-aliyunctf_2025/</link>

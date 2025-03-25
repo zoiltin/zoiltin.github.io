@@ -6,8 +6,15 @@
     <description>Recent content in Categories on zoiltin&#39;s Blog</description>
     <generator>Hugo -- 0.128.2</generator>
     <language>zh-CN</language>
-    <lastBuildDate>Wed, 26 Feb 2025 08:19:11 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 23 Mar 2025 17:02:50 +0000</lastBuildDate>
     <atom:link href="https://zoiltin.github.io/categories/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Ctf</title>
+      <link>https://zoiltin.github.io/categories/ctf/</link>
+      <pubDate>Sun, 23 Mar 2025 17:02:50 +0000</pubDate>
+      <guid>https://zoiltin.github.io/categories/ctf/</guid>
+      <description></description>
+    </item>
     <item>
       <title>Write Up</title>
       <link>https://zoiltin.github.io/categories/write-up/</link>
@@ -27,13 +34,6 @@
       <link>https://zoiltin.github.io/categories/%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/</link>
       <pubDate>Sun, 23 Feb 2025 13:51:20 +0000</pubDate>
       <guid>https://zoiltin.github.io/categories/%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/</guid>
-      <description></description>
-    </item>
-    <item>
-      <title>Ctf</title>
-      <link>https://zoiltin.github.io/categories/ctf/</link>
-      <pubDate>Sun, 09 Feb 2025 15:21:50 +0000</pubDate>
-      <guid>https://zoiltin.github.io/categories/ctf/</guid>
       <description></description>
     </item>
     <item>

