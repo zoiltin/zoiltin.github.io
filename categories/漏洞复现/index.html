@@ -142,6 +142,23 @@
 
 <article class="post-entry tag-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">Shiro-550漏洞复现
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>本篇文章仅用于技术交流学习和研究的目的，严禁使用文章中的技术用于非法目的和破坏。
+基础知识 组件 Shiro有三大核心组件，即Subject、SecurityManager 和 Realm
+Subject: 认证主体。Subject代表了当前的用户。包含Principals和Credentials两个信息。 SecurityManager：安全管理员。是Shiro架构的核心。与Subject的所有交互都会委托给SecurityManager，它负责与Shiro 的其他组件进行交互。 Realm：域。Shiro从Realm中获取安全数据（如用户、角色、权限），就是说SecurityManager要验证用户身份，那么它需要从Realm中获取相应的用户进行比较，来确定用户的身份是否合法 一些概念：
+Authentication: 身份认证、登录，验证用户是不是拥有相应的身份; Authorization：鉴权，验证某个已认证的用户是否拥有某个权限 Session Manager: 会话管理 Cryptography: 加密,保护数据的安全性 Concurrency: Shiro支持多线程应用的并发验证，即，如在一个线程中开启另一个线程,能把权限自动的传播过去 Remember Me：会话保存 配置 web.xml，shiro通过filter进行注入。
+&lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34;?&gt; &lt;web-app xmlns=&#34;http://java.sun.com/xml/ns/javaee&#34; xmlns:xsi=&#34;http://www.w3.org/2001/XMLSchema-instance&#34; xsi:schemaLocation=&#34;http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd&#34; version=&#34;2.5&#34;&gt; &lt;listener&gt; &lt;listener-class&gt;org.apache.shiro.web.env.EnvironmentLoaderListener&lt;/listener-class&gt; &lt;/listener&gt; &lt;filter&gt; &lt;filter-name&gt;ShiroFilter&lt;/filter-name&gt; &lt;filter-class&gt;org.apache.shiro.web.servlet.ShiroFilter&lt;/filter-class&gt; &lt;/filter&gt; &lt;filter-mapping&gt; &lt;filter-name&gt;ShiroFilter&lt;/filter-name&gt; &lt;url-pattern&gt;/*&lt;/url-pattern&gt; &lt;/filter-mapping&gt; &lt;welcome-file-list&gt; &lt;welcome-file&gt;index.jsp&lt;/welcome-file&gt; &lt;/welcome-file-list&gt; &lt;/web-app&gt; shiro.ini用于配置具体权限
+[main] shiro.loginUrl = /login.jsp [users] # format: username = password, role1, role2, ..., roleN root = secret,admin guest = guest,guest presidentskroob = 12345,president darkhelmet = ludicrousspeed,darklord,schwartz lonestarr = vespa,goodguy,schwartz [roles] # format: roleName = permission1, permission2, ....</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-03-26 10:48:20 +0000 UTC'>March 26, 2025</span>&nbsp;·&nbsp;6 min</footer>
+  <a class="entry-link" aria-label="post link to Shiro-550漏洞复现" href="https://zoiltin.github.io/posts/shiro-550%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">Weblogic Server系列漏洞复现
     </h2>
   </header>
