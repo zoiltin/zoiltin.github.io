@@ -165,6 +165,27 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">Tomcat中DefaultServlet漏洞复现
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>本篇文章仅用于技术交流学习和研究的目的，严禁使用文章中的技术用于非法目的和破坏。
+CVE-2017-12615 环境搭建 这里用Docker搭建环境。Dockerfile：
+FROM tomcat:8.5.19-alpineCOPY context.xml web.xml /usr/local/tomcat/conf/COPY debug.sh catalina.sh /usr/local/tomcat/bin/WORKDIR /usr/local/tomcat/bin/RUN chmod &#43;x debug.sh &amp;&amp; \chmod &#43;x catalina.shCMD [&#34;./debug.sh&#34;] debug.sh代码如下：
+#!/bin/bash ./startup.sh sleep 1000000 覆盖catalina.sh，向文件开头加入以下代码，用于debug。
+export JAVA_OPTS=&#39;-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005&#39; 在web.xml中配置DefaultServlet的开启：
+&lt;servlet&gt; &lt;servlet-name&gt;defalut&lt;/servlet-name&gt; &lt;servlet-class&gt;org.apache.catalina.servlets.DefaultServlet&lt;/servlet-class&gt; &lt;init-param&gt; &lt;param-name&gt;debug&lt;/param-name&gt; &lt;param-value&gt;0&lt;/param-value&gt; &lt;/init-param&gt; &lt;init-param&gt; &lt;param-name&gt;readonly&lt;/param-name&gt; &lt;param-value&gt;false&lt;/param-value&gt; &lt;/init-param&gt; &lt;load-on-startup&gt;1&lt;/load-on-startup&gt; &lt;/servlet&gt; &lt;servlet-mapping&gt; &lt;servlet-name&gt;defalut&lt;/servlet-name&gt; &lt;url-pattern&gt;/&lt;/url-pattern&gt; &lt;/servlet-mapping&gt;&lt;/web-app&gt; 容器其中之后将lib目录下的文件复制出来导入IDEA即可：
+docker cp tomcat:/usr/local/tomcat/lib ./ docker run如果句柄不够需要加上以下参数：
+--ulimit nofile=65535:65535 漏洞分析 Tomcat爆出过多个关于DefaultServlet的漏洞。它是Tomcat中自带的一个Servlet，但默认不开启，位于/lib/catalina.jar!/org/apache/catalina/servlets/下。
+DefaultServlet定义了doPut方法：
+protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException { if (this....</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-04-04 10:48:20 +0000 UTC'>April 4, 2025</span>&nbsp;·&nbsp;5 min</footer>
+  <a class="entry-link" aria-label="post link to Tomcat中DefaultServlet漏洞复现" href="https://zoiltin.github.io/posts/tomcat%E4%B8%ADdefaultservlet%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">Shiro-550漏洞复现
     </h2>
   </header>
@@ -334,24 +355,6 @@ def captcha_refresh(request): &#34;&#34;&#34;Return json with new captcha for aj
   </div>
   <footer class="entry-footer"><span title='2024-11-20 19:12:11 +0000 UTC'>November 20, 2024</span>&nbsp;·&nbsp;8 min</footer>
   <a class="entry-link" aria-label="post link to Jumpserver随机数预测漏洞(CVE-2023-42820)复现" href="https://zoiltin.github.io/posts/jumpserver%E9%9A%8F%E6%9C%BA%E6%95%B0%E9%A2%84%E6%B5%8B%E6%BC%8F%E6%B4%9Ecve-2023-42820%E5%A4%8D%E7%8E%B0/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">Ciscn 2024 final Fobee wp
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>本篇文章仅用于技术交流学习和研究的目的，严禁使用文章中的技术用于非法目的和破坏。
-前言 拿到了前段时间ciscn 2024 final的web题附件，来复现一下Fobee这道题，顺便学习一下beetl的模板注入。
-3.15.x及以前的版本 过滤的很少，随便绕过。贴几个公开的poc： https://gitee.com/xiandafu/beetl/issues/I6RUIP https://gitee.com/xiandafu/beetl/issues/I914H3
-3.16.0 3.16.0是题目使用的版本也是本文使用的版本。
-测试环境为java8u65， beetl 3.16.0， solon 2.8.5
-入口 @Mapping(&#34;/render&#34;) public ModelAndView render(String pass, String tp) throws Exception { ModelAndView model = new ModelAndView(&#34;render.htm&#34;); if (pass != null &amp;&amp; pass.equals(password)) { byte[] decode = Base64.getDecoder().decode(tp); String result = BeetlKit.render(new String(decode), new HashMap()); System.out.println(result); model.put(&#34;msg&#34;, getMD5Hash(result)); } else { model.put(&#34;msg&#34;, &#34;Render Page&#34;); } return model; } 渲染过程 由renderTo进入execute函数。然后遍历所有要执行的语句然后依次执行。 每条语句的具体执行代码在org.beetl.core.statement.NativeCallExpression#evaluate函数。
-public Object evaluate(Context ctx) { Class targetCls = null; Object targetObj = null; NativeNode lastNode = null; if (insNode !...</p>
-  </div>
-  <footer class="entry-footer"><span title='2024-07-27 18:21:03 +0800 CST'>July 27, 2024</span>&nbsp;·&nbsp;3 min</footer>
-  <a class="entry-link" aria-label="post link to Ciscn 2024 final Fobee wp" href="https://zoiltin.github.io/posts/ciscn2024-final-fobee-wp/"></a>
 </article>
 <footer class="page-footer">
   <nav class="pagination">

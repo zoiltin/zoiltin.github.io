@@ -6,8 +6,15 @@
     <description>Recent content on zoiltin&#39;s Blog</description>
     <generator>Hugo -- 0.128.2</generator>
     <language>zh-CN</language>
-    <lastBuildDate>Wed, 26 Mar 2025 10:48:20 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 04 Apr 2025 10:48:20 +0000</lastBuildDate>
     <atom:link href="https://zoiltin.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Tomcat中DefaultServlet漏洞复现</title>
+      <link>https://zoiltin.github.io/posts/tomcat%E4%B8%ADdefaultservlet%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/</link>
+      <pubDate>Fri, 04 Apr 2025 10:48:20 +0000</pubDate>
+      <guid>https://zoiltin.github.io/posts/tomcat%E4%B8%ADdefaultservlet%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/</guid>
+      <description>复现了Tomcat中关于DefaultServlet的一系列RCE漏洞。</description>
+    </item>
     <item>
       <title>Shiro-550漏洞复现</title>
       <link>https://zoiltin.github.io/posts/shiro-550%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/</link>

