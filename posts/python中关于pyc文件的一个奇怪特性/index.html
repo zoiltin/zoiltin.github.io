@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>python中关于pyc文件的一个奇怪特性 | zoiltin&#39;s Blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="python中关于pyc文件的一个奇怪特性">
+<meta name="author" content="">
+<link rel="canonical" href="https://zoiltin.github.io/posts/python%E4%B8%AD%E5%85%B3%E4%BA%8Epyc%E6%96%87%E4%BB%B6%E7%9A%84%E4%B8%80%E4%B8%AA%E5%A5%87%E6%80%AA%E7%89%B9%E6%80%A7/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.d72444526d7ecbdb0015438a7fa89054a658bf759d0542e2e5df81ce94b493ee.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://zoiltin.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://zoiltin.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://zoiltin.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://zoiltin.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://zoiltin.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://zoiltin.github.io/posts/python%E4%B8%AD%E5%85%B3%E4%BA%8Epyc%E6%96%87%E4%BB%B6%E7%9A%84%E4%B8%80%E4%B8%AA%E5%A5%87%E6%80%AA%E7%89%B9%E6%80%A7/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+  
+
+<meta property="og:url" content="https://zoiltin.github.io/posts/python%E4%B8%AD%E5%85%B3%E4%BA%8Epyc%E6%96%87%E4%BB%B6%E7%9A%84%E4%B8%80%E4%B8%AA%E5%A5%87%E6%80%AA%E7%89%B9%E6%80%A7/">
+  <meta property="og:site_name" content="zoiltin&#39;s Blog">
+  <meta property="og:title" content="python中关于pyc文件的一个奇怪特性">
+  <meta property="og:description" content="python中关于pyc文件的一个奇怪特性">
+  <meta property="og:locale" content="zh-CN">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-05-12T12:13:11+00:00">
+    <meta property="article:modified_time" content="2025-05-12T12:13:11+00:00">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="python中关于pyc文件的一个奇怪特性">
+<meta name="twitter:description" content="python中关于pyc文件的一个奇怪特性">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://zoiltin.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "python中关于pyc文件的一个奇怪特性",
+      "item": "https://zoiltin.github.io/posts/python%E4%B8%AD%E5%85%B3%E4%BA%8Epyc%E6%96%87%E4%BB%B6%E7%9A%84%E4%B8%80%E4%B8%AA%E5%A5%87%E6%80%AA%E7%89%B9%E6%80%A7/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "python中关于pyc文件的一个奇怪特性",
+  "name": "python中关于pyc文件的一个奇怪特性",
+  "description": "python中关于pyc文件的一个奇怪特性",
+  "keywords": [
+    
+  ],
+  "articleBody": "前言 刷到siunam师傅的一篇文章：Python Dirty Arbitrary File Write to RCE via Writing Shared Object Files Or Overwriting Bytecode Files。讲的是关于python web服务器上上传文件导致RCE的方法。yiyi师傅还根据这个出了一道题目。\nsiunam师傅的文章主要是从PEP等文档角度分析的，找到了一种覆盖pyc文件导致RCE的方法。但我在代码审计的过程中发现了一种更方便的绕过方法。\npyc加载 关于pyc的加载逻辑在PEP-3147中，\n情况 0：稳态\n当要求 Python 导入模块 foo 时，它会搜索 foo.py 文件（或 foo 包，但这对本次讨论并不重要）的 sys.path。如果找到，Python 会查看是否有匹配的 __pycache__/foo..pyc 文件，如果有，则加载该 pyc 文件。\n根据python版本生成，比如python3.9的为cpython-39，python3.11的为cpython-311\n情况 1：第一次导入\n当 Python 找到 foo.py 时，如果 __pycache__/foo..pyc 文件缺失，Python 将创建它，同时创建 __pycache__ 目录（如有必要）。Python 将对 foo.py 文件进行解析和字节编译，并将字节码保存在 __pycache__/foo..pyc.\n情况 2：第二次导入\n当要求 Python 第二次导入模块 foo 时（当然是在不同的过程中），它将再次搜索 foo.py 文件 。 当 Python 找到 foo.py 文件时，它会查找匹配的 __pycache__/foo..pyc，找到它后，它会读取字节码并照常继续。\npyc检测 如果找到了源文件对应的pyc文件，会先进行检测，如果通过才会加载pyc中的字节码，否则重新编译源文件。\n时间戳检测 这部分在PEP-0552中，其中提到了bit field：\nThe pyc header currently consists of 3 32-bit words. We will expand it to 4. The first word will continue to be the magic number, versioning the bytecode and pyc format. The second word, conceptually the new word, will be a bit field. The interpretation of the rest of the header and invalidation behavior of the pyc depends on the contents of the bit field.\npyc 标头当前由 3 个 32 位字组成。我们会将其扩展为 4。第一个单词将继续是幻数，对字节码和 pyc 格式进行版本控制。第二个单词，从概念上讲，新单词将是一个 bit field。对 pyc 的 Headers 其余部分的解释和失效行为取决于 bit 字段的内容。\nbit field是一个32-bits字，也就是4个字节，小端序。\n如果bit field的最低字节为0则使用时间戳检测，pyc文件的第三个和第四个32-bits字将分别是源文件的时间戳和文件大小，如果要覆盖pyc文件，要么读取原本的pyc获得相应的数据，要么爆破。\nHash检测 如果bit field的最低字节不为0，则使用Hash检测，同时bit field的第二低字节为check_source标志，他们的作用在PEP中也有描述，不过有一个特殊的特性：\nFor hash-based pycs with the check_source unset, Python will simply load the pyc without checking the hash of the source file. The expectation in this case is that some external system (e.g., the local Linux distribution’s package manager) is responsible for keeping pycs up to date, so Python itself doesn’t have to check. Even when validation is disabled, the hash field should be set correctly, so out-of-band consistency checkers can verify the up-to-dateness of the pyc. Note also that the PEP 3147 edict that pycs without corresponding source files not be loaded will still be enforced for hash-based pycs.\n对于未设置 check_source 的基于哈希的 pycs，Python 将简单地加载 pyc，而不检查源文件的哈希值。在这种情况下，预期是一些外部系统（例如，本地 Linux 发行版的包管理器）负责使 pycs 保持最新状态，因此 Python 本身不必检查。即使禁用了验证，也应正确设置 hash 字段，以便带外一致性检查器可以验证 pyc 的最新版本。另请注意，PEP 3147 法令中未加载相应源文件的 pycs 仍将强制执行基于哈希的 pycs。\n也就是说如果将bit field(第5-8字节)设置为01 00 00 00，则不会进行任何检测，直接加载pyc\n代码分析 python中加载module或者package有两种方式：\nimport/__import__ 动态导入 动态导入最终是通过exec_module加载的：\nimport importlib.util def dynamicImportModule(moduleName, modulePath): spec = importlib.util.spec_from_file_location(moduleName, modulePath) importedModule = importlib.util.module_from_spec(spec) spec.loader.exec_module(importedModule) # do something with the imported module dynamicImportModule('utils', 'utils.py') import关键字本质是__import__函数，而__import__函数最终也会调用exec_module函数：\n# https://github.com/python/cpython/blob/af6b3b825f3b653ffdb29fc1dd36de8acfe0a641/Lib/importlib/_bootstrap.py#L914 def _load_unlocked(spec): # A helper for direct use by the import system. if spec.loader is not None: # Not a namespace package. if not hasattr(spec.loader, 'exec_module'): msg = (f\"{_object_name(spec.loader)}.exec_module() not found; \" \"falling back to load_module()\") _warnings.warn(msg, ImportWarning) return _load_backward_compatible(spec) module = module_from_spec(spec) # This must be done before putting the module in sys.modules # (otherwise an optimization shortcut in import.c becomes # wrong). spec._initializing = True try: sys.modules[spec.name] = module try: if spec.loader is None: if spec.submodule_search_locations is None: raise ImportError('missing loader', name=spec.name) # A namespace package so do nothing. else: spec.loader.exec_module(module) ........... debug得知spec.loader为SourceFileLoader类型的对象，路径为/$PYTHON_HOME/importlib/_bootstrap_external.py。SourceFileLoader类继承了SourceLoader类，这个类又继承了_LoaderBasics，_LoaderBasics类定义了exec_module函数。代码如下：\ndef exec_module(self, module): \"\"\"Execute the module.\"\"\" code = self.get_code(module.__name__) if code is None: raise ImportError('cannot load module {!r} when get_code() ' 'returns None'.format(module.__name__)) _bootstrap._call_with_frames_removed(exec, code, module.__dict__) 逻辑就是，通过get_code获得字节码，然后代用exec函数导入，关键点在于get_code\nSourceLoader类定义了get_code函数，代码如下：\ndef get_code(self, fullname): \"\"\"Concrete implementation of InspectLoader.get_code. Reading of bytecode requires path_stats to be implemented. To write bytecode, set_data must also be implemented. \"\"\" source_path = self.get_filename(fullname) source_mtime = None source_bytes = None source_hash = None hash_based = False check_source = True try: bytecode_path = cache_from_source(source_path) except NotImplementedError: bytecode_path = None else: try: st = self.path_stats(source_path) except OSError: pass else: source_mtime = int(st['mtime']) try: data = self.get_data(bytecode_path) except OSError: pass else: exc_details = { 'name': fullname, 'path': bytecode_path, } try: flags = _classify_pyc(data, fullname, exc_details) bytes_data = memoryview(data)[16:] hash_based = flags \u0026 0b1 != 0 if hash_based: check_source = flags \u0026 0b10 != 0 if (_imp.check_hash_based_pycs != 'never' and (check_source or _imp.check_hash_based_pycs == 'always')): source_bytes = self.get_data(source_path) source_hash = _imp.source_hash( _RAW_MAGIC_NUMBER, source_bytes, ) _validate_hash_pyc(data, source_hash, fullname, exc_details) else: _validate_timestamp_pyc( data, source_mtime, st['size'], fullname, exc_details, ) except (ImportError, EOFError): pass else: _bootstrap._verbose_message('{} matches {}', bytecode_path, source_path) return _compile_bytecode(bytes_data, name=fullname, bytecode_path=bytecode_path, source_path=source_path) ......... 前面说到的的PEP中规定的pyc检测就是在这里实现的。其中flags就是bit field的值。默认情况下，_imp.check_hash_based_pycs的值是default，所以只要保证check_source为False且hash_based为True，也就是bit field为01 00 00 00时，就不会进行hash检测直接使用pyc中的字节码。\n关于_imp.check_hash_based_pycs在PEP-0552中也有规定：\nRuntime configuration of hash-based pyc invalidation will be facilitated by a new –check-hash-based-pycs interpreter option. This is a tristate option, which may take 3 values: default, always, and never. The default value, default, means the check_source flag in hash-based pycs determines invalidation as described above. always causes the interpreter to hash the source file for invalidation regardless of value of check_source bit. never causes the interpreter to always assume hash-based pycs are valid. When –check-hash-based-pycs=never is in effect, unchecked hash-based pycs will be regenerated as unchecked hash-based pycs. Timestamp-based pycs are unaffected by –check-hash-based-pycs.\n基于哈希的 pyc 失效的运行时配置将由新的 –check-hash-based-pycs 解释器选项提供便利。这是一个三态选项，它可能采用 3 个值：default、always 和 never。默认值 default 表示基于哈希的 pycs 中的 check_source 标志如上所述确定失效。 始终导致解释器对源文件进行哈希处理以使其失效，而不管 check_source 的值如何 位。never 导致解释器始终假设基于哈希的 pycs 有效。当 –check-hash-based-pycs=never 生效时，未经检查的基于哈希的 pycs 将被重新生成为未经检查的基于哈希的 pycs。基于时间戳的 pycs 不受 –check-hash-based-pycs 的影响。\n目前来说，python默认不开启强制hash检测，不过可以通过--check-hash-based-pycs参数开启。\n利用 编译当前目录下的python源文件为pyc文件\npython -m compileall . 将bit field(第5-8字节)修改为01 00 00 00，然后上传覆盖即可。\n参考 https://siunam321.github.io/research/python-dirty-arbitrary-file-write-to-rce-via-writing-shared-object-files-or-overwriting-bytecode-files/\nhttps://peps.python.org/pep-3147/\nhttps://peps.python.org/pep-0552/\n",
+  "wordCount" : "743",
+  "inLanguage": "en",
+  "datePublished": "2025-05-12T12:13:11Z",
+  "dateModified": "2025-05-12T12:13:11Z",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://zoiltin.github.io/posts/python%E4%B8%AD%E5%85%B3%E4%BA%8Epyc%E6%96%87%E4%BB%B6%E7%9A%84%E4%B8%80%E4%B8%AA%E5%A5%87%E6%80%AA%E7%89%B9%E6%80%A7/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "zoiltin's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://zoiltin.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://zoiltin.github.io/" accesskey="h" title="zoiltin&#39;s Blog (Alt + H)">zoiltin&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://zoiltin.github.io/" title="Home">
+                    <span>Home</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/search" title="Search (Alt &#43; /)" accesskey=/>
+                    <span>Search</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/posts" title="Posts">
+                    <span>Posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/about" title="About">
+                    <span>About</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      python中关于pyc文件的一个奇怪特性
+    </h1>
+    <div class="post-description">
+      python中关于pyc文件的一个奇怪特性
+    </div>
+    <div class="post-meta"><span title='2025-05-12 12:13:11 +0000 UTC'>May 12, 2025</span>&nbsp;·&nbsp;4 min
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#%e5%89%8d%e8%a8%80" aria-label="前言">前言</a></li>
+                <li>
+                    <a href="#pyc%e5%8a%a0%e8%bd%bd" aria-label="pyc加载">pyc加载</a></li>
+                <li>
+                    <a href="#pyc%e6%a3%80%e6%b5%8b" aria-label="pyc检测">pyc检测</a><ul>
+                        
+                <li>
+                    <a href="#%e6%97%b6%e9%97%b4%e6%88%b3%e6%a3%80%e6%b5%8b" aria-label="时间戳检测">时间戳检测</a></li>
+                <li>
+                    <a href="#hash%e6%a3%80%e6%b5%8b" aria-label="Hash检测">Hash检测</a></li>
+                <li>
+                    <a href="#%e4%bb%a3%e7%a0%81%e5%88%86%e6%9e%90" aria-label="代码分析">代码分析</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e5%88%a9%e7%94%a8" aria-label="利用">利用</a></li>
+                <li>
+                    <a href="#%e5%8f%82%e8%80%83" aria-label="参考">参考</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h1 id="前言">前言<a hidden class="anchor" aria-hidden="true" href="#前言">#</a></h1>
+<p>刷到siunam师傅的一篇文章：<a href="https://siunam321.github.io/research/python-dirty-arbitrary-file-write-to-rce-via-writing-shared-object-files-or-overwriting-bytecode-files/">Python Dirty Arbitrary File Write to RCE via Writing Shared Object Files Or Overwriting Bytecode Files</a>。讲的是关于python web服务器上上传文件导致RCE的方法。<a href="https://xyaxxya.github.io/">yiyi师傅</a>还根据这个出了一道题目。</p>
+<p>siunam师傅的文章主要是从<code>PEP</code>等文档角度分析的，找到了一种覆盖pyc文件导致RCE的方法。但我在代码审计的过程中发现了一种更方便的绕过方法。</p>
+<h1 id="pyc加载">pyc加载<a hidden class="anchor" aria-hidden="true" href="#pyc加载">#</a></h1>
+<p>关于pyc的加载逻辑在<a href="https://peps.python.org/pep-3147/">PEP-3147</a>中，</p>
+<p><strong>情况 0：稳态</strong></p>
+<p>当要求 Python 导入模块 foo 时，它会搜索 <code>foo.py</code> 文件（或 foo 包，但这对本次讨论并不重要）的 <code>sys.path</code>。如果找到，Python 会查看是否有匹配的 <code>__pycache__/foo.&lt;magic&gt;.pyc</code> 文件，如果有，则加载该 pyc 文件。</p>
+<p><code>&lt;magic&gt;</code>根据python版本生成，比如<code>python3.9</code>的<code>&lt;magic&gt;</code>为<code>cpython-39</code>，<code>python3.11</code>的<code>&lt;magic&gt;</code>为<code>cpython-311</code></p>
+<p><strong>情况 1：第一次导入</strong></p>
+<p>当 Python 找到 <code>foo.py</code> 时，如果 <code>__pycache__/foo.&lt;magic&gt;.pyc</code> 文件缺失，Python 将创建它，同时创建 <code>__pycache__</code> 目录（如有必要）。Python 将对 <code>foo.py</code> 文件进行解析和字节编译，并将字节码保存在 <code>__pycache__/foo.&lt;magic&gt;.pyc</code>.</p>
+<p><strong>情况 2：第二次导入</strong></p>
+<p>当要求 Python 第二次导入模块 foo 时（当然是在不同的过程中），它将再次搜索 <code>foo.py</code> 文件 。 当 Python 找到 <code>foo.py</code> 文件时，它会查找匹配的 <code>__pycache__/foo.&lt;magic&gt;.pyc</code>，找到它后，它会读取字节码并照常继续。</p>
+<h1 id="pyc检测">pyc检测<a hidden class="anchor" aria-hidden="true" href="#pyc检测">#</a></h1>
+<p>如果找到了源文件对应的pyc文件，会先进行检测，如果通过才会加载pyc中的字节码，否则重新编译源文件。</p>
+<h2 id="时间戳检测">时间戳检测<a hidden class="anchor" aria-hidden="true" href="#时间戳检测">#</a></h2>
+<p>这部分在<a href="https://peps.python.org/pep-0552/">PEP-0552</a>中，其中提到了bit field：</p>
+<blockquote>
+<p>The pyc header currently consists of 3 32-bit words. We will expand it to 4. The first word will continue to be the magic number, versioning the bytecode and pyc format. The second word, conceptually the new word, will be a bit field. The interpretation of the rest of the header and invalidation behavior of the pyc depends on the contents of the bit field.</p>
+<p>pyc 标头当前由 3 个 32 位字组成。我们会将其扩展为 4。第一个单词将继续是幻数，对字节码和 pyc 格式进行版本控制。第二个单词，从概念上讲，新单词将是一个 bit field。对 pyc 的 Headers 其余部分的解释和失效行为取决于 bit 字段的内容。</p>
+</blockquote>
+<p><code>bit field</code>是一个32-bits字，也就是4个字节，小端序。</p>
+<p>如果<code>bit field</code>的最低字节为0则使用时间戳检测，pyc文件的第三个和第四个32-bits字将分别是源文件的时间戳和文件大小，如果要覆盖pyc文件，要么读取原本的pyc获得相应的数据，要么爆破。</p>
+<h2 id="hash检测">Hash检测<a hidden class="anchor" aria-hidden="true" href="#hash检测">#</a></h2>
+<p>如果<code>bit field</code>的最低字节不为0，则使用Hash检测，同时<code>bit field</code>的第二低字节为<code>check_source</code>标志，他们的作用在PEP中也有描述，不过有一个特殊的特性：</p>
+<blockquote>
+<p>For hash-based pycs with the check_source unset, Python will simply load the pyc without checking the hash of the source file. The expectation in this case is that some external system (e.g., the local Linux distribution’s package manager) is responsible for keeping pycs up to date, so Python itself doesn’t have to check. Even when validation is disabled, the hash field should be set correctly, so out-of-band consistency checkers can verify the up-to-dateness of the pyc. Note also that the PEP 3147 edict that pycs without corresponding source files not be loaded will still be enforced for hash-based pycs.</p>
+<p>对于未设置 check_source 的基于哈希的 pycs，Python 将简单地加载 pyc，而不检查源文件的哈希值。在这种情况下，预期是一些外部系统（例如，本地 Linux 发行版的包管理器）负责使 pycs 保持最新状态，因此 Python 本身不必检查。即使禁用了验证，也应正确设置 hash 字段，以便带外一致性检查器可以验证 pyc 的最新版本。另请注意，PEP 3147 法令中未加载相应源文件的 pycs 仍将强制执行基于哈希的 pycs。</p>
+</blockquote>
+<p>也就是说如果将<code>bit field</code>(第5-8字节)设置为<code>01 00 00 00</code>，则不会进行任何检测，直接加载pyc</p>
+<h2 id="代码分析">代码分析<a hidden class="anchor" aria-hidden="true" href="#代码分析">#</a></h2>
+<p>python中加载module或者package有两种方式：</p>
+<ol>
+<li><code>import</code>/<code>__import__</code></li>
+<li>动态导入</li>
+</ol>
+<p>动态导入最终是通过<code>exec_module</code>加载的：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> importlib.util
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dynamicImportModule</span>(moduleName, modulePath):
+</span></span><span style="display:flex;"><span>    spec <span style="color:#f92672">=</span> importlib<span style="color:#f92672">.</span>util<span style="color:#f92672">.</span>spec_from_file_location(moduleName, modulePath)
+</span></span><span style="display:flex;"><span>    importedModule <span style="color:#f92672">=</span> importlib<span style="color:#f92672">.</span>util<span style="color:#f92672">.</span>module_from_spec(spec)
+</span></span><span style="display:flex;"><span>    spec<span style="color:#f92672">.</span>loader<span style="color:#f92672">.</span>exec_module(importedModule)
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># do something with the imported module</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>dynamicImportModule(<span style="color:#e6db74">&#39;utils&#39;</span>, <span style="color:#e6db74">&#39;utils.py&#39;</span>)
+</span></span></code></pre></div><p><code>import</code>关键字本质是<code>__import__</code>函数，而<code>__import__</code>函数最终也会调用<code>exec_module</code>函数：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># https://github.com/python/cpython/blob/af6b3b825f3b653ffdb29fc1dd36de8acfe0a641/Lib/importlib/_bootstrap.py#L914</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">_load_unlocked</span>(spec):
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># A helper for direct use by the import system.</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> spec<span style="color:#f92672">.</span>loader <span style="color:#f92672">is</span> <span style="color:#f92672">not</span> <span style="color:#66d9ef">None</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e"># Not a namespace package.</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> hasattr(spec<span style="color:#f92672">.</span>loader, <span style="color:#e6db74">&#39;exec_module&#39;</span>):
+</span></span><span style="display:flex;"><span>            msg <span style="color:#f92672">=</span> (<span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">{</span>_object_name(spec<span style="color:#f92672">.</span>loader)<span style="color:#e6db74">}</span><span style="color:#e6db74">.exec_module() not found; &#34;</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#e6db74">&#34;falling back to load_module()&#34;</span>)
+</span></span><span style="display:flex;"><span>            _warnings<span style="color:#f92672">.</span>warn(msg, <span style="color:#a6e22e">ImportWarning</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> _load_backward_compatible(spec)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    module <span style="color:#f92672">=</span> module_from_spec(spec)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># This must be done before putting the module in sys.modules</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># (otherwise an optimization shortcut in import.c becomes</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># wrong).</span>
+</span></span><span style="display:flex;"><span>    spec<span style="color:#f92672">.</span>_initializing <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>        sys<span style="color:#f92672">.</span>modules[spec<span style="color:#f92672">.</span>name] <span style="color:#f92672">=</span> module
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> spec<span style="color:#f92672">.</span>loader <span style="color:#f92672">is</span> <span style="color:#66d9ef">None</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> spec<span style="color:#f92672">.</span>submodule_search_locations <span style="color:#f92672">is</span> <span style="color:#66d9ef">None</span>:
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">raise</span> <span style="color:#a6e22e">ImportError</span>(<span style="color:#e6db74">&#39;missing loader&#39;</span>, name<span style="color:#f92672">=</span>spec<span style="color:#f92672">.</span>name)
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># A namespace package so do nothing.</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>                spec<span style="color:#f92672">.</span>loader<span style="color:#f92672">.</span>exec_module(module)
+</span></span><span style="display:flex;"><span>       
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">...........</span>
+</span></span></code></pre></div><p>debug得知<code>spec.loader</code>为<code>SourceFileLoader</code>类型的对象，路径为<code>/$PYTHON_HOME/importlib/_bootstrap_external.py</code>。<code>SourceFileLoader</code>类继承了<code>SourceLoader</code>类，这个类又继承了<code>_LoaderBasics</code>，<code>_LoaderBasics</code>类定义了exec_module函数。代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">exec_module</span>(self, module):
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;Execute the module.&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    code <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>get_code(module<span style="color:#f92672">.</span>__name__)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> code <span style="color:#f92672">is</span> <span style="color:#66d9ef">None</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">raise</span> <span style="color:#a6e22e">ImportError</span>(<span style="color:#e6db74">&#39;cannot load module </span><span style="color:#e6db74">{!r}</span><span style="color:#e6db74"> when get_code() &#39;</span>
+</span></span><span style="display:flex;"><span>                            <span style="color:#e6db74">&#39;returns None&#39;</span><span style="color:#f92672">.</span>format(module<span style="color:#f92672">.</span>__name__))
+</span></span><span style="display:flex;"><span>    _bootstrap<span style="color:#f92672">.</span>_call_with_frames_removed(exec, code, module<span style="color:#f92672">.</span>__dict__)
+</span></span></code></pre></div><p>逻辑就是，通过<code>get_code</code>获得字节码，然后代用<code>exec</code>函数导入，关键点在于<code>get_code</code></p>
+<p><code>SourceLoader</code>类定义了<code>get_code</code>函数，代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get_code</span>(self, fullname):
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;Concrete implementation of InspectLoader.get_code.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    Reading of bytecode requires path_stats to be implemented. To write
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    bytecode, set_data must also be implemented.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    source_path <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>get_filename(fullname)
+</span></span><span style="display:flex;"><span>    source_mtime <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>
+</span></span><span style="display:flex;"><span>    source_bytes <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>
+</span></span><span style="display:flex;"><span>    source_hash <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>
+</span></span><span style="display:flex;"><span>    hash_based <span style="color:#f92672">=</span> <span style="color:#66d9ef">False</span>
+</span></span><span style="display:flex;"><span>    check_source <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>        bytecode_path <span style="color:#f92672">=</span> cache_from_source(source_path)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">except</span> <span style="color:#a6e22e">NotImplementedError</span>:
+</span></span><span style="display:flex;"><span>        bytecode_path <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>            st <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>path_stats(source_path)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">except</span> <span style="color:#a6e22e">OSError</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">pass</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>            source_mtime <span style="color:#f92672">=</span> int(st[<span style="color:#e6db74">&#39;mtime&#39;</span>])
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>                data <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>get_data(bytecode_path)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">except</span> <span style="color:#a6e22e">OSError</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">pass</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>                exc_details <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>                    <span style="color:#e6db74">&#39;name&#39;</span>: fullname,
+</span></span><span style="display:flex;"><span>                    <span style="color:#e6db74">&#39;path&#39;</span>: bytecode_path,
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>                    flags <span style="color:#f92672">=</span> _classify_pyc(data, fullname, exc_details)
+</span></span><span style="display:flex;"><span>                    bytes_data <span style="color:#f92672">=</span> memoryview(data)[<span style="color:#ae81ff">16</span>:]
+</span></span><span style="display:flex;"><span>                    hash_based <span style="color:#f92672">=</span> flags <span style="color:#f92672">&amp;</span> <span style="color:#ae81ff">0b1</span> <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">if</span> hash_based:
+</span></span><span style="display:flex;"><span>                        check_source <span style="color:#f92672">=</span> flags <span style="color:#f92672">&amp;</span> <span style="color:#ae81ff">0b10</span> <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>                        <span style="color:#66d9ef">if</span> (_imp<span style="color:#f92672">.</span>check_hash_based_pycs <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#39;never&#39;</span> <span style="color:#f92672">and</span>
+</span></span><span style="display:flex;"><span>                            (check_source <span style="color:#f92672">or</span>
+</span></span><span style="display:flex;"><span>                                _imp<span style="color:#f92672">.</span>check_hash_based_pycs <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;always&#39;</span>)):
+</span></span><span style="display:flex;"><span>                            source_bytes <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>get_data(source_path)
+</span></span><span style="display:flex;"><span>                            source_hash <span style="color:#f92672">=</span> _imp<span style="color:#f92672">.</span>source_hash(
+</span></span><span style="display:flex;"><span>                                _RAW_MAGIC_NUMBER,
+</span></span><span style="display:flex;"><span>                                source_bytes,
+</span></span><span style="display:flex;"><span>                            )
+</span></span><span style="display:flex;"><span>                            _validate_hash_pyc(data, source_hash, fullname,
+</span></span><span style="display:flex;"><span>                                                exc_details)
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>                        _validate_timestamp_pyc(
+</span></span><span style="display:flex;"><span>                            data,
+</span></span><span style="display:flex;"><span>                            source_mtime,
+</span></span><span style="display:flex;"><span>                            st[<span style="color:#e6db74">&#39;size&#39;</span>],
+</span></span><span style="display:flex;"><span>                            fullname,
+</span></span><span style="display:flex;"><span>                            exc_details,
+</span></span><span style="display:flex;"><span>                        )
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">except</span> (<span style="color:#a6e22e">ImportError</span>, <span style="color:#a6e22e">EOFError</span>):
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">pass</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>                    _bootstrap<span style="color:#f92672">.</span>_verbose_message(<span style="color:#e6db74">&#39;</span><span style="color:#e6db74">{}</span><span style="color:#e6db74"> matches </span><span style="color:#e6db74">{}</span><span style="color:#e6db74">&#39;</span>, bytecode_path,
+</span></span><span style="display:flex;"><span>                                                source_path)
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">return</span> _compile_bytecode(bytes_data, name<span style="color:#f92672">=</span>fullname,
+</span></span><span style="display:flex;"><span>                                                bytecode_path<span style="color:#f92672">=</span>bytecode_path,
+</span></span><span style="display:flex;"><span>                                                source_path<span style="color:#f92672">=</span>source_path)
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">.........</span>
+</span></span></code></pre></div><p>前面说到的的PEP中规定的pyc检测就是在这里实现的。其中<code>flags</code>就是<code>bit field</code>的值。默认情况下，<code>_imp.check_hash_based_pycs</code>的值是<code>default</code>，所以只要保证<code>check_source</code>为<code>False</code>且<code>hash_based</code>为<code>True</code>，也就是<code>bit field</code>为<code>01 00 00 00</code>时，就不会进行hash检测直接使用<code>pyc</code>中的字节码。</p>
+<p>关于<code>_imp.check_hash_based_pycs</code>在<a href="https://peps.python.org/pep-0552/">PEP-0552</a>中也有规定：</p>
+<blockquote>
+<p>Runtime configuration of hash-based pyc invalidation will be facilitated by a new &ndash;check-hash-based-pycs interpreter option. This is a tristate option, which may take 3 values: default, always, and never. The default value, default, means the check_source flag in hash-based pycs determines invalidation as described above. always causes the interpreter to hash the source file for invalidation regardless of value of check_source bit. never causes the interpreter to always assume hash-based pycs are valid. When &ndash;check-hash-based-pycs=never is in effect, unchecked hash-based pycs will be regenerated as unchecked hash-based pycs. Timestamp-based pycs are unaffected by &ndash;check-hash-based-pycs.</p>
+<p>基于哈希的 pyc 失效的运行时配置将由新的 &ndash;check-hash-based-pycs 解释器选项提供便利。这是一个三态选项，它可能采用 3 个值：default、always 和 never。默认值 default 表示基于哈希的 pycs 中的 check_source 标志如上所述确定失效。 始终导致解释器对源文件进行哈希处理以使其失效，而不管 check_source 的值如何 位。never 导致解释器始终假设基于哈希的 pycs 有效。当 &ndash;check-hash-based-pycs=never 生效时，未经检查的基于哈希的 pycs 将被重新生成为未经检查的基于哈希的 pycs。基于时间戳的 pycs 不受 &ndash;check-hash-based-pycs 的影响。</p>
+</blockquote>
+<p>目前来说，python默认不开启强制hash检测，不过可以通过<code>--check-hash-based-pycs</code>参数开启。</p>
+<h1 id="利用">利用<a hidden class="anchor" aria-hidden="true" href="#利用">#</a></h1>
+<p>编译当前目录下的python源文件为pyc文件</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>python -m compileall .
+</span></span></code></pre></div><p>将<code>bit field</code>(第5-8字节)修改为<code>01 00 00 00</code>，然后上传覆盖即可。</p>
+<h1 id="参考">参考<a hidden class="anchor" aria-hidden="true" href="#参考">#</a></h1>
+<p><a href="https://siunam321.github.io/research/python-dirty-arbitrary-file-write-to-rce-via-writing-shared-object-files-or-overwriting-bytecode-files/">https://siunam321.github.io/research/python-dirty-arbitrary-file-write-to-rce-via-writing-shared-object-files-or-overwriting-bytecode-files/</a></p>
+<p><a href="https://peps.python.org/pep-3147/">https://peps.python.org/pep-3147/</a></p>
+<p><a href="https://peps.python.org/pep-0552/">https://peps.python.org/pep-0552/</a></p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="https://zoiltin.github.io/">zoiltin&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

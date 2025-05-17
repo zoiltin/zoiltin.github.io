@@ -16,6 +16,13 @@
       <description>发现了一条新的CC链子可以实现链式调用，并可以用于Shiro反序列化。</description>
     </item>
     <item>
+      <title>python中关于pyc文件的一个奇怪特性</title>
+      <link>https://zoiltin.github.io/posts/python%E4%B8%AD%E5%85%B3%E4%BA%8Epyc%E6%96%87%E4%BB%B6%E7%9A%84%E4%B8%80%E4%B8%AA%E5%A5%87%E6%80%AA%E7%89%B9%E6%80%A7/</link>
+      <pubDate>Mon, 12 May 2025 12:13:11 +0000</pubDate>
+      <guid>https://zoiltin.github.io/posts/python%E4%B8%AD%E5%85%B3%E4%BA%8Epyc%E6%96%87%E4%BB%B6%E7%9A%84%E4%B8%80%E4%B8%AA%E5%A5%87%E6%80%AA%E7%89%B9%E6%80%A7/</guid>
+      <description>python中关于pyc文件的一个奇怪特性</description>
+    </item>
+    <item>
       <title>JNDI注入HessianProxyFactory的一点思考</title>
       <link>https://zoiltin.github.io/posts/jndi%E6%B3%A8%E5%85%A5hessianproxyfactory%E7%9A%84%E4%B8%80%E7%82%B9%E6%80%9D%E8%80%83/</link>
       <pubDate>Wed, 29 Jan 2025 12:20:00 +0000</pubDate>

@@ -16,6 +16,13 @@
       <description>发现了一条新的CC链子可以实现链式调用，并可以用于Shiro反序列化。</description>
     </item>
     <item>
+      <title>python中关于pyc文件的一个奇怪特性</title>
+      <link>https://zoiltin.github.io/posts/python%E4%B8%AD%E5%85%B3%E4%BA%8Epyc%E6%96%87%E4%BB%B6%E7%9A%84%E4%B8%80%E4%B8%AA%E5%A5%87%E6%80%AA%E7%89%B9%E6%80%A7/</link>
+      <pubDate>Mon, 12 May 2025 12:13:11 +0000</pubDate>
+      <guid>https://zoiltin.github.io/posts/python%E4%B8%AD%E5%85%B3%E4%BA%8Epyc%E6%96%87%E4%BB%B6%E7%9A%84%E4%B8%80%E4%B8%AA%E5%A5%87%E6%80%AA%E7%89%B9%E6%80%A7/</guid>
+      <description>python中关于pyc文件的一个奇怪特性</description>
+    </item>
+    <item>
       <title>Tomcat中DefaultServlet漏洞复现</title>
       <link>https://zoiltin.github.io/posts/tomcat%E4%B8%ADdefaultservlet%E6%BC%8F%E6%B4%9E%E5%A4%8D%E7%8E%B0/</link>
       <pubDate>Fri, 04 Apr 2025 10:48:20 +0000</pubDate>

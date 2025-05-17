@@ -166,6 +166,27 @@ Predicate predicate4 = new TransformedPredicate( new InvokerTransformer(&#34;exe
 
 <article class="post-entry tag-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">python中关于pyc文件的一个奇怪特性
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>前言 刷到siunam师傅的一篇文章：Python Dirty Arbitrary File Write to RCE via Writing Shared Object Files Or Overwriting Bytecode Files。讲的是关于python web服务器上上传文件导致RCE的方法。yiyi师傅还根据这个出了一道题目。
+siunam师傅的文章主要是从PEP等文档角度分析的，找到了一种覆盖pyc文件导致RCE的方法。但我在代码审计的过程中发现了一种更方便的绕过方法。
+pyc加载 关于pyc的加载逻辑在PEP-3147中，
+情况 0：稳态
+当要求 Python 导入模块 foo 时，它会搜索 foo.py 文件（或 foo 包，但这对本次讨论并不重要）的 sys.path。如果找到，Python 会查看是否有匹配的 __pycache__/foo.&lt;magic&gt;.pyc 文件，如果有，则加载该 pyc 文件。
+&lt;magic&gt;根据python版本生成，比如python3.9的&lt;magic&gt;为cpython-39，python3.11的&lt;magic&gt;为cpython-311
+情况 1：第一次导入
+当 Python 找到 foo.py 时，如果 __pycache__/foo.&lt;magic&gt;.pyc 文件缺失，Python 将创建它，同时创建 __pycache__ 目录（如有必要）。Python 将对 foo.py 文件进行解析和字节编译，并将字节码保存在 __pycache__/foo.&lt;magic&gt;.pyc.
+情况 2：第二次导入
+当要求 Python 第二次导入模块 foo 时（当然是在不同的过程中），它将再次搜索 foo.py 文件 。 当 Python 找到 foo.py 文件时，它会查找匹配的 __pycache__/foo....</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-05-12 12:13:11 +0000 UTC'>May 12, 2025</span>&nbsp;·&nbsp;4 min</footer>
+  <a class="entry-link" aria-label="post link to python中关于pyc文件的一个奇怪特性" href="https://zoiltin.github.io/posts/python%E4%B8%AD%E5%85%B3%E4%BA%8Epyc%E6%96%87%E4%BB%B6%E7%9A%84%E4%B8%80%E4%B8%AA%E5%A5%87%E6%80%AA%E7%89%B9%E6%80%A7/"></a>
+</article>
+
+<article class="post-entry tag-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">JNDI注入HessianProxyFactory的一点思考
     </h2>
   </header>
