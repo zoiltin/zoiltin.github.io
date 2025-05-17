@@ -157,6 +157,26 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">Jumpserver随机数预测漏洞(CVE-2023-42820)复现
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>环境 Jumpserver &lt;= v3.6.4中存在CVE-2023-42820漏洞，可以预测随机数导致验证码预测。
+环境搭建
+vulnhub或者官网
+漏洞分析 github diff如下https://github.com/jumpserver/jumpserver/commit/ce645b1710c5821119f313e1b3d801470565aac0
+random_string函数用于生成密码重置的验证码，去掉了random的seed，所以代码中应该有地方可以设置可控seed。
+jumpserver v3.6.4使用了django-simple-captcha v0.5.18来生成验证码，而此版本中在captcha_image函数中设置了种子，但结束后未将其置空。
+图片验证码逻辑 captcha相关路由如下：
+urlpatterns = [ re_path( r&#34;image/(?P&lt;key&gt;\w&#43;)/$&#34;, views.captcha_image, name=&#34;captcha-image&#34;, kwargs={&#34;scale&#34;: 1}, ), re_path( r&#34;image/(?P&lt;key&gt;\w&#43;)@2/$&#34;, views.captcha_image, name=&#34;captcha-image-2x&#34;, kwargs={&#34;scale&#34;: 2}, ), re_path(r&#34;audio/(?P&lt;key&gt;\w&#43;).wav$&#34;, views.captcha_audio, name=&#34;captcha-audio&#34;), re_path(r&#34;refresh/$&#34;, views.captcha_refresh, name=&#34;captcha-refresh&#34;), ] 验证码刷新代码：
+def captcha_refresh(request): &#34;&#34;&#34;Return json with new captcha for ajax refresh request&#34;&#34;&#34; if not request.headers.get(&#34;x-requested-with&#34;) == &#34;XMLHttpRequest&#34;: raise Http404 new_key = CaptchaStore.pick() ...... @classmethod def generate_key(cls, generator=None): challenge, response = captcha_settings.get_challenge(generator)() store = cls....</p>
+  </div>
+  <footer class="entry-footer"><span title='2024-11-20 19:12:11 +0000 UTC'>November 20, 2024</span>&nbsp;·&nbsp;8 min</footer>
+  <a class="entry-link" aria-label="post link to Jumpserver随机数预测漏洞(CVE-2023-42820)复现" href="https://zoiltin.github.io/posts/jumpserver%E9%9A%8F%E6%9C%BA%E6%95%B0%E9%A2%84%E6%B5%8B%E6%BC%8F%E6%B4%9Ecve-2023-42820%E5%A4%8D%E7%8E%B0/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">Ciscn 2024 final Fobee wp
     </h2>
   </header>
