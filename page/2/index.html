@@ -152,6 +152,28 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">python中关于__new__的一个trick
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>本篇文章仅用于技术交流学习和研究的目的，严禁使用文章中的技术用于非法目的和破坏。
+前言 javascript可以通过Function的构造方法从字符串创建函数。在eval被过滤的情况下可以通过字符串创建函数来绕过：
+atob.constructor(&#39;console.log(1);&#39;)(); 最近在学习python沙箱逃逸，学习了python也能像js那样使用构造方法创建函数。本文用于记录一下学到的python中关于__new__有趣的玩法。才疏学浅，如有错误还请师傅们指正。
+python object 以下分析中python版本为3.12.6，不同版本略有差异
+下载源码：https://github.com/python/cpython/
+首先梳理一下python的对象。
+python中所有的对象都是由PyObject结构体扩展而来。type感觉类似于java里的Class，负责定义对象的一些基本信息。参考：https://flaggo.github.io/python3-source-code-analysis/objects/object/
+type(obj)可以返回对象的type，type中的__new__方法用于创建对象。详细可参考MetaClass：https://liaoxuefeng.com/books/python/oop-adv/meta-class/
+__new__最终会调用到PyXXXObject_New api，创建一个对象
+PyFunctionObject PyFunctionObject的__new__定义在：cpython/Objects/funcobject.c，有如下注释：
+/*[clinic input]@classmethodfunction.__new__ as func_newcode: object(type=&#34;PyCodeObject *&#34;, subclass_of=&#34;&amp;PyCode_Type&#34;)a code objectglobals: object(subclass_of=&#34;&amp;PyDict_Type&#34;)the globals dictionaryname: object = Nonea string that overrides the name from the code objectargdefs as defaults: object = Nonea tuple that specifies the default argument valuesclosure: object = Nonea tuple that supplies the bindings for free variablesCreate a function object....</p>
+  </div>
+  <footer class="entry-footer"><span title='2024-12-06 18:31:11 +0000 UTC'>December 6, 2024</span>&nbsp;·&nbsp;5 min</footer>
+  <a class="entry-link" aria-label="post link to python中关于__new__的一个trick" href="https://zoiltin.github.io/posts/python%E4%B8%AD%E5%85%B3%E4%BA%8E__new__%E7%9A%84%E4%B8%80%E4%B8%AAtrick/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">CTF记录-SECCON_CTF_13th_Quals, AlpacaHack_Round_7
     </h2>
   </header>

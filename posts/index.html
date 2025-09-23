@@ -157,6 +157,20 @@
 
 <article class="post-entry"> 
   <header class="entry-header">
+    <h2 class="entry-hint-parent">Hessian 反序列化新链分析与坑点
+    </h2>
+  </header>
+  <div class="entry-content">
+    <p>链子分析 com.sun.corba.se.impl.activation.ServerManagerImpl 类的 getActiveServers 方法代码如下：
+public int[] getActiveServers() { ServerTableEntry entry; int[] list = null; synchronized (serverTable) { // unlike vectors, list is not synchronized ArrayList servers = new ArrayList(0); Iterator serverList = serverTable.keySet().iterator(); try { while (serverList.hasNext()) { Integer key = (Integer) serverList.next(); // get an entry entry = (ServerTableEntry) serverTable.get(key); if (entry.isValid() &amp;&amp; entry.isActive()) { servers.add(entry); } } ............. } 调用了 com.sun.corba.se.impl.activation.ServerTableEntry 类的 isValid 方法，代码如下：
+synchronized boolean isValid(){ if ((state == ACTIVATING) || (state == HELD_DOWN)) { if (debug) printDebug( &#34;isValid&#34;, &#34;returns true&#34; ) ; return true; } try { int exitVal = process....</p>
+  </div>
+  <footer class="entry-footer"><span title='2025-09-23 01:51:35 +0000 UTC'>September 23, 2025</span>&nbsp;·&nbsp;3 min</footer>
+  <a class="entry-link" aria-label="post link to Hessian 反序列化新链分析与坑点" href="https://zoiltin.github.io/posts/hessian%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%96%B0%E9%93%BE%E5%88%86%E6%9E%90%E4%B8%8E%E5%9D%91%E7%82%B9/"></a>
+</article>
+
+<article class="post-entry"> 
+  <header class="entry-header">
     <h2 class="entry-hint-parent">Commons-Collections中Closure和Predicate在Shiro下的利用
     </h2>
   </header>
@@ -337,28 +351,6 @@ public Object getObjectInstance(Object obj, Name name, Context nameCtx, Hashtabl
   </div>
   <footer class="entry-footer"><span title='2025-01-29 12:20:00 +0000 UTC'>January 29, 2025</span>&nbsp;·&nbsp;3 min</footer>
   <a class="entry-link" aria-label="post link to JNDI注入HessianProxyFactory的一点思考" href="https://zoiltin.github.io/posts/jndi%E6%B3%A8%E5%85%A5hessianproxyfactory%E7%9A%84%E4%B8%80%E7%82%B9%E6%80%9D%E8%80%83/"></a>
-</article>
-
-<article class="post-entry"> 
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">python中关于__new__的一个trick
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>本篇文章仅用于技术交流学习和研究的目的，严禁使用文章中的技术用于非法目的和破坏。
-前言 javascript可以通过Function的构造方法从字符串创建函数。在eval被过滤的情况下可以通过字符串创建函数来绕过：
-atob.constructor(&#39;console.log(1);&#39;)(); 最近在学习python沙箱逃逸，学习了python也能像js那样使用构造方法创建函数。本文用于记录一下学到的python中关于__new__有趣的玩法。才疏学浅，如有错误还请师傅们指正。
-python object 以下分析中python版本为3.12.6，不同版本略有差异
-下载源码：https://github.com/python/cpython/
-首先梳理一下python的对象。
-python中所有的对象都是由PyObject结构体扩展而来。type感觉类似于java里的Class，负责定义对象的一些基本信息。参考：https://flaggo.github.io/python3-source-code-analysis/objects/object/
-type(obj)可以返回对象的type，type中的__new__方法用于创建对象。详细可参考MetaClass：https://liaoxuefeng.com/books/python/oop-adv/meta-class/
-__new__最终会调用到PyXXXObject_New api，创建一个对象
-PyFunctionObject PyFunctionObject的__new__定义在：cpython/Objects/funcobject.c，有如下注释：
-/*[clinic input]@classmethodfunction.__new__ as func_newcode: object(type=&#34;PyCodeObject *&#34;, subclass_of=&#34;&amp;PyCode_Type&#34;)a code objectglobals: object(subclass_of=&#34;&amp;PyDict_Type&#34;)the globals dictionaryname: object = Nonea string that overrides the name from the code objectargdefs as defaults: object = Nonea tuple that specifies the default argument valuesclosure: object = Nonea tuple that supplies the bindings for free variablesCreate a function object....</p>
-  </div>
-  <footer class="entry-footer"><span title='2024-12-06 18:31:11 +0000 UTC'>December 6, 2024</span>&nbsp;·&nbsp;5 min</footer>
-  <a class="entry-link" aria-label="post link to python中关于__new__的一个trick" href="https://zoiltin.github.io/posts/python%E4%B8%AD%E5%85%B3%E4%BA%8E__new__%E7%9A%84%E4%B8%80%E4%B8%AAtrick/"></a>
 </article>
 <footer class="page-footer">
   <nav class="pagination">

